@@ -24,9 +24,9 @@ UniSlot — вебсистема, у якій викладач або відпо
 | Учасник | GitHub | Роль у команді |
 |---|---|---|
 | Никита Бабаков | [@NykytaBabakov](https://github.com/NykytaBabakov) | Repo Maintainer, Documentation Lead |
-| *(заповнити)* | *(@login)* | CI Maintainer |
-| *(заповнити)* | *(@login)* | Issue Tracker Lead |
-| *(заповнити)* | *(@login)* | Project Brief Lead |
+| Павло Дзюбак | [@DziubakPavlo](https://github.com/DziubakPavlo) | CI Maintainer |
+| Аксенія Козуліна | [@asyakozulina](https://github.com/asyakozulina)  | Issue Tracker Lead |
+| Денис Пацеля |  [@dysett](https://github.com/dysett) | Project Brief Lead |
 
 Детальні зони відповідальності — у [командному статуті](TeamCharter.md), розділ 2.
 
