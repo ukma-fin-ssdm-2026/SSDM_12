@@ -182,4 +182,4 @@
 - [x] Никита Бабаков (GitHub: @NykytaBabakov)
 - [ ] Павло Дзюбак (GitHub: @DziubakPavlo)
 - [ ] Аксенія Козуліна (GitHub: @asyakozulina)
-- [ ] Денис Пацеля (GitHub: @dysett)
+- [x] Денис Пацеля (GitHub: @dysett)
