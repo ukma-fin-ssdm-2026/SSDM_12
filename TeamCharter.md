@@ -180,6 +180,6 @@
 Історія змін цього файла є підтвердженням згоди з часовою міткою.
 
 - [x] Никита Бабаков (GitHub: @NykytaBabakov)
-- [ ] Павло Дзюбак (GitHub: @DziubakPavlo)
+- [x] Павло Дзюбак (GitHub: @DziubakPavlo)
 - [x] Аксенія Козуліна (GitHub: @asyakozulina)
 - [ ] Денис Пацеля (GitHub: @dysett)
