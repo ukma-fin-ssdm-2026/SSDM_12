@@ -1,0 +1,15 @@
+# Власники за зонами відповідальності (TeamCharter.md, розділ 2).
+# GitHub запитує рецензію у власника, крім випадку, коли він сам автор PR.
+
+# Конвеєр CI — CI Maintainer
+/.github/workflows/    @asyakozulina
+
+# Робочий процес і трекер — Issue Tracker Lead
+/CONTRIBUTING.md       @DziubakPavlo
+/.github/pull_request_template.md  @DziubakPavlo
+
+# Опис проєкту та межі — Project Brief Lead
+/Project-Description.md  @dysett
+
+# Решта репозиторію — Repo Maintainer + Documentation Lead
+*                      @NykytaBabakov
