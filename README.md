@@ -1,7 +1,6 @@
 # UniSlot — система бронювання консультацій та аудиторій
 
-<!-- CI-BADGE: CI Maintainer вставляє сюди Markdown значка
-     (Actions → CI → «···» → Create status badge → Copy status badge Markdown) -->
+[![CI](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/workflows/ci.yml)
 
 Навчальний проєкт команди **SSDM_12** у курсі «Методи розробки програмних систем»
 (НаУКМА, факультет інформатики, осінь 2026).
