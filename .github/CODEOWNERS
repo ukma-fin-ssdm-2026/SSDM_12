@@ -1,15 +1,22 @@
 # Власники за зонами відповідальності (TeamCharter.md, розділ 2).
 # GitHub запитує рецензію у власника, крім випадку, коли він сам автор PR.
+# Порядок важливий: для кожного файлу діє ОСТАННЄ правило, що з ним збігається,
+# тому загальне правило стоїть першим, а конкретні — після нього.
+
+# Типово — Repo Maintainer
+*                                   @NykytaBabakov
 
 # Конвеєр CI — CI Maintainer
-/.github/workflows/    @asyakozulina
+/.github/workflows/                 @DziubakPavlo
 
 # Робочий процес і трекер — Issue Tracker Lead
-/CONTRIBUTING.md       @DziubakPavlo
-/.github/pull_request_template.md  @DziubakPavlo
+/CONTRIBUTING.md                    @asyakozulina
+/.github/pull_request_template.md   @asyakozulina
 
 # Опис проєкту та межі — Project Brief Lead
-/Project-Description.md  @dysett
+/Project-Description.md             @dysett
 
-# Решта репозиторію — Repo Maintainer + Documentation Lead
-*                      @NykytaBabakov
+# Вимоги (Лаб 2). По два власники: якщо автор PR — один із них, запит на рецензію отримає інший.
+/docs/requirements/user-stories.md  @dysett @NykytaBabakov
+/docs/requirements/requirements.md  @dysett @DziubakPavlo
+/docs/requirements/rtm.md           @asyakozulina @NykytaBabakov
