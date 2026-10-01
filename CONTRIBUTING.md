@@ -122,6 +122,8 @@ ci: add repository structure check to pipeline
 
 Мітки `lab01`…`lab10` створюємо за потреби, а не всі наперед.
 
+| `feedback` | Зворотний зв'язок викладача (мітку ставить викладач) |
+
 ---
 
 ## 6. Визначення готовності (Definition of Done)
