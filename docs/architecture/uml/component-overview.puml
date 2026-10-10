@@ -1,50 +1,45 @@
-@startuml activity-block-time
-' UniSlot — діаграма діяльності (опційна, Лаб 3): провайдер блокує
-' проміжок часу, у якому вже є бронювання (US-009; FR-013, FR-014).
-' Показує, як блокування, скасування й сповіщення діють разом:
-' ADR-002 (блокування рядків слотів) і ADR-003 (outbox).
-title UniSlot — провайдер блокує проміжок часу з наявними бронюваннями
+@startuml component-overview
+' UniSlot — діаграма компонентів, рівень 1: огляд системи (Лаб 3).
+' Рівень 2 (модулі всередині бекенду) — component-modules.puml.
+' Опис компонентів та інтерфейсів — ../high-level-design.md, §4–§6.
+title UniSlot — діаграма компонентів, рівень 1: огляд системи
+skinparam componentStyle uml2
 skinparam shadowing false
+skinparam nodesep 70
+skinparam ranksep 55
 
-|Провайдер|
-start
-:Обирає свій ресурс, проміжок часу
-й вказує причину блокування;
-|UniSlot API|
-if (Причину вказано?) then (ні)
-  :Відмова: «Вкажіть причину» (TC-035);
-  stop
-else (так)
-endif
-if (Ресурс належить цьому провайдеру?) then (ні)
-  :403 problem+json (FR-007, TC-028);
-  stop
-else (так)
-endif
-:BEGIN; заблокувати рядки слотів ресурсу
-в проміжку за зростанням часу (ADR-002);
-:Записати time_block: причина, автор, час (THR-08);
-if (У проміжку є чинні бронювання?) then (так)
-  :Для кожного: status = cancelled,
-  cancellation_kind = provider_block,
-  причина провайдера (FR-014);
-  :Outbox: «бронювання скасовано» студентам із причиною,
-  скасувати їхні заплановані нагадування,
-  провайдеру сповіщення не дублюється (TC-023);
-else (ні)
-endif
-:COMMIT;
-fork
-  :201: провайдер бачить блокування
-  і кількість скасованих бронювань;
-  |Провайдер|
-  :Слоти проміжку недоступні для запису
-  й зникли з пошуку (FR-023);
-fork again
-  |Worker|
-  :Надсилає сповіщення зі скасуванням,
-  за недоступного адаптера — повторні спроби
-  з експоненційною затримкою (REL-002, TC-063);
-end fork
-stop
+actor "Студент" as student
+actor "Провайдер" as provider
+actor "Адміністратор" as admin
+
+component "Web UI\n(HTML/CSS/JS у браузері)" as ui
+interface "REST API\nHTTPS + JSON, /api/v1" as IRest
+component "UniSlot API\n(модульний моноліт:\nPython 3.12, FastAPI)" as backend
+component "Worker\n(той самий код,\nокремий процес)" as worker
+interface "SQL (TCP 5432)" as ISql
+database "PostgreSQL 16\n(дані, outbox,\nжурнал аудиту)" as db
+interface "NotificationGateway" as IGateway
+component "Провайдер доставки\nсповіщень\n(заглушка, C-002)" as stub
+
+student -down-> ui
+provider -down-> ui
+admin -down-> ui
+
+ui -down-( IRest
+backend -up- IRest
+
+backend -down-( ISql
+worker -down-( ISql
+db -up- ISql
+
+worker -right-( IGateway
+stub -left- IGateway
+
+legend bottom right
+  «Кулька» — наданий інтерфейс, «гніздо» — потрібний.
+  Worker читає outbox і надсилає сповіщення з повторними
+  спробами (ADR-003) та щодня продовжує горизонт слотів (DD-02).
+  Інваріанти «одне чинне бронювання на слот» і «слоти ресурсу
+  не перетинаються» забезпечує PostgreSQL (ADR-002).
+endlegend
 @enduml
