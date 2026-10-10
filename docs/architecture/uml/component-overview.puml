@@ -1,0 +1,45 @@
+@startuml component-overview
+' UniSlot — діаграма компонентів, рівень 1: огляд системи (Лаб 3).
+' Рівень 2 (модулі всередині бекенду) — component-modules.puml.
+' Опис компонентів та інтерфейсів — ../high-level-design.md, §4–§6.
+title UniSlot — діаграма компонентів, рівень 1: огляд системи
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam nodesep 70
+skinparam ranksep 55
+
+actor "Студент" as student
+actor "Провайдер" as provider
+actor "Адміністратор" as admin
+
+component "Web UI\n(HTML/CSS/JS у браузері)" as ui
+interface "REST API\nHTTPS + JSON, /api/v1" as IRest
+component "UniSlot API\n(модульний моноліт:\nPython 3.12, FastAPI)" as backend
+component "Worker\n(той самий код,\nокремий процес)" as worker
+interface "SQL (TCP 5432)" as ISql
+database "PostgreSQL 16\n(дані, outbox,\nжурнал аудиту)" as db
+interface "NotificationGateway" as IGateway
+component "Провайдер доставки\nсповіщень\n(заглушка, C-002)" as stub
+
+student -down-> ui
+provider -down-> ui
+admin -down-> ui
+
+ui -down-( IRest
+backend -up- IRest
+
+backend -down-( ISql
+worker -down-( ISql
+db -up- ISql
+
+worker -right-( IGateway
+stub -left- IGateway
+
+legend bottom right
+  «Кулька» — наданий інтерфейс, «гніздо» — потрібний.
+  Worker читає outbox і надсилає сповіщення з повторними
+  спробами (ADR-003) та щодня продовжує горизонт слотів (DD-02).
+  Інваріанти «одне чинне бронювання на слот» і «слоти ресурсу
+  не перетинаються» забезпечує PostgreSQL (ADR-002).
+endlegend
+@enduml

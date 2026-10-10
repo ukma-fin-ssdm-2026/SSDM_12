@@ -1,0 +1,97 @@
+@startuml component-modules
+' UniSlot — діаграма компонентів, рівень 2: модулі бекенду (Лаб 3).
+' Рівень 1 (огляд системи) — component-overview.puml.
+' Опис модулів та інтерфейсів — ../high-level-design.md, §4–§6.
+' Залежності спрямовані згори вниз: REST API → модулі → Platform → БД.
+' REST API використовує сервіси модулів (пунктир із назвою інтерфейсу);
+' взаємодію модулів показано «кулькою» (наданий інтерфейс) і «гніздом» (потрібний).
+title UniSlot — діаграма компонентів, рівень 2: модулі бекенду
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 50
+
+component "Web UI" as ui
+interface "REST API /api/v1" as IRest
+
+package "UniSlot API (FastAPI)" {
+  component "REST API\n(роутери, схеми Pydantic,\nпомилки RFC 9457)" as api
+
+  package "Модулі (шари application + domain)" as modules {
+    component "Auth\nF1" as auth
+    component "Search\nF3" as search
+    component "Booking\nF4, F5" as booking
+    component "Availability\nF2" as avail
+    component "Admin\nF7" as adm
+    component "Notifications\nF6" as notif
+    component "Audit\nF7" as audit
+
+    interface "SlotCatalog" as ISlot
+    interface "BlockImpactPort" as IBlock
+    interface "PolicyProvider" as IPolicy
+    interface "NotificationOutbox" as IOutbox
+    interface "AuditLog" as IAudit
+    interface "RoleAssignment" as IRole
+    interface "ResourceManagement" as IRes
+  }
+
+  component "Platform\n(конфігурація, Unit of Work,\nClock, логування)" as platform
+}
+
+component "Worker\n(окремий процес)" as worker
+interface "NotificationGateway" as IGateway
+component "Заглушка доставки\n(C-002)" as stub
+database "PostgreSQL 16" as db
+
+' --- Зовнішній інтерфейс ---
+api -up- IRest
+ui -down-( IRest
+
+' --- REST API використовує сервіси модулів ---
+api ..> auth : AccessControl
+api ..> search : SlotSearch
+api ..> booking : BookingService
+api ..> avail : AvailabilityService
+api ..> adm : AdminService
+api ..> audit : AuditQuery
+
+' --- Booking потребує інтерфейсів інших модулів ---
+booking -down-( ISlot
+avail -up- ISlot
+booking -down-( IPolicy
+adm -up- IPolicy
+booking -down-( IOutbox
+notif -up- IOutbox
+
+' --- Інверсія залежності: порт належить Availability, реалізує Booking ---
+booking -down- IBlock
+avail -up-( IBlock
+
+' --- Admin оркеструє зміни в даних інших модулів ---
+adm -down-( IRes
+avail -up- IRes
+adm -down-( IRole
+auth -up- IRole
+
+' --- Журнал аудиту ---
+adm -down-( IAudit
+auth -down-( IAudit
+audit -up- IAudit
+
+' --- Фонові задачі й доставка ---
+worker ..> notif : Dispatcher
+worker ..> avail : HorizonJob
+notif -down-( IGateway
+stub -up- IGateway
+
+' --- Шар Platform і база даних ---
+modules ..> platform : UnitOfWork, Clock
+platform -down-> db : SQL
+
+legend bottom right
+  «Кулька» — наданий інтерфейс, «гніздо» — потрібний.
+  BlockImpactPort визначено в Availability, а реалізує
+  його Booking: блокування часу скасовує бронювання
+  (FR-014), проте код Availability не імпортує Booking.
+endlegend
+@enduml
