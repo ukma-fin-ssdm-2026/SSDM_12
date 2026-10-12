@@ -1,0 +1,166 @@
+@startuml data-model
+' UniSlot — ER-модель даних (Лаб 3), логічний рівень для PostgreSQL 16.
+' Опис сутностей, інваріантів і класифікації даних — ../data-model.md.
+' Позначки: <<PK>> — первинний ключ, <<FK>> — зовнішній ключ,
+' <<ПД>> — персональні дані, <<чутливі>> — секрети автентифікації.
+' «*» перед атрибутом — обов'язковий (NOT NULL).
+title UniSlot — ER-модель даних
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 70
+
+entity "app_user\n(користувач)" as app_user {
+  * id : uuid <<PK>>
+  --
+  * email : text <<ПД>> <<унікальний lower(email)>>
+  * full_name : text <<ПД>>
+  * password_hash : text <<чутливі>> <<Argon2id>>
+  * is_active : boolean
+  failed_login_count : integer
+  last_failed_login_at : timestamptz
+  * created_at : timestamptz
+}
+
+entity "user_role\n(роль користувача)" as user_role {
+  * user_id : uuid <<PK>> <<FK>>
+  * role : role (student | provider | admin) <<PK>>
+  --
+  * granted_at : timestamptz
+  granted_by : uuid <<FK>>
+}
+
+entity "session\n(сесія)" as session {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * token_hash : bytea <<чутливі>> <<унікальний>>
+  * created_at : timestamptz
+  * expires_at : timestamptz
+}
+
+entity "resource\n(ресурс)" as resource {
+  * id : uuid <<PK>>
+  --
+  * name : text
+  * type : resource_type (consultation | room)
+  capacity : integer (лише для room, більше 0)
+  * provider_id : uuid <<FK>>
+  * is_active : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+
+entity "availability_template\n(шаблон доступності)" as template {
+  * id : uuid <<PK>>
+  --
+  * resource_id : uuid <<FK>>
+  * weekday : smallint (1–7)
+  * start_local : time <<Europe/Kyiv>>
+  * end_local : time <<Europe/Kyiv>>
+  * slot_minutes : smallint
+  * valid_from : date
+  valid_to : date
+  * created_by : uuid <<FK>>
+}
+
+entity "slot\n(слот)" as slot {
+  * id : uuid <<PK>>
+  --
+  * resource_id : uuid <<FK>>
+  template_id : uuid <<FK>>
+  * starts_at : timestamptz <<UTC>>
+  * ends_at : timestamptz <<UTC>>
+  * created_at : timestamptz
+  ..
+  EXCLUDE: ресурс =, [starts_at, ends_at) &&
+}
+
+entity "time_block\n(блокування)" as block {
+  * id : uuid <<PK>>
+  --
+  * resource_id : uuid <<FK>>
+  * starts_at : timestamptz
+  * ends_at : timestamptz
+  * reason : text <<може містити ПД>>
+  * created_by : uuid <<FK>>
+  * created_at : timestamptz
+  lifted_at : timestamptz
+  lifted_by : uuid <<FK>>
+}
+
+entity "booking_policy\n(політика бронювання)" as policy {
+  * id : uuid <<PK>>
+  --
+  * cancellation_window_minutes : integer
+  * active_booking_limit : integer
+  * effective_from : timestamptz
+  * created_by : uuid <<FK>>
+}
+
+entity "booking\n(бронювання)" as booking {
+  * id : uuid <<PK>>
+  --
+  * slot_id : uuid <<FK>>
+  * student_id : uuid <<FK>> <<ПД>>
+  * status : booking_status (confirmed | cancelled)
+  * cancel_deadline_at : timestamptz
+  * policy_id : uuid <<FK>>
+  * created_at : timestamptz
+  cancelled_at : timestamptz
+  cancelled_by : uuid <<FK>>
+  cancellation_kind : (student | provider_block | rescheduled)
+  cancellation_reason : text <<може містити ПД>>
+  rescheduled_to_id : uuid <<FK>> <<унікальний>>
+  ..
+  UNIQUE (slot_id) WHERE status = 'confirmed'
+  UNIQUE (rescheduled_to_id)
+  FK rescheduled_to_id: DEFERRABLE INITIALLY DEFERRED
+}
+
+entity "notification\n(сповіщення, outbox)" as notification {
+  * id : uuid <<PK>>
+  --
+  * kind : notification_kind
+  * recipient_id : uuid <<FK>>
+  booking_id : uuid <<FK>>
+  * payload : jsonb <<ПД>>
+  * status : (pending | sent | cancelled | failed)
+  * scheduled_for : timestamptz
+  * attempts : integer
+  next_attempt_at : timestamptz
+  last_error : text
+  * created_at : timestamptz
+  sent_at : timestamptz
+}
+
+entity "audit_log\n(журнал аудиту)" as audit {
+  * id : uuid <<PK>> <<UUIDv4>>
+  --
+  * occurred_at : timestamptz
+  * actor_id : uuid <<FK>> <<ПД>>
+  * action : text
+  * outcome : (success | denied)
+  * object_type : text
+  object_id : uuid
+  before : jsonb
+  after : jsonb
+  ..
+  лише INSERT і SELECT
+}
+
+app_user ||--o{ user_role : має
+app_user ||--o{ session : відкриває
+app_user ||--o{ resource : "веде\n(провайдер)"
+resource ||--o{ template : має
+resource ||--o{ slot : має
+template |o--o{ slot : породжує
+resource ||--o{ block : має
+slot ||--o{ booking : "бронюється\n(≤ 1 confirmed)"
+app_user ||--o{ booking : "бронює\n(студент)"
+policy ||--o{ booking : "діє для"
+booking |o--o| booking : "перенесено в"
+app_user ||--o{ notification : отримує
+booking |o--o{ notification : породжує
+app_user ||--o{ audit : "виконує дію"
+@enduml
