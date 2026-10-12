@@ -1,0 +1,98 @@
+@startuml sequence-booking
+' UniSlot — діаграма послідовності критичного сценарію (Лаб 3):
+' студент бронює вільний слот (US-001; FR-030…FR-035, FR-041, FR-050, FR-053).
+' Конкурентний випадок (REL-001) окремо — sequence-booking-concurrency.puml.
+' Пояснення рішень — ../decisions/ADR-002.md (цілісність) і ADR-003.md (сповіщення).
+title UniSlot — бронювання вільного слота (US-001)
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+autonumber
+
+actor "Студент" as S
+participant "Web UI" as UI
+participant "REST API\n(роутер bookings)" as API
+participant "Auth\n(AccessControl)" as AUTH
+participant "Booking\n(BookingService)" as BK
+participant "Availability\n(SlotCatalog)" as AV
+participant "Admin\n(PolicyProvider)" as POL
+participant "Notifications\n(NotificationOutbox)" as OUT
+database "PostgreSQL" as DB
+
+S -> UI : обирає вільний слот і натискає «Забронювати»
+UI -> API : POST /api/v1/bookings {slot_id}\ncookie сесії + X-CSRF-Token
+activate API
+API -> AUTH : current_user(); require_roles(student)
+activate AUTH
+AUTH -> DB : SELECT сесія за хешем токена, користувач, ролі
+AUTH --> API : користувач із роллю «студент»
+deactivate AUTH
+API -> BK : book(student, slot_id)
+activate BK
+BK -> DB : BEGIN (READ COMMITTED)
+BK -> DB : SELECT … FROM app_user WHERE id = :student FOR UPDATE
+note right of DB
+  Рядок студента серіалізує його
+  власні бронювання: ліміт A-002
+  і перетин у часі (FR-033, FR-035).
+end note
+BK -> AV : lock_slot(slot_id)
+activate AV
+AV -> DB : SELECT slot, resource … FOR UPDATE OF slot
+AV --> BK : слот: ресурс, провайдер, starts_at, ends_at
+BK -> AV : bookability(slot, now)
+AV -> DB : чи є чинне бронювання або активне блокування?
+AV --> BK : можна бронювати | причина відмови
+deactivate AV
+
+alt слот почався (A-006), поза горизонтом (A-001), заблокований або зайнятий
+  BK -> DB : ROLLBACK
+  BK --> API : SlotNotBookable(причина)
+  API --> UI : 409 application/problem+json\n(причина + дія для користувача)
+  UI --> S : «Слот недоступний: … Оберіть інший»
+else слот можна бронювати
+  BK -> POL : current_policy()
+  POL --> BK : ліміт A-002, вікно A-003, policy_id
+  BK -> DB : кількість активних бронювань студента;\nперетин із його активними бронюваннями
+  alt ліміт вичерпано (FR-033) або є перетин (FR-035)
+    BK -> DB : ROLLBACK
+    BK --> API : BookingLimitReached | OverlappingBooking
+    API --> UI : 409 problem+json\n(ліміт і кількість бронювань або конфліктне бронювання)
+  else перевірки пройдено
+    BK -> BK : cancel_deadline_at = starts_at − вікно (FR-041)
+    BK -> DB : INSERT booking(status = confirmed,\ncancel_deadline_at, policy_id)
+    alt порушено uq_booking_slot_confirmed (остання лінія захисту REL-001)
+      DB --> BK : unique_violation
+      BK -> DB : ROLLBACK
+      BK --> API : SlotAlreadyBooked
+      API --> UI : 409 problem+json «Слот щойно зайняли — оберіть інший»
+    else вставка успішна
+      BK -> OUT : enqueue: booking_confirmed → студент;\nprovider_booking_created → провайдер;\nbooking_reminder на starts_at − A-004, якщо цей момент ще не настав
+      activate OUT
+      OUT -> DB : INSERT notification … (та сама транзакція)
+      deactivate OUT
+      BK -> DB : COMMIT
+      BK --> API : бронювання
+      API --> UI : 201 Created {booking, cancel_deadline_at}
+      UI --> S : підтвердження: час, місце,\nграничний час скасування
+    end
+  end
+end
+deactivate BK
+deactivate API
+
+== Пізніше, асинхронно: доставка сповіщень (ADR-003) ==
+
+participant "Worker" as W
+participant "NotificationGateway\n(заглушка, C-002)" as GW
+
+loop кожні кілька секунд
+  W -> DB : SELECT … FROM notification WHERE status = 'pending'\nAND scheduled_for <= now() FOR UPDATE SKIP LOCKED
+  W -> GW : send(повідомлення) з тайм-аутом
+  alt доставлено
+    W -> DB : status = sent, sent_at = now()
+  else адаптер недоступний або тайм-аут (REL-002)
+    W -> DB : attempts + 1, next_attempt_at = now() + експоненційна затримка
+  end
+end
+@enduml

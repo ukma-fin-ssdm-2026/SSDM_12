@@ -1,0 +1,50 @@
+@startuml sequence-booking-concurrency
+' UniSlot — конкурентне бронювання одного слота (REL-001, FR-032, TC-004).
+' Показує дві лінії захисту з ADR-002: блокування рядка слота
+' і частковий унікальний індекс uq_booking_slot_confirmed.
+title UniSlot — два студенти одночасно бронюють той самий слот X (REL-001)
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+autonumber
+
+actor "Студент A" as A
+actor "Студент B" as B
+participant "UniSlot API\n(транзакція A)" as TA
+participant "UniSlot API\n(транзакція B)" as TB
+database "PostgreSQL" as DB
+
+par одночасні запити
+  A -> TA : POST /api/v1/bookings {slot_id: X}
+  activate TA
+  TA -> DB : BEGIN; рядок студента A FOR UPDATE;\nSELECT slot X FOR UPDATE
+  DB --> TA : блокування рядка X отримано
+else
+  B -> TB : POST /api/v1/bookings {slot_id: X}
+  activate TB
+  TB -> DB : BEGIN; рядок студента B FOR UPDATE;\nSELECT slot X FOR UPDATE
+  note right of DB
+    Транзакція B чекає на блокування
+    рядка X, доки A не завершиться.
+  end note
+end
+
+TA -> DB : перевірки: на X немає чинного бронювання і блокувань,\nліміт A-002 не вичерпано
+TA -> DB : INSERT booking(X, A, confirmed); INSERT notification …
+TA -> DB : COMMIT
+DB --> TA : OK
+TA --> A : 201 Created
+deactivate TA
+
+DB --> TB : блокування рядка X отримано
+TB -> DB : перевірка: на X уже є чинне бронювання студента A
+TB -> DB : ROLLBACK
+TB --> B : 409 problem+json «Слот щойно зайняли — оберіть інший»
+deactivate TB
+
+note over TA, DB
+  Якщо перевірку оминуто (дефект у коді, інший шлях запису),
+  INSERT другого чинного бронювання на X відхилить частковий
+  унікальний індекс uq_booking_slot_confirmed — теж 409.
+  Тест TC-004: 100 одночасних запитів → рівно один 201, решта 409.
+end note
+@enduml
