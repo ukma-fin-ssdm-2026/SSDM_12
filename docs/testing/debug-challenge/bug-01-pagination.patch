@@ -1,0 +1,13 @@
+diff --git a/spectrum-app/src/main/java/edu/ukma/ssdm/teamspectrum/api/common/page/PageResponse.java b/spectrum-app/src/main/java/edu/ukma/ssdm/teamspectrum/api/common/page/PageResponse.java
+index 28933a4..e4a9c2b 100644
+--- a/spectrum-app/src/main/java/edu/ukma/ssdm/teamspectrum/api/common/page/PageResponse.java
++++ b/spectrum-app/src/main/java/edu/ukma/ssdm/teamspectrum/api/common/page/PageResponse.java
+@@ -14,7 +14,7 @@ public class PageResponse<T> {
+   public PageResponse(List<T> items, long totalItems, PaginationParams params) {
+     this.items = List.copyOf(items);
+     this.totalItems = totalItems;
+-    this.totalPages = (int) Math.max(1, Math.ceil((double) totalItems / params.limit()));
++    this.totalPages = (int) Math.max(1, totalItems / params.limit());
+     this.currentPage = params.page();
+     this.limit = params.limit();
+   }
