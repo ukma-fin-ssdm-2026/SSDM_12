@@ -1,0 +1,152 @@
+{
+  "results": {
+    "reschedule_constraints": {
+      "immediate_fk_control": "23503",
+      "deferred_fk_transfer": true,
+      "unique_successor": "23505",
+      "missing_or_invalid_kind": "23514",
+      "missing_successor_at_commit": "23503",
+      "multiple_nulls": true,
+      "occupied_target_rollback": true,
+      "later_error_rollback": true
+    },
+    "concurrent_reschedule": {
+      "concurrency": 100,
+      "runs": 20,
+      "outcomes": [
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        },
+        {
+          "success": 1,
+          "conflict": 99,
+          "target_confirmed": 1,
+          "old_preserved": 99
+        }
+      ]
+    },
+    "deadlock_retry": {
+      "sqlstate": "40P01",
+      "retried_transactions": 1,
+      "committed_markers": 2
+    },
+    "uuid_audit": {
+      "uuid_version": 4,
+      "update_sqlstate": "P0001",
+      "delete_sqlstate": "P0001"
+    }
+  },
+  "server_version": "16.15",
+  "passed": true
+}

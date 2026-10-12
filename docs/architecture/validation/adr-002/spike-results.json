@@ -1,0 +1,332 @@
+{
+  "concurrency": 100,
+  "runs": 20,
+  "results": {
+    "exclusion": {
+      "overlap_sqlstate": "23P01",
+      "adjacent_allowed": true
+    },
+    "partial_unique": {
+      "duplicate_sqlstate": "23505",
+      "rebooking_after_cancel": true
+    },
+    "ADR-002: блокування рядків + перевірка + частковий індекс": [
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      }
+    ],
+    "Лише частковий унікальний індекс": [
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      },
+      {
+        "success": 1,
+        "conflict": 99,
+        "confirmed_rows": 1
+      }
+    ],
+    "Контроль: check-then-act без індексу й блокувань": [
+      {
+        "success": 72,
+        "conflict": 28,
+        "confirmed_rows": 72
+      },
+      {
+        "success": 99,
+        "conflict": 1,
+        "confirmed_rows": 99
+      },
+      {
+        "success": 94,
+        "conflict": 6,
+        "confirmed_rows": 94
+      },
+      {
+        "success": 91,
+        "conflict": 9,
+        "confirmed_rows": 91
+      },
+      {
+        "success": 100,
+        "conflict": 0,
+        "confirmed_rows": 100
+      },
+      {
+        "success": 96,
+        "conflict": 4,
+        "confirmed_rows": 96
+      },
+      {
+        "success": 95,
+        "conflict": 5,
+        "confirmed_rows": 95
+      },
+      {
+        "success": 100,
+        "conflict": 0,
+        "confirmed_rows": 100
+      },
+      {
+        "success": 98,
+        "conflict": 2,
+        "confirmed_rows": 98
+      },
+      {
+        "success": 98,
+        "conflict": 2,
+        "confirmed_rows": 98
+      },
+      {
+        "success": 97,
+        "conflict": 3,
+        "confirmed_rows": 97
+      },
+      {
+        "success": 97,
+        "conflict": 3,
+        "confirmed_rows": 97
+      },
+      {
+        "success": 99,
+        "conflict": 1,
+        "confirmed_rows": 99
+      },
+      {
+        "success": 97,
+        "conflict": 3,
+        "confirmed_rows": 97
+      },
+      {
+        "success": 98,
+        "conflict": 2,
+        "confirmed_rows": 98
+      },
+      {
+        "success": 98,
+        "conflict": 2,
+        "confirmed_rows": 98
+      },
+      {
+        "success": 100,
+        "conflict": 0,
+        "confirmed_rows": 100
+      },
+      {
+        "success": 98,
+        "conflict": 2,
+        "confirmed_rows": 98
+      },
+      {
+        "success": 99,
+        "conflict": 1,
+        "confirmed_rows": 99
+      },
+      {
+        "success": 99,
+        "conflict": 1,
+        "confirmed_rows": 99
+      }
+    ],
+    "block_race_False": {
+      "surviving_confirmed": 1
+    },
+    "block_race_True": {
+      "surviving_confirmed": 0
+    },
+    "audit_append_only": {
+      "app_update_sqlstate": "42501",
+      "owner_delete_sqlstate": "P0001"
+    }
+  },
+  "server_version": "16.15",
+  "passed": true
+}
