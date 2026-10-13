@@ -1,0 +1,60 @@
+@startuml deployment
+' UniSlot — діаграма розгортання цільового виробничого середовища (Лаб 3).
+' Один сервер із Docker Compose (C-005); локальне демо — та сама конфігурація.
+' Пунктирні рамки — зони довіри Z0…Z4; позначки TB1…TB5 на зв'язках —
+' межі довіри, які аналізує ../threat-model.md (STRIDE).
+title UniSlot — діаграма розгортання (виробниче середовище) з межами довіри
+skinparam shadowing false
+skinparam nodesep 45
+skinparam ranksep 60
+
+actor "Оператор\n(команда SSDM_12)" as ops
+
+rectangle "Z0: Інтернет — недовірена зона" as z0 #line.dashed {
+  node "Пристрій користувача" as device {
+    node "Веббраузер" <<execution environment>> as browser {
+      artifact "Web UI\n(HTML/CSS/JS)" as webui
+    }
+  }
+}
+
+node "Сервер UniSlot\n(VM, Linux)" <<device>> as host {
+  node "Docker Engine + Docker Compose" <<execution environment>> as docker {
+    rectangle "Z1: периметр (мережа edge)" as z1 #line.dashed {
+      node "proxy\n(nginx: TLS, HSTS, CSP,\nобмеження частоти)" <<container>> as proxy
+    }
+    rectangle "Z2: застосунок (мережі edge і backend)" as z2 #line.dashed {
+      node "api\n(uvicorn + FastAPI)" <<container>> as api {
+        artifact "образ unislot\n(Python 3.12)" as img
+      }
+      node "worker\n(python -m unislot.worker)" <<container>> as worker
+      node "migrate\n(alembic upgrade head,\nодноразовий)" <<container>> as migrate
+    }
+    rectangle "Z3: дані (мережа backend, internal)" as z3 #line.dashed {
+      database "db\n(PostgreSQL 16)" <<container>> as db
+      storage "том pgdata" as vol
+    }
+  }
+  file ".env\n(секрети поза git)" as env
+}
+
+rectangle "Z4: зовнішній провайдер доставки" as z4 #line.dashed {
+  cloud "Провайдер e-mail\n(у семестрі — заглушка\nвсередині worker, C-002)" as mail
+}
+
+webui --> proxy : <b>TB1</b> HTTPS 443\nREST /api/v1 і статика
+proxy --> api : <b>TB2</b> HTTP 8000\nмережа edge
+api --> db : <b>TB3</b> SQL, TCP 5432\nмережа backend
+worker --> db : <b>TB3</b> SQL, TCP 5432
+migrate --> db : <b>TB3</b> DDL міграцій
+worker ..> mail : <b>TB4</b> SMTP/HTTPS\n(після заміни заглушки)
+db -- vol
+ops ..> host : <b>TB5</b> SSH, docker compose,\nредагування .env
+env ..> docker : змінні середовища\nдля api, worker, migrate, db
+
+legend bottom right
+  Z0…Z4 — зони з різним рівнем довіри; TB1…TB5 — межі довіри.
+  Порт 5432 не публікується на хості: db доступна лише з мережі backend.
+  Локально (C-005) браузер і сервер на одній машині; TLS — у production.
+endlegend
+@enduml
