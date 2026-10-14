@@ -10,8 +10,37 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
+    env:
+      PLANTUML_VERSION: "1.2026.8"
+      # SHA-256 jar-файлу з npm-пакета plantuml-cli@1.2026.8 — перевіряємо, що завантажили саме його.
+      PLANTUML_SHA256: "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Hello, World
-        run: echo "Hello, World! SSDM_12 CI pipeline is alive."
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check requirements consistency (Lab 2)
+        run: python3 scripts/check_requirements.py
+
+      - name: Set up Java for PlantUML
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download PlantUML and verify checksum
+        working-directory: ${{ runner.temp }}
+        run: |
+          npm pack "plantuml-cli@${PLANTUML_VERSION}"
+          tar -xzf "plantuml-cli-${PLANTUML_VERSION}.tgz"
+          JAR="package/build/plantuml-${PLANTUML_VERSION}.jar"
+          echo "${PLANTUML_SHA256}  ${JAR}" | sha256sum --check -
+          echo "PLANTUML_JAR=${PWD}/${JAR}" >> "$GITHUB_ENV"
+
+      # --strict: незаповнені місця «‹…›» у нотатках ШІ — порушення (статут §8.3).
+      - name: Check architecture artifacts and diagram syntax (Lab 3)
+        run: python3 scripts/check_architecture.py --plantuml "$PLANTUML_JAR" --strict
