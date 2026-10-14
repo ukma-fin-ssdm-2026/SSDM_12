@@ -16,7 +16,7 @@ participant "Auth\n(AccessControl)" as AUTH
 participant "Booking\n(BookingService)" as BK
 participant "Availability\n(SlotCatalog)" as AV
 participant "Admin\n(PolicyProvider)" as POL
-participant "Notifications\n(NotificationOutbox)" as OUT
+participant "Notifications\n(NotificationOutbox, Dispatcher)" as OUT
 database "PostgreSQL" as DB
 
 S -> UI : обирає вільний слот і натискає «Забронювати»
@@ -87,12 +87,14 @@ participant "Worker" as W
 participant "NotificationGateway\n(заглушка, C-002)" as GW
 
 loop кожні кілька секунд
-  W -> DB : SELECT … FROM notification WHERE status = 'pending'\nAND scheduled_for <= now() FOR UPDATE SKIP LOCKED
-  W -> GW : send(повідомлення) з тайм-аутом
+  W -> OUT : dispatch_due(batch_size)
+  OUT -> DB : SELECT … FROM notification WHERE status = 'pending'\nAND scheduled_for <= now() FOR UPDATE SKIP LOCKED
+  OUT -> GW : send(повідомлення) з тайм-аутом
   alt доставлено
-    W -> DB : status = sent, sent_at = now()
+    OUT -> DB : status = sent, sent_at = now()
   else адаптер недоступний або тайм-аут (REL-002)
-    W -> DB : attempts + 1, next_attempt_at = now() + експоненційна затримка
+    OUT -> DB : attempts + 1, next_attempt_at = now() + експоненційна затримка
   end
+  OUT --> W : скільки записів опрацьовано
 end
 @enduml
