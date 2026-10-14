@@ -20,3 +20,20 @@
 /docs/requirements/user-stories.md  @dysett @NykytaBabakov
 /docs/requirements/requirements.md  @dysett @DziubakPavlo
 /docs/requirements/rtm.md           @asyakozulina @NykytaBabakov
+
+# Архітектура (Лаб 3). Загальне правило для теки — першим, конкретні файли — після нього.
+# Другий власник у кожному рядку — не очікуваний автор файлу, щоб запит на рецензію
+# завжди діставався комусь іншому, ніж автор PR.
+/docs/architecture/                          @NykytaBabakov @asyakozulina
+/docs/architecture/high-level-design.md      @NykytaBabakov @asyakozulina
+/docs/architecture/traceability-matrix.md    @asyakozulina @NykytaBabakov
+/docs/architecture/uml/sequence-*.puml       @asyakozulina @NykytaBabakov
+/docs/architecture/data-model.md             @dysett @NykytaBabakov
+/docs/architecture/uml/data-model.puml       @dysett @NykytaBabakov
+/docs/architecture/decisions/ADR-002.md      @dysett @asyakozulina
+/docs/architecture/threat-model.md           @DziubakPavlo @asyakozulina
+/docs/architecture/uml/deployment.puml       @DziubakPavlo @dysett
+/docs/architecture/decisions/ADR-003.md      @DziubakPavlo @asyakozulina
+
+# Скрипти перевірки артефактів — Repo Maintainer, CI Maintainer і резервний рецензент
+/scripts/                                    @NykytaBabakov @DziubakPavlo @asyakozulina
