@@ -26,10 +26,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      # Python is installed on the Windows self-hosted runner.
+      # Avoid setup-python's first-run installer, which is blocked by local script policy.
+      - name: Verify installed Python
+        run: |
+          python --version
+          if ($LASTEXITCODE -ne 0) { throw 'Python is not available on PATH' }
+          python -c "import sys; assert sys.version_info >= (3, 12), 'Python 3.12+ required'"
+          if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 or newer is required' }
 
       - name: Check requirements consistency (Lab 2)
         run: python scripts/check_requirements.py
