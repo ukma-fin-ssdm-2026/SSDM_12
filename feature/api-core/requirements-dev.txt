@@ -1,0 +1,5 @@
+# Залежності для розробки й CI: застосунок + тести.
+-r requirements.txt
+pytest==9.1.1
+# Клієнт для fastapi.testclient (Starlette 1.x очікує httpx2).
+httpx2==2.13.1
