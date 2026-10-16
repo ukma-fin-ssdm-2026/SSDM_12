@@ -4,39 +4,37 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 permissions:
   contents: read
-
 jobs:
   build:
     name: build
-    runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 20
-    defaults:
-      run:
-        shell: powershell
+    runs-on: ubuntu-latest
     env:
       PLANTUML_VERSION: "1.2026.8"
-      # SHA-256 jar-файлу з npm-пакета plantuml-cli@1.2026.8.
+      # SHA-256 jar-файлу з npm-пакета plantuml-cli@1.2026.8 — перевіряємо, що завантажили саме його.
       PLANTUML_SHA256: "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
 
-      # Python is installed on the Windows self-hosted runner.
-      # Avoid setup-python's first-run installer, which is blocked by local script policy.
-      - name: Verify installed Python
-        run: |
-          python --version
-          if ($LASTEXITCODE -ne 0) { throw 'Python is not available on PATH' }
-          python -c "import sys; assert sys.version_info >= (3, 12), 'Python 3.12+ required'"
-          if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 or newer is required' }
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
 
       - name: Check requirements consistency (Lab 2)
-        run: python scripts/check_requirements.py
+        run: python3 scripts/check_requirements.py
+
+      # Версії закріплено: інакше згенерована специфікація залежала б від машини.
+      - name: Install API dependencies (Lab 4)
+        run: pip install -r requirements-dev.txt
+
+      # Контракт-тести (повнота анотацій, problem+json) і тести кінцевих точок на заглушках.
+      - name: Run API tests (Lab 4)
+        run: python -m pytest
 
       - name: Set up Java for PlantUML
         uses: actions/setup-java@v4
@@ -44,26 +42,15 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Node.js for PlantUML npm package
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
       - name: Download PlantUML and verify checksum
         working-directory: ${{ runner.temp }}
         run: |
-          $ErrorActionPreference = 'Stop'
-          npm.cmd pack "plantuml-cli@$env:PLANTUML_VERSION"
-          if ($LASTEXITCODE -ne 0) { throw 'npm pack failed' }
-          $archive = "plantuml-cli-$env:PLANTUML_VERSION.tgz"
-          tar.exe -xzf $archive
-          if ($LASTEXITCODE -ne 0) { throw 'tar failed' }
-          $jarPath = Join-Path (Get-Location).Path ("package\build\plantuml-{0}.jar" -f $env:PLANTUML_VERSION)
-          if (-not (Test-Path -LiteralPath $jarPath -PathType Leaf)) { throw "PlantUML jar missing: $jarPath" }
-          $actualHash = (Get-FileHash -LiteralPath $jarPath -Algorithm SHA256).Hash
-          if ($actualHash -ne $env:PLANTUML_SHA256) { throw 'PlantUML SHA256 mismatch' }
-          "PLANTUML_JAR=$jarPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          npm pack "plantuml-cli@${PLANTUML_VERSION}"
+          tar -xzf "plantuml-cli-${PLANTUML_VERSION}.tgz"
+          JAR="package/build/plantuml-${PLANTUML_VERSION}.jar"
+          echo "${PLANTUML_SHA256}  ${JAR}" | sha256sum --check -
+          echo "PLANTUML_JAR=${PWD}/${JAR}" >> "$GITHUB_ENV"
 
       # --strict: незаповнені місця «‹…›» у нотатках ШІ — порушення (статут §8.3).
       - name: Check architecture artifacts and diagram syntax (Lab 3)
-        run: python scripts/check_architecture.py --plantuml "$env:PLANTUML_JAR" --strict
+        run: python3 scripts/check_architecture.py --plantuml "$PLANTUML_JAR" --strict
