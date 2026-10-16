@@ -56,7 +56,68 @@ ADR пояснюють, чому рішення саме такі; модель 
 **Перевірка узгодженості:** `python3 scripts/check_requirements.py` (вимоги) і
 `python3 scripts/check_architecture.py` (архітектура; з `--plantuml шлях/до/plantuml.jar`
 — ще й синтаксис діаграм, з `--strict` — ще й незаповнені місця `‹…›` у нотатках ШІ).
-Обидва скрипти вмикаються в конвеєр CI в межах Лаб 3 (issue #83).
+Обидва скрипти працюють у конвеєрі CI (job `build`, issue #83).
+
+## API (Лаб 4)
+
+REST API UniSlot на FastAPI за підходом **Code-First**: специфікацію OpenAPI генерує код, вручну
+її не пишуть і не правлять. Бізнес-логіки модулів ще немає — кінцеві точки відповідають з
+демо-даних у пам'яті (заглушки), але правила бронювання вже перевіряються.
+
+| Що | Де |
+|---|---|
+| Код API з анотаціями | [`src/api/`](src/api/): роутери за модулями — `routers/`, схеми — `schemas/`, заглушки — `stubs/` |
+| Специфікація OpenAPI (згенерована) | [`docs/api/openapi-generated.yaml`](docs/api/openapi-generated.yaml) |
+| Swagger UI на GitHub Pages | https://ukma-fin-ssdm-2026.github.io/SSDM_12/ — оновлюється на кожен push у `main` |
+| Каталог помилок | [`docs/api/errors.html`](docs/api/errors.html) — на нього веде поле `type` кожної помилки |
+| Тести | [`tests/api/`](tests/api/) — контракт специфікації й кожна кінцева точка |
+
+### Запуск на своєму комп'ютері
+
+Потрібен Python 3.12 або новіший. Команди — з кореня репозиторію.
+
+macOS або Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+uvicorn api.main:app --app-dir src --reload --port 3000
+```
+
+Windows (PowerShell; якщо активацію заблоковано — спершу
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`):
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+uvicorn api.main:app --app-dir src --reload --port 3000
+```
+
+Далі відкрийте http://localhost:3000/api-docs → **Authorize** → введіть демо-токен
+`demo-student` (або `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`) →
+**Try it out**. Демо-токени — заглушка автентифікації Лаб 4, а не секрети.
+
+**Як код оновлює документацію.** Під час кожного старту сервера — і кожного автоматичного
+перезапуску `--reload` після збереження `.py`-файлу — застосунок перезаписує
+`docs/api/openapi-generated.yaml` і `docs/api/errors.html`. Змінені файли комітьте разом із
+кодом.
+
+### Тести й генерація без сервера
+
+```bash
+python -m pytest                              # тести API
+python scripts/export_openapi.py              # перегенерувати docs/api/ з коду
+python scripts/export_openapi.py --check      # чи збігається docs/api/ з кодом
+```
+
+### Як документація потрапляє на GitHub Pages
+
+На кожен push у `main`, що змінює `src/api/` чи `docs/api/`, конвеєр
+[`api-docs.yml`](.github/workflows/api-docs.yml) генерує специфікацію з коду цього коміту й
+публікує Swagger UI. Сторінка на Pages — для перегляду; запити надсилайте з локального
+Swagger UI.
 
 ## Артефакти тестування
 
@@ -152,6 +213,7 @@ SSDM_12/
 - **Оновлення для Лаб 2:** розділ «Артефакти вимог» і оновлене дерево структури — чернетка з Claude (Anthropic); склад таблиці звірено з фактичним вмістом `docs/requirements/`, усі три посилання перевірено клацанням після злиття.
 - **Оновлення для Test-a-Thon:** розділ «Артефакти тестування» і доповнене дерево структури — чернетка з Claude (Opus 5); склад таблиці звірено з фактичним вмістом `docs/testing/`, обидва посилання перевірено після злиття. Нотатки про використання ШІ є всередині кожного з двох документів.
 - **Оновлення для Лаб 3:** розділ «Архітектура (Лаб 3)» і розгорнуте дерево `docs/architecture/` — чернетка з Claude (Anthropic); склад таблиці звірено з фактичним вмістом каталогу, усі посилання перевірено клацанням після злиття документів Лаб 3.
+- **Оновлення для Лаб 4 (каркас API):** розділ «API (Лаб 4)» з інструкцією запуску — чернетка з Claude (Anthropic). Команди запуску виконав сам на macOS 26, Python 3.15; посилання на `src/api/`, `docs/api/` і `tests/api/` перевірено клацанням у гілці PR.
 
 ### Нотатка про цей документ
 
