@@ -28,37 +28,61 @@ concurrency:
 jobs:
   generate:
     name: generate
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: powershell
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements.txt
+      - name: Verify installed Python
+        run: |
+          python --version
+          if ($LASTEXITCODE -ne 0) { throw 'Python is not available on PATH' }
+          python -c "import sys; assert sys.version_info >= (3, 12), 'Python 3.12+ required'"
+          if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 or newer is required' }
 
       - name: Install API dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m venv .venv
+          if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
+          .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+          if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
 
       # Генеруємо в окрему теку сайту: на Pages потрапляє саме те, що згенерував код
       # цього коміту, навіть якщо закомічений YAML застарів.
       - name: Generate OpenAPI from code
         run: |
-          mkdir -p _site
-          python scripts/export_openapi.py --out-dir _site
-          cp docs/api/index.html _site/index.html
+          New-Item -ItemType Directory -Force -Path _site | Out-Null
+          .\.venv\Scripts\python.exe scripts/export_openapi.py --out-dir _site
+          if ($LASTEXITCODE -ne 0) { throw 'OpenAPI generation failed' }
+          Copy-Item -LiteralPath docs/api/index.html -Destination _site/index.html -Force
 
       - name: Warn if committed spec differs from code
         run: |
-          python scripts/export_openapi.py --check \
-            || echo "::warning title=OpenAPI drift::docs/api/openapi-generated.yaml у main відрізняється від коду — перегенеруйте файл"
+          .\.venv\Scripts\python.exe scripts/export_openapi.py --check
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host '::warning title=OpenAPI drift::docs/api/openapi-generated.yaml у main відрізняється від коду — перегенеруйте файл'
+          }
 
       # Рання зрозуміла помилка, якщо Pages не ввімкнено з джерелом «GitHub Actions».
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
+      # upload-pages-artifact uses Bash + GNU tar on Windows. Prefer Git for Windows' GNU Bash.
+      - name: Prepare GNU Bash for Pages artifact
+        run: |
+          $gitCommand = (Get-Command git -ErrorAction Stop).Source
+          $gitRoot = Split-Path (Split-Path $gitCommand -Parent) -Parent
+          $gitBin = Join-Path $gitRoot 'bin'
+          $gitBash = Join-Path $gitBin 'bash.exe'
+          if (-not (Test-Path -LiteralPath $gitBash -PathType Leaf)) { throw "Git Bash not found: $gitBash" }
+          $tarVersion = (& $gitBash -lc 'tar --version') -join "`n"
+          if ($LASTEXITCODE -ne 0 -or $tarVersion -notmatch 'GNU tar') { throw 'GNU tar is required for the Pages artifact' }
+          $tarHelp = (& $gitBash -lc 'tar --help') -join "`n"
+          if ($LASTEXITCODE -ne 0 -or $tarHelp -notmatch '--hard-dereference') { throw 'GNU tar must support --hard-dereference' }
+          $gitBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
@@ -68,7 +92,10 @@ jobs:
   deploy:
     name: deploy
     needs: generate
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: powershell
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
