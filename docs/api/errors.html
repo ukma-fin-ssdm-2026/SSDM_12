@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!-- ЗГЕНЕРОВАНО з src/api/errors.py (python scripts/export_openapi.py). Не редагуйте вручну. -->
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UniSlot API — каталог помилок</title>
+<style>body{font-family:system-ui,sans-serif;margin:2rem;max-width:72rem}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:.4rem;vertical-align:top;text-align:left}tr:target{background:#fff3c4}</style>
+</head>
+<body>
+<h1>Каталог помилок UniSlot API</h1>
+<p>Кожна відповідь-помилка має формат <code>application/problem+json</code> (RFC 9457). Поле <code>type</code> веде на рядок цієї таблиці. <a href="./">Документація API</a></p>
+<table>
+<thead><tr><th>code</th><th>HTTP</th><th>title</th><th>Коли виникає</th><th>action</th><th>Вимоги</th></tr></thead>
+<tbody>
+<tr id="validation-failed"><td><code>VALIDATION_FAILED</code></td><td>422</td><td>Некоректні дані запиту</td><td>Параметр, заголовок або тіло запиту не відповідає схемі: бракує поля, хибний тип, значення поза межами, зайве поле.</td><td>Виправте поля, перелічені в errors, і повторіть запит.</td><td>THR-04</td></tr>
+<tr id="bad-request"><td><code>BAD_REQUEST</code></td><td>400</td><td>Запит не може бути оброблено</td><td>Запит синтаксично некоректний на рівні HTTP.</td><td>Перевірте формат запиту за документацією.</td><td>—</td></tr>
+<tr id="auth-required"><td><code>AUTH_REQUIRED</code></td><td>401</td><td>Потрібна автентифікація</td><td>Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.</td><td>Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer demo-student.</td><td>FR-007</td></tr>
+<tr id="forbidden-role"><td><code>FORBIDDEN_ROLE</code></td><td>403</td><td>Недостатньо прав для цієї операції</td><td>Роль користувача не дозволяє операцію (deny-by-default).</td><td>Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.</td><td>FR-007, SEC-002</td></tr>
+<tr id="not-owner"><td><code>NOT_OWNER</code></td><td>403</td><td>Об'єкт належить іншому користувачу</td><td>Студент звертається до чужого бронювання або провайдер — до чужого ресурсу. Відповідь не містить даних об'єкта (THR-03).</td><td>Відкрийте власний об'єкт; доступ до чужих даних заборонено.</td><td>SEC-004, SEC-002</td></tr>
+<tr id="not-found"><td><code>NOT_FOUND</code></td><td>404</td><td>Ресурс за цією адресою не знайдено</td><td>Шляху немає в API.</td><td>Перевірте шлях запиту за документацією.</td><td>—</td></tr>
+<tr id="method-not-allowed"><td><code>METHOD_NOT_ALLOWED</code></td><td>405</td><td>Метод не підтримується для цієї адреси</td><td>Шлях існує, але не підтримує цей HTTP-метод.</td><td>Скористайтеся одним із методів із заголовка Allow.</td><td>—</td></tr>
+<tr id="resource-not-found"><td><code>RESOURCE_NOT_FOUND</code></td><td>404</td><td>Ресурс не знайдено</td><td>Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.</td><td>Оберіть ресурс із каталогу GET /api/v1/resources.</td><td>FR-060</td></tr>
+<tr id="slot-not-found"><td><code>SLOT_NOT_FOUND</code></td><td>404</td><td>Слот не знайдено</td><td>Слота з таким ідентифікатором немає.</td><td>Знайдіть актуальний вільний слот через пошук.</td><td>FR-020</td></tr>
+<tr id="booking-not-found"><td><code>BOOKING_NOT_FOUND</code></td><td>404</td><td>Бронювання не знайдено</td><td>Бронювання з таким ідентифікатором немає.</td><td>Відкрийте список своїх бронювань.</td><td>FR-036</td></tr>
+<tr id="slot-already-booked"><td><code>SLOT_ALREADY_BOOKED</code></td><td>409</td><td>Слот уже зайнятий</td><td>На слот уже є активне бронювання, зокрема якщо його щойно зайняв інший студент.</td><td>Оберіть інший вільний слот у пошуку.</td><td>FR-032, REL-001</td></tr>
+<tr id="slot-started"><td><code>SLOT_STARTED</code></td><td>409</td><td>Слот уже почався</td><td>Запис на слот або зміна бронювання після початку слота.</td><td>Оберіть слот, який ще не почався.</td><td>FR-034, FR-045, A-006</td></tr>
+<tr id="slot-out-of-horizon"><td><code>SLOT_OUT_OF_HORIZON</code></td><td>409</td><td>Слот поза горизонтом бронювання</td><td>Початок слота пізніший за поточний момент плюс горизонт A-001.</td><td>Оберіть слот у межах горизонту бронювання (A-001).</td><td>FR-030, A-001</td></tr>
+<tr id="slot-blocked"><td><code>SLOT_BLOCKED</code></td><td>409</td><td>Час слота заблоковано провайдером</td><td>Слот потрапляє в проміжок, який провайдер оголосив недоступним.</td><td>Оберіть інший слот.</td><td>FR-014, FR-023</td></tr>
+<tr id="booking-limit-reached"><td><code>BOOKING_LIMIT_REACHED</code></td><td>409</td><td>Досягнуто ліміту активних бронювань</td><td>Студент уже має максимальну кількість активних бронювань (A-002). Відповідь містить поля limit і active_bookings.</td><td>Скасуйте одне з активних бронювань або дочекайтеся його завершення.</td><td>FR-033, A-002</td></tr>
+<tr id="booking-overlap"><td><code>BOOKING_OVERLAP</code></td><td>409</td><td>Час перетинається з іншим вашим бронюванням</td><td>Новий слот перетинається в часі з активним бронюванням того самого студента.</td><td>Оберіть слот, що не перетинається з вашими активними бронюваннями.</td><td>FR-035</td></tr>
+<tr id="booking-already-cancelled"><td><code>BOOKING_ALREADY_CANCELLED</code></td><td>409</td><td>Бронювання вже скасовано</td><td>Повторне скасування або перенесення скасованого бронювання.</td><td>Дія не потрібна: бронювання вже неактивне.</td><td>FR-040</td></tr>
+<tr id="cancellation-deadline-passed"><td><code>CANCELLATION_DEADLINE_PASSED</code></td><td>409</td><td>Граничний час скасування минув</td><td>Зараз пізніше за граничний час скасування, зафіксований під час бронювання. Відповідь містить поле cancel_deadline_at.</td><td>Скасувати чи перенести це бронювання вже не можна; за потреби зверніться до провайдера.</td><td>FR-040, FR-041, FR-044, A-003</td></tr>
+<tr id="slot-overlap"><td><code>SLOT_OVERLAP</code></td><td>409</td><td>Слот перетинається з наявним</td><td>Новий слот ресурсу перетинається з наявним слотом цього ресурсу; суміжні слоти дозволені.</td><td>Змініть час початку або тривалість слота.</td><td>FR-011</td></tr>
+<tr id="slot-in-past"><td><code>SLOT_IN_PAST</code></td><td>422</td><td>Початок слота в минулому</td><td>Провайдер створює слот, що починається не пізніше за поточний момент.</td><td>Вкажіть майбутній час початку.</td><td>FR-010</td></tr>
+<tr id="date-out-of-horizon"><td><code>DATE_OUT_OF_HORIZON</code></td><td>422</td><td>Дата поза горизонтом пошуку</td><td>Фільтр date у пошуку раніший за сьогодні або пізніший за горизонт A-001.</td><td>Оберіть дату від сьогодні до кінця горизонту бронювання (A-001).</td><td>FR-020, A-001</td></tr>
+<tr id="provider-not-eligible"><td><code>PROVIDER_NOT_ELIGIBLE</code></td><td>422</td><td>Користувач не може бути провайдером ресурсу</td><td>provider_id вказує на неіснуючого користувача або на користувача без ролі провайдера.</td><td>Призначте користувача з роллю «провайдер».</td><td>FR-061, INV-15</td></tr>
+<tr id="idempotency-key-reused"><td><code>IDEMPOTENCY_KEY_REUSED</code></td><td>422</td><td>Ключ ідемпотентності вже використано для іншого запиту</td><td>Повтор із тим самим Idempotency-Key, але з іншим тілом запиту.</td><td>Для нового запиту згенеруйте новий Idempotency-Key.</td><td>—</td></tr>
+<tr id="transient-conflict"><td><code>TRANSIENT_CONFLICT</code></td><td>503</td><td>Тимчасовий конфлікт, спробуйте ще раз</td><td>Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п. 6). У заглушках Лаб 4 не виникає, але є частиною контракту.</td><td>Повторіть запит через кілька секунд (див. заголовок Retry-After).</td><td>REL-001</td></tr>
+<tr id="internal-error"><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Внутрішня помилка сервера</td><td>Непередбачена помилка. Тіло не містить трасування стека чи назв внутрішніх класів.</td><td>Повторіть запит пізніше; якщо помилка повторюється, повідомте request_id.</td><td>—</td></tr>
+</tbody>
+</table>
+</body>
+</html>

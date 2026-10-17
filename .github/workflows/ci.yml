@@ -4,10 +4,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 permissions:
   contents: read
-
 jobs:
   build:
     name: build
@@ -18,7 +16,7 @@ jobs:
         shell: powershell
     env:
       PLANTUML_VERSION: "1.2026.8"
-      # SHA-256 jar-файлу з npm-пакета plantuml-cli@1.2026.8.
+      # SHA-256 jar-файлу з npm-пакета plantuml-cli@1.2026.8 — перевіряємо, що завантажили саме його.
       PLANTUML_SHA256: "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462"
     steps:
       - name: Checkout
@@ -26,8 +24,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # Python is installed on the Windows self-hosted runner.
-      # Avoid setup-python's first-run installer, which is blocked by local script policy.
+      # Python is already installed on the Windows self-hosted runner.
       - name: Verify installed Python
         run: |
           python --version
@@ -37,6 +34,20 @@ jobs:
 
       - name: Check requirements consistency (Lab 2)
         run: python scripts/check_requirements.py
+
+      # Версії закріплено: інакше згенерована специфікація залежала б від машини.
+      - name: Install API dependencies (Lab 4)
+        run: |
+          python -m venv .venv
+          if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
+          .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+          if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
+
+      # Контракт-тести (повнота анотацій, problem+json) і тести кінцевих точок на заглушках.
+      - name: Run API tests (Lab 4)
+        run: |
+          .\.venv\Scripts\python.exe -m pytest
+          if ($LASTEXITCODE -ne 0) { throw 'API tests failed' }
 
       - name: Set up Java for PlantUML
         uses: actions/setup-java@v4

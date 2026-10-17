@@ -1,0 +1,321 @@
+# ЗГЕНЕРОВАНО з коду src/api/ (FastAPI, Code-First). Не редагуйте вручну:
+# змініть код і запустіть `python scripts/export_openapi.py` або сервер.
+openapi: 3.1.0
+info:
+  title: UniSlot API
+  summary: Бронювання консультацій викладачів і навчальних аудиторій.
+  description: |
+    REST API системи бронювання консультацій та аудиторій **UniSlot** (команда SSDM_12, НаУКМА).
+
+    Специфікацію **згенеровано з коду** (FastAPI, підхід Code-First) — вручну її не редагують.
+    Проєктні рішення — `docs/api/api-design.md`, атрибути якості — `docs/api/quality-attributes.md`.
+
+    **Лаб 4: заглушки.** Відповіді будуються з демо-даних у пам'яті; правила бронювання
+    перевіряються, але дані не зберігаються між перезапусками сервера.
+
+    **Автентифікація (заглушка).** Натисніть «Authorize» і введіть демо-токен:
+    `demo-student`, `demo-student-2`, `demo-provider`, `demo-provider-2` або `demo-admin`.
+
+    **Помилки.** Усі відмови — `application/problem+json` (RFC 9457) з полями `code`,
+    `action` і `request_id`; поле `type` веде в каталог помилок.
+
+    **Пагінація.** Каталоги — `limit`/`offset`; пошук слотів — курсор `next_cursor`.
+    Розмір сторінки — не більше 100.
+
+    **Час.** Усі моменти часу — RFC 3339 в UTC; фільтр `date` у пошуку — дата за Києвом (A-007).
+  contact:
+    name: Команда SSDM_12
+    url: https://github.com/ukma-fin-ssdm-2026/SSDM_12
+  version: 1.0.0-alpha.1
+servers:
+- url: http://localhost:3000
+  description: Локальний запуск (uvicorn, порт 3000)
+paths:
+  /health:
+    get:
+      tags:
+      - service
+      summary: Перевірити, що API працює
+      description: |-
+        Повертає `ok` і версію контракту. Використовується моніторингом і healthcheck
+        контейнера; не звертається до сховища, тож відповідає навіть за проблем із даними.
+      operationId: get_health
+      responses:
+        '200':
+          description: Процес API працює й приймає запити.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOut'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth
+      summary: Отримати поточного користувача
+      description: |-
+        Повертає ідентифікатор, ім'я, e-mail і ролі користувача, від імені якого надіслано
+        запит. Клієнт використовує ролі, щоб показати лише доступні дії; перевіряє права
+        все одно сервер (deny-by-default).
+      operationId: get_me
+      responses:
+        '200':
+          description: Поточний користувач і його ролі.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+      security:
+      - demoBearer: []
+components:
+  schemas:
+    ErrorCode:
+      type: string
+      enum:
+      - VALIDATION_FAILED
+      - BAD_REQUEST
+      - AUTH_REQUIRED
+      - FORBIDDEN_ROLE
+      - NOT_OWNER
+      - NOT_FOUND
+      - METHOD_NOT_ALLOWED
+      - RESOURCE_NOT_FOUND
+      - SLOT_NOT_FOUND
+      - BOOKING_NOT_FOUND
+      - SLOT_ALREADY_BOOKED
+      - SLOT_STARTED
+      - SLOT_OUT_OF_HORIZON
+      - SLOT_BLOCKED
+      - BOOKING_LIMIT_REACHED
+      - BOOKING_OVERLAP
+      - BOOKING_ALREADY_CANCELLED
+      - CANCELLATION_DEADLINE_PASSED
+      - SLOT_OVERLAP
+      - SLOT_IN_PAST
+      - DATE_OUT_OF_HORIZON
+      - PROVIDER_NOT_ELIGIBLE
+      - IDEMPOTENCY_KEY_REUSED
+      - TRANSIENT_CONFLICT
+      - INTERNAL_ERROR
+      title: ErrorCode
+      description: 'Машинні коди помилок. Значення не перейменовуються: це частина контракту.'
+    FieldError:
+      properties:
+        field:
+          type: string
+          title: Field
+          description: 'Шлях до поля: розташування (body, query, path, header) і назва.'
+          examples:
+          - body.slot_id
+        message:
+          type: string
+          title: Message
+          description: Що не так із полем.
+          examples:
+          - Field required
+        type:
+          type: string
+          title: Type
+          description: Машинний тип помилки валідації (Pydantic).
+          examples:
+          - missing
+      type: object
+      required:
+      - field
+      - message
+      - type
+      title: FieldError
+      description: Помилка одного поля запиту. Значення, яке надіслав клієнт, не повертається (CWE-209).
+    HealthOut:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+          description: '`ok`, якщо процес приймає запити.'
+        version:
+          type: string
+          title: Version
+          description: Версія контракту API.
+          examples:
+          - 1.0.0-alpha.1
+      type: object
+      required:
+      - status
+      - version
+      title: HealthOut
+      description: Стан процесу API.
+    MeOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор користувача.
+          examples:
+          - 3c357b14-bd0d-424b-8924-17eb737a4907
+        full_name:
+          type: string
+          title: Full Name
+          description: Повне ім'я.
+          examples:
+          - Олена Коваль
+        email:
+          type: string
+          title: Email
+          description: Адреса електронної пошти (лише власна).
+          examples:
+          - olena.koval@unislot.example
+        roles:
+          items:
+            $ref: '#/components/schemas/Role'
+          type: array
+          title: Roles
+          description: Ролі користувача; їх може бути кілька (AQ-01). Відсортовано за назвою.
+          examples:
+          - - student
+      type: object
+      required:
+      - id
+      - full_name
+      - email
+      - roles
+      title: MeOut
+      description: Поточний користувач і його ролі (FR-007).
+    Problem:
+      properties:
+        type:
+          type: string
+          title: Type
+          description: URI типу проблеми; веде на опис у каталозі помилок.
+        title:
+          type: string
+          title: Title
+          description: Коротка назва типу проблеми; однакова для всіх її випадків.
+        status:
+          type: integer
+          maximum: 599.0
+          minimum: 400.0
+          title: Status
+          description: HTTP-статус; збігається зі статусом відповіді.
+        detail:
+          type: string
+          title: Detail
+          description: Пояснення саме цього випадку для людини.
+        instance:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Instance
+          description: Шлях запиту, у якому сталася помилка.
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          description: Стабільний машинний код помилки.
+        action:
+          type: string
+          title: Action
+          description: Що користувач може зробити далі (USAB-001).
+        request_id:
+          type: string
+          title: Request Id
+          description: Ідентифікатор запиту; той самий, що в заголовку X-Request-ID.
+        errors:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/FieldError'
+            type: array
+          - type: 'null'
+          title: Errors
+          description: Помилки окремих полів; лише для VALIDATION_FAILED.
+        limit:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Limit
+          description: Поточний ліміт активних бронювань (A-002).
+        active_bookings:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Active Bookings
+          description: Скільки активних бронювань уже має студент.
+        cancel_deadline_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Cancel Deadline At
+          description: Граничний час скасування бронювання, UTC (FR-041).
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - code
+      - action
+      - request_id
+      title: Problem
+      description: Тіло відповіді-помилки за RFC 9457 із розширеннями UniSlot.
+      examples:
+      - action: Оберіть інший вільний слот у пошуку.
+        code: SLOT_ALREADY_BOOKED
+        detail: Цей слот щойно забронював інший студент.
+        instance: /api/v1/bookings
+        request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        status: 409
+        title: Слот уже зайнятий
+        type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-already-booked
+    Role:
+      type: string
+      enum:
+      - student
+      - provider
+      - admin
+      title: Role
+      description: Роль користувача (FR-007). Користувач може мати кілька ролей (`user_role`).
+  securitySchemes:
+    demoBearer:
+      type: http
+      description: '**Лаб 4 — автентифікація-заглушка.** Передайте один із демо-токенів: `demo-student`,
+        `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`. Цільова схема — сесія в cookie
+        HttpOnly (DD-06), з''явиться разом із модулем Auth.'
+      scheme: bearer
+tags:
+- name: service
+  description: 'Службові операції: перевірка, що процес API живий. Не потребує автентифікації.'
+- name: auth
+  description: Хто я і які маю ролі (FR-007). Реєстрація й вхід — разом із модулем Auth.
+- name: resources
+  description: 'Каталог консультацій і аудиторій (FR-021, FR-060) та керування ними адміністратором (US-011:
+    FR-060, FR-061).'
+- name: slots
+  description: Пошук вільних слотів із фільтрами (US-004) і публікація разових слотів провайдером (US-007).
+- name: bookings
+  description: Бронювання слотів студентом (US-001), скасування (US-002), перенесення (US-003) і перегляд
+    власних бронювань (US-014).

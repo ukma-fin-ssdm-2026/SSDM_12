@@ -9,6 +9,9 @@ dist/
 *.egg-info/
 .eggs/
 
+# Збірка сайту документації API (лише в CI, api-docs.yml)
+_site/
+
 # Віртуальні середовища
 .venv/
 venv/

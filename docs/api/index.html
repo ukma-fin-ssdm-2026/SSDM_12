@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  Swagger UI для GitHub Pages (Лаб 4). Сторінка не містить опису API: вона лише
+  відображає openapi-generated.yaml, який конвеєр api-docs.yml генерує з коду на кожен
+  push у main. Swagger UI підключено з CDN із закріпленою версією та перевіркою
+  цілісності (SRI): підмінений на CDN файл браузер не виконає.
+-->
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSlot API — документація</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.33.2/swagger-ui.css"
+        integrity="sha384-Ov4/wv3j2bmct8cDc5X4ngJZohVPzEmc6uDPH8WeljUxO5vtoykvMEfbu9Vh6RaW"
+        crossorigin="anonymous">
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    .unislot-note { margin: 0; padding: .6rem 1rem; background: #fff7d6; border-bottom: 1px solid #e6d58a; font-size: .9rem; }
+    .unislot-note code { background: #fff; padding: 0 .25rem; }
+  </style>
+</head>
+<body>
+  <p class="unislot-note">
+    Документацію <strong>згенеровано з коду</strong> (<code>src/api/</code>, FastAPI) на кожен push у <code>main</code>.
+    Тут — лише перегляд. Щоб надсилати запити, запустіть API локально й відкрийте
+    <code>http://localhost:3000/api-docs</code> (див. README).
+    <a href="./errors.html">Каталог помилок</a> · <a href="./openapi-generated.yaml">openapi-generated.yaml</a>
+  </p>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.33.2/swagger-ui-bundle.js"
+          integrity="sha384-gNnUp++d7WqR9OKX4OMoUmV2w0JxEs1uu6NPXgcynGClIX5DOu6ol4Lp+lINyZcJ"
+          crossorigin="anonymous"></script>
+  <script>
+    window.ui = SwaggerUIBundle({
+      url: "./openapi-generated.yaml",  // згенерований файл, а не написаний вручну
+      dom_id: "#swagger-ui",
+      presets: [SwaggerUIBundle.presets.apis],
+      layout: "BaseLayout",
+      deepLinking: true,
+      displayOperationId: true,
+      // Сторінка на GitHub Pages не має сервера API поруч: запит із неї до localhost
+      // браузер блокує (CORS). Тому кнопки «Try it out» тут вимкнено; інтерактивний
+      // Swagger UI — локально на http://localhost:3000/api-docs.
+      supportedSubmitMethods: []
+    });
+  </script>
+</body>
+</html>

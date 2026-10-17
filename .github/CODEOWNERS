@@ -37,3 +37,24 @@
 
 # Скрипти перевірки артефактів — Repo Maintainer, CI Maintainer і резервний рецензент
 /scripts/                                    @NykytaBabakov @DziubakPavlo @asyakozulina
+
+# API (Лаб 4). Каркас і згенеровані файли — Documentation Lead і Integration Lead;
+# кожен модуль — його автор і рецензент за планом Лаб 4 (статут §2.3).
+/src/                                        @NykytaBabakov @DziubakPavlo
+/tests/                                      @NykytaBabakov @DziubakPavlo
+/requirements*.txt                           @NykytaBabakov @DziubakPavlo
+/src/api/routers/bookings.py                 @dysett @asyakozulina
+/src/api/schemas/bookings.py                 @dysett @asyakozulina
+/src/api/stubs/booking_service.py            @dysett @asyakozulina
+/tests/api/test_bookings.py                  @dysett @asyakozulina
+/src/api/routers/slots.py                    @asyakozulina @dysett
+/src/api/schemas/slots.py                    @asyakozulina @dysett
+/src/api/stubs/slot_service.py               @asyakozulina @dysett
+/tests/api/test_slots.py                     @asyakozulina @dysett
+/src/api/routers/resources.py                @DziubakPavlo @NykytaBabakov
+/src/api/schemas/resources.py                @DziubakPavlo @NykytaBabakov
+/src/api/stubs/resource_service.py           @DziubakPavlo @NykytaBabakov
+/tests/api/test_resources.py                 @DziubakPavlo @NykytaBabakov
+/docs/api/                                   @NykytaBabakov @DziubakPavlo
+/docs/api/api-design.md                      @dysett @NykytaBabakov
+/docs/api/quality-attributes.md              @asyakozulina @dysett

@@ -1,0 +1,14 @@
+# Налаштування інструментів. Версія API живе в одному місці — src/api/config.py (API_VERSION).
+
+[tool.pytest.ini_options]
+# src/ — корінь імпорту пакета `api` (той самий, що й `uvicorn --app-dir src`).
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+# Код Лаб 4 відформатовано `ruff format` з першого коміту, щоб у Лаб 5 не було масового
+# переформатування, яке переписало б авторство рядків у git blame. Правила лінтера
+# й стандарт кодування команда ухвалює в Лаб 5.
+line-length = 100
+target-version = "py312"
