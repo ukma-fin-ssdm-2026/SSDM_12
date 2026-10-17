@@ -1,0 +1,78 @@
+name: API docs
+
+# Code-First: на кожен push у main специфікацію OpenAPI генерує код (src/api/), а не
+# людина, і сторінка Swagger UI з нею публікується на GitHub Pages.
+# Передумова (один раз, адміністратор репозиторію): Settings → Pages → Source: GitHub Actions.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/api/**"
+      - "docs/api/**"
+      - "scripts/export_openapi.py"
+      - "requirements.txt"
+      - ".github/workflows/api-docs.yml"
+  workflow_dispatch:
+
+# Найменші права: читати код, публікувати Pages, отримати OIDC-токен для деплою.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Один деплой Pages за раз; новіший push не скасовує розпочатий деплой.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    name: generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install API dependencies
+        run: pip install -r requirements.txt
+
+      # Генеруємо в окрему теку сайту: на Pages потрапляє саме те, що згенерував код
+      # цього коміту, навіть якщо закомічений YAML застарів.
+      - name: Generate OpenAPI from code
+        run: |
+          mkdir -p _site
+          python scripts/export_openapi.py --out-dir _site
+          cp docs/api/index.html _site/index.html
+
+      - name: Warn if committed spec differs from code
+        run: |
+          python scripts/export_openapi.py --check \
+            || echo "::warning title=OpenAPI drift::docs/api/openapi-generated.yaml у main відрізняється від коду — перегенеруйте файл"
+
+      # Рання зрозуміла помилка, якщо Pages не ввімкнено з джерелом «GitHub Actions».
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    name: deploy
+    needs: generate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
