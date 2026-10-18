@@ -59,12 +59,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'OpenAPI generation failed' }
           Copy-Item -LiteralPath docs/api/index.html -Destination _site/index.html -Force
 
+      # Лише попередження: розходження не має валити публікацію — справжній шлюз додає PR-8
+      # у job `build`. У PowerShell `Write-Host` не скидає $LASTEXITCODE, а GitHub завершує
+      # крок через `exit $LASTEXITCODE`, тож код виходу задаємо явно.
       - name: Warn if committed spec differs from code
         run: |
           .\.venv\Scripts\python.exe scripts/export_openapi.py --check
           if ($LASTEXITCODE -ne 0) {
             Write-Host '::warning title=OpenAPI drift::docs/api/openapi-generated.yaml у main відрізняється від коду — перегенеруйте файл'
           }
+          exit 0
 
       # Рання зрозуміла помилка, якщо Pages не ввімкнено з джерелом «GitHub Actions».
       - name: Configure Pages
