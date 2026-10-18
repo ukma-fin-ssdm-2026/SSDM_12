@@ -43,11 +43,20 @@ jobs:
           .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
           if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
 
-      # Контракт-тести (повнота анотацій, problem+json) і тести кінцевих точок на заглушках.
-      - name: Run API tests (Lab 4)
+      # The build job remains the required PR check on the existing Windows runner.
+      # Initial conservative gate: raise it after reviewing coverage from CI.
+      - name: Run API tests with branch coverage
         run: |
-          .\.venv\Scripts\python.exe -m pytest
-          if ($LASTEXITCODE -ne 0) { throw 'API tests failed' }
+          .\.venv\Scripts\python.exe -m pytest --cov=api --cov-branch --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=50
+          if ($LASTEXITCODE -ne 0) { throw 'API tests or coverage gate failed' }
+
+      - name: Upload API coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: coverage.xml
+          if-no-files-found: warn
 
       - name: Set up Java for PlantUML
         uses: actions/setup-java@v4
