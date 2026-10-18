@@ -60,3 +60,8 @@ pgdata/
 *.log
 logs/
 tmp/
+# Hypothesis generated examples / mutmut temporary workspace
+.hypothesis/
+.mutmut-cache/
+.mutmut-cache*
+mutants/

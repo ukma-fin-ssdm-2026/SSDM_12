@@ -3,3 +3,6 @@
 pytest==9.1.1
 # Клієнт для fastapi.testclient (Starlette 1.x очікує httpx2).
 httpx2==2.13.1
+# Повторювані вимірювання якості тестів (CI).
+pytest-cov==7.1.0
+hypothesis==6.170.0
