@@ -92,8 +92,2241 @@ paths:
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
       security:
       - demoBearer: []
+  /api/v1/resources:
+    get:
+      tags:
+      - resources
+      summary: Переглянути каталог ресурсів
+      description: |-
+        Каталог ресурсів із фільтрами за типом і провайдером. Використовується для вибору
+        фільтрів пошуку (FR-021). Пагінація за зсувом: каталог малий, а інтерфейсу потрібна
+        загальна кількість (`total`).
+      operationId: list_resources
+      security:
+      - demoBearer: []
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/ResourceType'
+          - type: 'null'
+          description: Лише ресурси цього типу.
+          title: Type
+        description: Лише ресурси цього типу.
+      - name: provider_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          description: Лише ресурси цього провайдера.
+          title: Provider Id
+        description: Лише ресурси цього провайдера.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Сторінка каталогу ресурсів.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: query.limit
+                      message: Input should be less than or equal to 100
+                      type: less_than_equal
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/resources/{resource_id}:
+    get:
+      tags:
+      - resources
+      summary: Отримати ресурс
+      description: Повертає один ресурс каталогу з провайдером. Неіснуючий ідентифікатор — 404.
+      operationId: get_resource
+      security:
+      - demoBearer: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор ресурсу (UUID).
+          title: Resource Id
+        description: Ідентифікатор ресурсу (UUID).
+        examples:
+          room:
+            summary: Аудиторія 1-225 (місткість 30)
+            value: a9877c74-ace0-4fb3-8703-c97776347c65
+          consultation:
+            summary: Консультація з баз даних (без місткості)
+            value: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+      responses:
+        '200':
+          description: Ресурс із провайдером.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: path.resource_id
+                      message: 'Input should be a valid UUID, invalid length: found 3'
+                      type: uuid_parsing
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/admin/resources:
+    post:
+      tags:
+      - resources
+      summary: Створити ресурс (адміністратор)
+      description: |-
+        Створює консультацію або аудиторію й призначає провайдера (FR-060, FR-061).
+        Місткість обов'язкова лише для аудиторії (INV-08); провайдер має мати роль
+        «провайдер» (INV-15). Дія потрапляє в журнал аудиту (FR-066).
+      operationId: create_resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceCreate'
+            examples:
+              room:
+                summary: Аудиторія з місткістю
+                value:
+                  name: Аудиторія 2-110
+                  type: room
+                  capacity: 24
+                  provider_id: 6aafc85c-a8aa-4ae7-bd80-dba04d79baa3
+              consultation:
+                summary: Консультація без місткості
+                value:
+                  name: Консультація з алгоритмів
+                  type: consultation
+                  provider_id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+              not_provider:
+                summary: 'Помилка: провайдер — студент (422)'
+                value:
+                  name: Аудиторія 2-111
+                  type: room
+                  capacity: 20
+                  provider_id: 3c357b14-bd0d-424b-8924-17eb737a4907
+        required: true
+      responses:
+        '201':
+          description: Ресурс створено; заголовок Location містить його адресу.
+          headers:
+            Location:
+              description: Адреса створеного ресурсу.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+            - `PROVIDER_NOT_ELIGIBLE` — Користувач не може бути провайдером ресурсу
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: body.capacity
+                      message: Value error, для аудиторії (room) місткість обов'язкова
+                      type: value_error
+                PROVIDER_NOT_ELIGIBLE:
+                  summary: Користувач не може бути провайдером ресурсу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#provider-not-eligible
+                    title: Користувач не може бути провайдером ресурсу
+                    status: 422
+                    detail: provider_id вказує на неіснуючого користувача або на користувача без ролі
+                      провайдера.
+                    code: PROVIDER_NOT_ELIGIBLE
+                    action: Призначте користувача з роллю «провайдер».
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+      security:
+      - demoBearer: []
+  /api/v1/admin/resources/{resource_id}:
+    patch:
+      tags:
+      - resources
+      summary: Змінити ресурс (адміністратор)
+      description: |-
+        Змінює лише передані поля (семантика PATCH): відсутнє поле не чіпається, а `null`
+        для обов'язкового поля — помилка 422, а не «тихе» ігнорування. Тип ресурсу змінити
+        не можна. Дія потрапляє в журнал аудиту з попередніми й новими значеннями (FR-066).
+      operationId: update_resource
+      security:
+      - demoBearer: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор ресурсу (UUID).
+          title: Resource Id
+        description: Ідентифікатор ресурсу (UUID).
+        examples:
+          room:
+            summary: Аудиторія 1-225 (місткість 30)
+            value: a9877c74-ace0-4fb3-8703-c97776347c65
+          consultation:
+            summary: Консультація з баз даних (без місткості)
+            value: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceUpdate'
+            examples:
+              capacity:
+                summary: Змінити місткість аудиторії
+                value:
+                  capacity: 28
+              provider:
+                summary: Призначити іншого провайдера
+                value:
+                  provider_id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+              null_name:
+                summary: 'Помилка: name = null (422)'
+                value: {}
+      responses:
+        '200':
+          description: Ресурс після змін.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+            - `PROVIDER_NOT_ELIGIBLE` — Користувач не може бути провайдером ресурсу
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: body.name
+                      message: Value error, поле не може бути null; щоб не змінювати його, не передавайте
+                        поле
+                      type: value_error
+                PROVIDER_NOT_ELIGIBLE:
+                  summary: Користувач не може бути провайдером ресурсу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#provider-not-eligible
+                    title: Користувач не може бути провайдером ресурсу
+                    status: 422
+                    detail: provider_id вказує на неіснуючого користувача або на користувача без ролі
+                      провайдера.
+                    code: PROVIDER_NOT_ELIGIBLE
+                    action: Призначте користувача з роллю «провайдер».
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/slots:
+    get:
+      tags:
+      - slots
+      summary: Знайти вільні слоти
+      description: |-
+        Повертає лише **вільні** слоти в межах горизонту A-001: без зайнятих, заблокованих
+        і тих, що вже почалися (FR-020, FR-023). Фільтри комбінуються через «і» (FR-021).
+        Порядок — за часом початку. Пагінація курсором: набір вільних слотів змінюється,
+        поки користувач гортає, і зсув пропускав би або дублював слоти.
+      operationId: search_free_slots
+      security:
+      - demoBearer: []
+      parameters:
+      - name: provider_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          description: Лише слоти ресурсів цього провайдера.
+          title: Provider Id
+        description: Лише слоти ресурсів цього провайдера.
+        examples:
+          provider:
+            summary: Ірина Шевченко (demo-provider)
+            value: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+          provider_2:
+            summary: Олег Бондар (demo-provider-2)
+            value: 6aafc85c-a8aa-4ae7-bd80-dba04d79baa3
+      - name: resource_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/ResourceType'
+          - type: 'null'
+          description: Лише слоти ресурсів цього типу.
+          title: Resource Type
+        description: Лише слоти ресурсів цього типу.
+      - name: date
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: Дата за київським часом (A-007), від сьогодні до кінця горизонту A-001.
+          title: Date
+        description: Дата за київським часом (A-007), від сьогодні до кінця горизонту A-001.
+      - name: min_capacity
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            maximum: 1000
+            minimum: 1
+          - type: 'null'
+          description: 'Мінімальна місткість. Застосовується лише до аудиторій: якщо задано, консультації
+            в результати не потрапляють (FR-022).'
+          title: Min Capacity
+        description: 'Мінімальна місткість. Застосовується лише до аудиторій: якщо задано, консультації
+          в результати не потрапляють (FR-022).'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
+          description: Курсор із `pagination.next_cursor` попередньої сторінки.
+          title: Cursor
+        description: Курсор із `pagination.next_cursor` попередньої сторінки.
+      responses:
+        '200':
+          description: Сторінка вільних слотів і курсор наступної сторінки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+            - `DATE_OUT_OF_HORIZON` — Дата поза горизонтом пошуку
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: query.limit
+                      message: Input should be less than or equal to 100
+                      type: less_than_equal
+                DATE_OUT_OF_HORIZON:
+                  summary: Дата поза горизонтом пошуку
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#date-out-of-horizon
+                    title: Дата поза горизонтом пошуку
+                    status: 422
+                    detail: Фільтр date у пошуку раніший за сьогодні або пізніший за горизонт A-001.
+                    code: DATE_OUT_OF_HORIZON
+                    action: Оберіть дату від сьогодні до кінця горизонту бронювання (A-001).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/slots/{slot_id}:
+    get:
+      tags:
+      - slots
+      summary: Отримати слот
+      description: |-
+        Повертає слот і поле `available` — чи можна забронювати його зараз. Чи зайнятий
+        слот, видно, а ким — ні (SEC-004).
+      operationId: get_slot
+      security:
+      - demoBearer: []
+      parameters:
+      - name: slot_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор слота (UUID).
+          title: Slot Id
+        description: Ідентифікатор слота (UUID).
+        examples:
+          free:
+            summary: Вільний слот
+            value: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+          taken:
+            summary: Зайнятий слот (available = false)
+            value: 620cd53b-a9d3-4873-9e19-3ca78f0b389b
+      responses:
+        '200':
+          description: Слот і ознака, чи можна його забронювати зараз.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotDetail'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `SLOT_NOT_FOUND` — Слот не знайдено
+          content:
+            application/problem+json:
+              examples:
+                SLOT_NOT_FOUND:
+                  summary: Слот не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-not-found
+                    title: Слот не знайдено
+                    status: 404
+                    detail: Слота з таким ідентифікатором немає.
+                    code: SLOT_NOT_FOUND
+                    action: Знайдіть актуальний вільний слот через пошук.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: path.slot_id
+                      message: 'Input should be a valid UUID, invalid length: found 3'
+                      type: uuid_parsing
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/resources/{resource_id}/slots:
+    post:
+      tags:
+      - slots
+      summary: Опублікувати разовий слот (провайдер)
+      description: |-
+        Створює разовий слот на **власному** ресурсі провайдера (FR-010). Тривалість —
+        у межах A-005, початок — у майбутньому. Слот, що перетинається з наявним слотом
+        ресурсу, відхиляється (409, FR-011); суміжні слоти дозволені.
+      operationId: create_slot
+      security:
+      - demoBearer: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ресурс провайдера, на якому створюється слот.
+          title: Resource Id
+        description: Ресурс провайдера, на якому створюється слот.
+        examples:
+          own:
+            summary: 'Власний ресурс demo-provider: консультація з баз даних'
+            value: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+          foreign:
+            summary: Ресурс іншого провайдера (demo-provider-2) → 403
+            value: decb8af8-560b-47e3-bedd-89e5c4fabf95
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlotCreate'
+            examples:
+              ok:
+                summary: 30 хвилин, київський час
+                value:
+                  starts_at: '2027-02-15T10:00:00+02:00'
+                  duration_minutes: 30
+              bad_duration:
+                summary: 'Помилка: тривалість 17 хв (422)'
+                value:
+                  starts_at: '2027-02-15T10:00:00+02:00'
+                  duration_minutes: 17
+              naive_time:
+                summary: 'Помилка: час без часового поясу (422)'
+                value:
+                  starts_at: '2027-02-15T10:00:00'
+                  duration_minutes: 30
+      responses:
+        '201':
+          description: Слот створено; заголовок Location містить його адресу.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotDetail'
+          headers:
+            Location:
+              description: Адреса створеного слота.
+              schema:
+                type: string
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `SLOT_OVERLAP` — Слот перетинається з наявним
+          content:
+            application/problem+json:
+              examples:
+                SLOT_OVERLAP:
+                  summary: Слот перетинається з наявним
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-overlap
+                    title: Слот перетинається з наявним
+                    status: 409
+                    detail: Новий слот ресурсу перетинається з наявним слотом цього ресурсу; суміжні слоти
+                      дозволені.
+                    code: SLOT_OVERLAP
+                    action: Змініть час початку або тривалість слота.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+            - `SLOT_IN_PAST` — Початок слота в минулому
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: body.duration_minutes
+                      message: Input should be a multiple of 5
+                      type: multiple_of
+                SLOT_IN_PAST:
+                  summary: Початок слота в минулому
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-in-past
+                    title: Початок слота в минулому
+                    status: 422
+                    detail: Провайдер створює слот, що починається не пізніше за поточний момент.
+                    code: SLOT_IN_PAST
+                    action: Вкажіть майбутній час початку.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/bookings:
+    post:
+      tags:
+      - bookings
+      summary: Забронювати вільний слот
+      description: |-
+        Бронює вільний слот для студента; бронювання активне одразу, без підтвердження
+        провайдером (FR-030, FR-031). Відповідь містить граничний час скасування (FR-041).
+
+        Відмови (409) пояснюють причину: слот зайнятий — зокрема, якщо двоє бронюють його
+        одночасно, рівно один отримує 201 (FR-032, REL-001); слот почався (A-006) або поза
+        горизонтом (A-001); ліміт активних бронювань (A-002, поля `limit` і
+        `active_bookings`); перетин із власним бронюванням (FR-035).
+      operationId: create_booking
+      security:
+      - demoBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^[A-Za-z0-9_-]{8,64}$
+          - type: 'null'
+          description: Необов'язковий ключ ідемпотентності (8–64 символи). Повтор із тим самим ключем
+            повертає перше бронювання замість створення нового.
+          title: Idempotency-Key
+        description: Необов'язковий ключ ідемпотентності (8–64 символи). Повтор із тим самим ключем повертає
+          перше бронювання замість створення нового.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreate'
+            examples:
+              free:
+                summary: Вільний слот → 201
+                value:
+                  slot_id: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+              taken:
+                summary: Слот зайнятий іншим студентом → 409
+                value:
+                  slot_id: 620cd53b-a9d3-4873-9e19-3ca78f0b389b
+              started:
+                summary: Слот уже почався → 409
+                value:
+                  slot_id: 969a37c9-bc30-482e-9825-6da114829ebb
+              overlap:
+                summary: Перетин із власним бронюванням → 409
+                value:
+                  slot_id: 6ec279e0-7ad1-47e1-a58c-0c4059786639
+      responses:
+        '201':
+          description: Бронювання створено (або повернуто перше за тим самим Idempotency-Key).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOut'
+          headers:
+            Location:
+              description: Адреса створеного бронювання.
+              schema:
+                type: string
+            Idempotent-Replayed:
+              description: '`true`, якщо це повтор запиту з тим самим Idempotency-Key і нове бронювання
+                не створювалося.'
+              schema:
+                type: string
+                enum:
+                - 'true'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `SLOT_NOT_FOUND` — Слот не знайдено
+          content:
+            application/problem+json:
+              examples:
+                SLOT_NOT_FOUND:
+                  summary: Слот не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-not-found
+                    title: Слот не знайдено
+                    status: 404
+                    detail: Слота з таким ідентифікатором немає.
+                    code: SLOT_NOT_FOUND
+                    action: Знайдіть актуальний вільний слот через пошук.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `SLOT_ALREADY_BOOKED` — Слот уже зайнятий
+            - `SLOT_STARTED` — Слот уже почався
+            - `SLOT_OUT_OF_HORIZON` — Слот поза горизонтом бронювання
+            - `SLOT_BLOCKED` — Час слота заблоковано провайдером
+            - `BOOKING_LIMIT_REACHED` — Досягнуто ліміту активних бронювань
+            - `BOOKING_OVERLAP` — Час перетинається з іншим вашим бронюванням
+          content:
+            application/problem+json:
+              examples:
+                SLOT_ALREADY_BOOKED:
+                  summary: Слот уже зайнятий
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-already-booked
+                    title: Слот уже зайнятий
+                    status: 409
+                    detail: На слот уже є активне бронювання, зокрема якщо його щойно зайняв інший студент.
+                    code: SLOT_ALREADY_BOOKED
+                    action: Оберіть інший вільний слот у пошуку.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_STARTED:
+                  summary: Слот уже почався
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-started
+                    title: Слот уже почався
+                    status: 409
+                    detail: Запис на слот або зміна бронювання після початку слота.
+                    code: SLOT_STARTED
+                    action: Оберіть слот, який ще не почався.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_OUT_OF_HORIZON:
+                  summary: Слот поза горизонтом бронювання
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-out-of-horizon
+                    title: Слот поза горизонтом бронювання
+                    status: 409
+                    detail: Початок слота пізніший за поточний момент плюс горизонт A-001.
+                    code: SLOT_OUT_OF_HORIZON
+                    action: Оберіть слот у межах горизонту бронювання (A-001).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_BLOCKED:
+                  summary: Час слота заблоковано провайдером
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-blocked
+                    title: Час слота заблоковано провайдером
+                    status: 409
+                    detail: Слот потрапляє в проміжок, який провайдер оголосив недоступним.
+                    code: SLOT_BLOCKED
+                    action: Оберіть інший слот.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                BOOKING_LIMIT_REACHED:
+                  summary: Досягнуто ліміту активних бронювань
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-limit-reached
+                    title: Досягнуто ліміту активних бронювань
+                    status: 409
+                    detail: Ліміт — 3 активні бронювання, у вас уже 3.
+                    code: BOOKING_LIMIT_REACHED
+                    action: Скасуйте одне з активних бронювань або дочекайтеся його завершення.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    limit: 3
+                    active_bookings: 3
+                BOOKING_OVERLAP:
+                  summary: Час перетинається з іншим вашим бронюванням
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-overlap
+                    title: Час перетинається з іншим вашим бронюванням
+                    status: 409
+                    detail: Новий слот перетинається в часі з активним бронюванням того самого студента.
+                    code: BOOKING_OVERLAP
+                    action: Оберіть слот, що не перетинається з вашими активними бронюваннями.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+            - `IDEMPOTENCY_KEY_REUSED` — Ключ ідемпотентності вже використано для іншого запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: body.slot_id
+                      message: Field required
+                      type: missing
+                IDEMPOTENCY_KEY_REUSED:
+                  summary: Ключ ідемпотентності вже використано для іншого запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#idempotency-key-reused
+                    title: Ключ ідемпотентності вже використано для іншого запиту
+                    status: 422
+                    detail: Повтор із тим самим Idempotency-Key, але з іншим тілом запиту.
+                    code: IDEMPOTENCY_KEY_REUSED
+                    action: Для нового запиту згенеруйте новий Idempotency-Key.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
+                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/bookings/{booking_id}:
+    get:
+      tags:
+      - bookings
+      summary: Отримати власне бронювання
+      description: |-
+        Деталі бронювання для його власника. Чуже бронювання — 403 без жодних його даних
+        (SEC-004, THR-03); неіснуюче — 404.
+      operationId: get_booking
+      security:
+      - demoBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор бронювання (UUID).
+          title: Booking Id
+        description: Ідентифікатор бронювання (UUID).
+        examples:
+          active:
+            summary: Власне активне бронювання (demo-student)
+            value: 31c7764f-006e-49e4-b5bb-12d90e9e1cc5
+          deadline_passed:
+            summary: Власне, граничний час скасування вже минув (demo-student)
+            value: 6982feb7-e3d9-4e36-8a61-f05bc39c4685
+          foreign:
+            summary: Бронювання іншого студента (demo-student-2)
+            value: e53719cf-dcd8-4c2f-824b-7ae4e53a1bac
+      responses:
+        '200':
+          description: Бронювання.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `BOOKING_NOT_FOUND` — Бронювання не знайдено
+          content:
+            application/problem+json:
+              examples:
+                BOOKING_NOT_FOUND:
+                  summary: Бронювання не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-not-found
+                    title: Бронювання не знайдено
+                    status: 404
+                    detail: Бронювання з таким ідентифікатором немає.
+                    code: BOOKING_NOT_FOUND
+                    action: Відкрийте список своїх бронювань.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: path.booking_id
+                      message: 'Input should be a valid UUID, invalid length: found 3'
+                      type: uuid_parsing
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/bookings/{booking_id}/cancel:
+    post:
+      tags:
+      - bookings
+      summary: Скасувати власне бронювання
+      description: |-
+        Скасовує активне бронювання до граничного часу скасування включно (FR-040, FR-041);
+        слот одразу знову з'являється в пошуку (FR-042). Після граничного часу — 409 з полем
+        `cancel_deadline_at`; після початку слота — 409 для всіх ролей (FR-045).
+
+        Це `POST`, а не `DELETE`: бронювання не видаляється, а переходить у стан `cancelled`.
+      operationId: cancel_booking
+      security:
+      - demoBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор бронювання (UUID).
+          title: Booking Id
+        description: Ідентифікатор бронювання (UUID).
+        examples:
+          active:
+            summary: Власне активне бронювання (demo-student)
+            value: 31c7764f-006e-49e4-b5bb-12d90e9e1cc5
+          deadline_passed:
+            summary: Власне, граничний час скасування вже минув (demo-student)
+            value: 6982feb7-e3d9-4e36-8a61-f05bc39c4685
+          foreign:
+            summary: Бронювання іншого студента (demo-student-2)
+            value: e53719cf-dcd8-4c2f-824b-7ae4e53a1bac
+      responses:
+        '200':
+          description: Скасоване бронювання (state = cancelled).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `BOOKING_NOT_FOUND` — Бронювання не знайдено
+          content:
+            application/problem+json:
+              examples:
+                BOOKING_NOT_FOUND:
+                  summary: Бронювання не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-not-found
+                    title: Бронювання не знайдено
+                    status: 404
+                    detail: Бронювання з таким ідентифікатором немає.
+                    code: BOOKING_NOT_FOUND
+                    action: Відкрийте список своїх бронювань.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `BOOKING_ALREADY_CANCELLED` — Бронювання вже скасовано
+            - `SLOT_STARTED` — Слот уже почався
+            - `CANCELLATION_DEADLINE_PASSED` — Граничний час скасування минув
+          content:
+            application/problem+json:
+              examples:
+                BOOKING_ALREADY_CANCELLED:
+                  summary: Бронювання вже скасовано
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-already-cancelled
+                    title: Бронювання вже скасовано
+                    status: 409
+                    detail: Повторне скасування або перенесення скасованого бронювання.
+                    code: BOOKING_ALREADY_CANCELLED
+                    action: 'Дія не потрібна: бронювання вже неактивне.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_STARTED:
+                  summary: Слот уже почався
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-started
+                    title: Слот уже почався
+                    status: 409
+                    detail: Запис на слот або зміна бронювання після початку слота.
+                    code: SLOT_STARTED
+                    action: Оберіть слот, який ще не почався.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CANCELLATION_DEADLINE_PASSED:
+                  summary: Граничний час скасування минув
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#cancellation-deadline-passed
+                    title: Граничний час скасування минув
+                    status: 409
+                    detail: Скасувати можна було до 2026-10-20T08:00:00Z.
+                    code: CANCELLATION_DEADLINE_PASSED
+                    action: Скасувати чи перенести це бронювання вже не можна; за потреби зверніться до
+                      провайдера.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    cancel_deadline_at: '2026-10-20T08:00:00Z'
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: path.booking_id
+                      message: 'Input should be a valid UUID, invalid length: found 3'
+                      type: uuid_parsing
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
+                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/bookings/{booking_id}/reschedule:
+    post:
+      tags:
+      - bookings
+      summary: Перенести бронювання на інший слот
+      description: |-
+        Атомарно замінює бронювання новим (FR-043): старе стає `cancelled` з видом
+        `rescheduled` і посиланням `rescheduled_to_id`, нове повертається з кодом 201.
+        Якщо новий слот зайнятий чи недоступний, нічого не змінюється. Діє те саме вікно, що
+        й для скасування; перенесення не рахується як нове бронювання в ліміті A-002 (FR-044).
+      operationId: reschedule_booking
+      security:
+      - demoBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор бронювання (UUID).
+          title: Booking Id
+        description: Ідентифікатор бронювання (UUID).
+        examples:
+          active:
+            summary: Власне активне бронювання (demo-student)
+            value: 31c7764f-006e-49e4-b5bb-12d90e9e1cc5
+          deadline_passed:
+            summary: Власне, граничний час скасування вже минув (demo-student)
+            value: 6982feb7-e3d9-4e36-8a61-f05bc39c4685
+          foreign:
+            summary: Бронювання іншого студента (demo-student-2)
+            value: e53719cf-dcd8-4c2f-824b-7ae4e53a1bac
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingReschedule'
+            examples:
+              free:
+                summary: На вільний слот → 201
+                value:
+                  new_slot_id: e2600697-bce7-4396-a78d-bbe9bdff9212
+              taken:
+                summary: На зайнятий слот → 409, старе бронювання лишається
+                value:
+                  new_slot_id: 620cd53b-a9d3-4873-9e19-3ca78f0b389b
+      responses:
+        '201':
+          description: Нове бронювання; старе стало cancelled з видом rescheduled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOut'
+          headers:
+            Location:
+              description: Адреса створеного бронювання.
+              schema:
+                type: string
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `BOOKING_NOT_FOUND` — Бронювання не знайдено
+            - `SLOT_NOT_FOUND` — Слот не знайдено
+          content:
+            application/problem+json:
+              examples:
+                BOOKING_NOT_FOUND:
+                  summary: Бронювання не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-not-found
+                    title: Бронювання не знайдено
+                    status: 404
+                    detail: Бронювання з таким ідентифікатором немає.
+                    code: BOOKING_NOT_FOUND
+                    action: Відкрийте список своїх бронювань.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_NOT_FOUND:
+                  summary: Слот не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-not-found
+                    title: Слот не знайдено
+                    status: 404
+                    detail: Слота з таким ідентифікатором немає.
+                    code: SLOT_NOT_FOUND
+                    action: Знайдіть актуальний вільний слот через пошук.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `BOOKING_ALREADY_CANCELLED` — Бронювання вже скасовано
+            - `CANCELLATION_DEADLINE_PASSED` — Граничний час скасування минув
+            - `SLOT_ALREADY_BOOKED` — Слот уже зайнятий
+            - `SLOT_STARTED` — Слот уже почався
+            - `SLOT_OUT_OF_HORIZON` — Слот поза горизонтом бронювання
+            - `SLOT_BLOCKED` — Час слота заблоковано провайдером
+            - `BOOKING_OVERLAP` — Час перетинається з іншим вашим бронюванням
+          content:
+            application/problem+json:
+              examples:
+                BOOKING_ALREADY_CANCELLED:
+                  summary: Бронювання вже скасовано
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-already-cancelled
+                    title: Бронювання вже скасовано
+                    status: 409
+                    detail: Повторне скасування або перенесення скасованого бронювання.
+                    code: BOOKING_ALREADY_CANCELLED
+                    action: 'Дія не потрібна: бронювання вже неактивне.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CANCELLATION_DEADLINE_PASSED:
+                  summary: Граничний час скасування минув
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#cancellation-deadline-passed
+                    title: Граничний час скасування минув
+                    status: 409
+                    detail: Скасувати можна було до 2026-10-20T08:00:00Z.
+                    code: CANCELLATION_DEADLINE_PASSED
+                    action: Скасувати чи перенести це бронювання вже не можна; за потреби зверніться до
+                      провайдера.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    cancel_deadline_at: '2026-10-20T08:00:00Z'
+                SLOT_ALREADY_BOOKED:
+                  summary: Слот уже зайнятий
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-already-booked
+                    title: Слот уже зайнятий
+                    status: 409
+                    detail: На слот уже є активне бронювання, зокрема якщо його щойно зайняв інший студент.
+                    code: SLOT_ALREADY_BOOKED
+                    action: Оберіть інший вільний слот у пошуку.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_STARTED:
+                  summary: Слот уже почався
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-started
+                    title: Слот уже почався
+                    status: 409
+                    detail: Запис на слот або зміна бронювання після початку слота.
+                    code: SLOT_STARTED
+                    action: Оберіть слот, який ще не почався.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_OUT_OF_HORIZON:
+                  summary: Слот поза горизонтом бронювання
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-out-of-horizon
+                    title: Слот поза горизонтом бронювання
+                    status: 409
+                    detail: Початок слота пізніший за поточний момент плюс горизонт A-001.
+                    code: SLOT_OUT_OF_HORIZON
+                    action: Оберіть слот у межах горизонту бронювання (A-001).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                SLOT_BLOCKED:
+                  summary: Час слота заблоковано провайдером
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-blocked
+                    title: Час слота заблоковано провайдером
+                    status: 409
+                    detail: Слот потрапляє в проміжок, який провайдер оголосив недоступним.
+                    code: SLOT_BLOCKED
+                    action: Оберіть інший слот.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                BOOKING_OVERLAP:
+                  summary: Час перетинається з іншим вашим бронюванням
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#booking-overlap
+                    title: Час перетинається з іншим вашим бронюванням
+                    status: 409
+                    detail: Новий слот перетинається в часі з активним бронюванням того самого студента.
+                    code: BOOKING_OVERLAP
+                    action: Оберіть слот, що не перетинається з вашими активними бронюваннями.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: body.new_slot_id
+                      message: Field required
+                      type: missing
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
+                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/me/bookings:
+    get:
+      tags:
+      - bookings
+      summary: Переглянути власні бронювання
+      description: |-
+        Бронювання поточного студента (FR-036): спершу активні й ті, що тривають, потім
+        завершені й скасовані (US-014). Порожній список — це 200 з `items: []`, а не помилка.
+      operationId: list_my_bookings
+      security:
+      - demoBearer: []
+      parameters:
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/BookingState'
+          - type: 'null'
+          description: Лише бронювання в цьому стані.
+          title: State
+        description: Лише бронювання в цьому стані.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Сторінка власних бронювань.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                    errors:
+                    - field: query.state
+                      message: Input should be 'active', 'in_progress', 'completed' or 'cancelled'
+                      type: enum
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
+    BookingCreate:
+      properties:
+        slot_id:
+          type: string
+          format: uuid
+          title: Slot Id
+          description: Слот, який бронює студент (з результатів пошуку).
+      additionalProperties: false
+      type: object
+      required:
+      - slot_id
+      title: BookingCreate
+      description: Запит на бронювання вільного слота.
+      examples:
+      - slot_id: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+    BookingList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/BookingOut'
+          type: array
+          title: Items
+          description: 'Бронювання: спершу активні й ті, що тривають (найближчі першими), потім завершені
+            й скасовані (найновіші першими) — US-014.'
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: BookingList
+      description: Сторінка власних бронювань студента.
+    BookingOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор бронювання (UUID).
+        state:
+          $ref: '#/components/schemas/BookingState'
+          description: 'Похідний стан: active — слот ще не почався; in_progress — триває (AQ-05); completed
+            — завершився; cancelled — скасоване.'
+        slot:
+          $ref: '#/components/schemas/BookingSlot'
+          description: Слот бронювання.
+        resource:
+          $ref: '#/components/schemas/ResourceSummary'
+          description: Ресурс слота.
+        provider:
+          $ref: '#/components/schemas/PersonSummary'
+          description: Провайдер ресурсу.
+        cancel_deadline_at:
+          type: string
+          format: date-time
+          title: Cancel Deadline At
+          description: Граничний час скасування й перенесення, UTC. Фіксується під час бронювання й не
+            змінюється, якщо адміністратор змінить політику (FR-041, FR-065).
+        can_cancel:
+          type: boolean
+          title: Can Cancel
+          description: Чи можна зараз скасувати або перенести бронювання (стан active і граничний час
+            ще не минув). Інтерфейс показує дії лише тоді, коли true (US-014).
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Коли створено бронювання, UTC.
+        cancelled_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Cancelled At
+          description: Коли скасовано; лише для cancelled.
+        cancellation_kind:
+          anyOf:
+          - $ref: '#/components/schemas/CancellationKind'
+          - type: 'null'
+          description: 'Хто або що скасувало: student, provider_block, rescheduled.'
+        cancellation_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Cancellation Reason
+          description: Причина від провайдера; лише для provider_block (FR-014).
+        rescheduled_to_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Rescheduled To Id
+          description: Нове бронювання, якщо це бронювання перенесено (FR-043).
+      type: object
+      required:
+      - id
+      - state
+      - slot
+      - resource
+      - provider
+      - cancel_deadline_at
+      - can_cancel
+      - created_at
+      title: BookingOut
+      description: Бронювання з погляду його власника-студента.
+      examples:
+      - can_cancel: true
+        cancel_deadline_at: '2026-10-21T05:00:00Z'
+        created_at: '2026-10-19T09:15:00Z'
+        id: 31c7764f-006e-49e4-b5bb-12d90e9e1cc5
+        provider:
+          full_name: Ірина Шевченко
+          id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+        resource:
+          id: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+          name: Консультація з баз даних
+          type: consultation
+        slot:
+          ends_at: '2026-10-21T07:30:00Z'
+          id: acd61ab7-b720-4d4a-9c29-d2f7c5593d3e
+          starts_at: '2026-10-21T07:00:00Z'
+        state: active
+    BookingReschedule:
+      properties:
+        new_slot_id:
+          type: string
+          format: uuid
+          title: New Slot Id
+          description: Вільний слот, на який переноситься бронювання.
+      additionalProperties: false
+      type: object
+      required:
+      - new_slot_id
+      title: BookingReschedule
+      description: Запит на перенесення бронювання на інший слот.
+      examples:
+      - new_slot_id: e2600697-bce7-4396-a78d-bbe9bdff9212
+    BookingSlot:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор слота.
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок, UTC.
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець, UTC.
+      type: object
+      required:
+      - id
+      - starts_at
+      - ends_at
+      title: BookingSlot
+      description: Час слота бронювання.
+    BookingState:
+      type: string
+      enum:
+      - active
+      - in_progress
+      - completed
+      - cancelled
+      title: BookingState
+      description: |-
+        Похідний стан бронювання для користувача (`data-model.md` §7, AQ-05).
+
+        Обчислюється з `status` і часу слота; у БД не зберігається.
+    CancellationKind:
+      type: string
+      enum:
+      - student
+      - provider_block
+      - rescheduled
+      title: CancellationKind
+      description: Хто або що скасувало бронювання (INV-13).
+    CursorPagination:
+      properties:
+        limit:
+          type: integer
+          title: Limit
+          description: Розмір сторінки, який застосовано.
+          examples:
+          - 20
+        next_cursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Next Cursor
+          description: Непрозорий курсор наступної сторінки; null, якщо сторінка остання.
+          examples:
+          - eyJzIjoiMjAyNi0xMC0yMFQwODozMDowMCswMDowMCIsImkiOiIuLi4ifQ
+        has_more:
+          type: boolean
+          title: Has More
+          description: Чи є наступна сторінка.
+          examples:
+          - true
+      type: object
+      required:
+      - limit
+      - next_cursor
+      - has_more
+      title: CursorPagination
+      description: Метадані сторінки за курсором.
     ErrorCode:
       type: string
       enum:
@@ -207,6 +2440,61 @@ components:
       - roles
       title: MeOut
       description: Поточний користувач і його ролі (FR-007).
+    OffsetPagination:
+      properties:
+        limit:
+          type: integer
+          title: Limit
+          description: Розмір сторінки, який застосовано.
+          examples:
+          - 20
+        offset:
+          type: integer
+          title: Offset
+          description: Скільки елементів пропущено.
+          examples:
+          - 0
+        total:
+          type: integer
+          title: Total
+          description: Скільки елементів у списку загалом.
+          examples:
+          - 4
+        has_more:
+          type: boolean
+          title: Has More
+          description: Чи є ще елементи після цієї сторінки.
+          examples:
+          - false
+      type: object
+      required:
+      - limit
+      - offset
+      - total
+      - has_more
+      title: OffsetPagination
+      description: Метадані сторінки за зсувом.
+    PersonSummary:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор користувача.
+          examples:
+          - 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+        full_name:
+          type: string
+          title: Full Name
+          description: Повне ім'я.
+          examples:
+          - Ірина Шевченко
+      type: object
+      required:
+      - id
+      - full_name
+      title: PersonSummary
+      description: 'Ім''я користувача без контактних даних (SEC-004: мінімум персональних даних).'
     Problem:
       properties:
         type:
@@ -291,6 +2579,173 @@ components:
         status: 409
         title: Слот уже зайнятий
         type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-already-booked
+    ResourceCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Name
+          description: Назва; пробіли на краях обрізаються.
+        type:
+          $ref: '#/components/schemas/ResourceType'
+          description: Тип ресурсу; після створення не змінюється.
+        capacity:
+          anyOf:
+          - type: integer
+            maximum: 1000.0
+            minimum: 1.0
+          - type: 'null'
+          title: Capacity
+          description: 'Місткість: обов''язкова для room, заборонена для consultation (INV-08).'
+        provider_id:
+          type: string
+          format: uuid
+          title: Provider Id
+          description: Користувач із роллю «провайдер» (INV-15).
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - type
+      - provider_id
+      title: ResourceCreate
+      description: Новий ресурс (лише адміністратор, FR-060, FR-061).
+      examples:
+      - capacity: 24
+        name: Аудиторія 2-110
+        provider_id: 6aafc85c-a8aa-4ae7-bd80-dba04d79baa3
+        type: room
+    ResourceList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ResourceOut'
+          type: array
+          title: Items
+          description: Ресурси, упорядковані за назвою.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: ResourceList
+      description: Сторінка каталогу ресурсів.
+    ResourceOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор ресурсу (UUID, DD-13).
+        name:
+          type: string
+          title: Name
+          description: Назва ресурсу.
+        type:
+          $ref: '#/components/schemas/ResourceType'
+          description: 'Тип: consultation або room.'
+        capacity:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Capacity
+          description: Місткість аудиторії; для консультацій — null (INV-08).
+        provider:
+          $ref: '#/components/schemas/PersonSummary'
+          description: Провайдер, який керує доступністю ресурсу (FR-061).
+      type: object
+      required:
+      - id
+      - name
+      - type
+      - capacity
+      - provider
+      title: ResourceOut
+      description: 'Ресурс каталогу: консультація викладача або аудиторія.'
+      examples:
+      - capacity: 30
+        id: a9877c74-ace0-4fb3-8703-c97776347c65
+        name: Аудиторія 1-225
+        provider:
+          full_name: Олег Бондар
+          id: 6aafc85c-a8aa-4ae7-bd80-dba04d79baa3
+        type: room
+    ResourceSummary:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор ресурсу.
+          examples:
+          - e5a7657b-0de4-4984-92f4-72b74ade3e3a
+        name:
+          type: string
+          title: Name
+          description: Назва ресурсу.
+          examples:
+          - Консультація з баз даних
+        type:
+          $ref: '#/components/schemas/ResourceType'
+          description: 'Тип ресурсу: consultation або room.'
+        capacity:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Capacity
+          description: Місткість; лише для аудиторій (INV-08), для консультацій — null.
+          examples:
+          - null
+      type: object
+      required:
+      - id
+      - name
+      - type
+      - capacity
+      title: ResourceSummary
+      description: Короткий опис ресурсу всередині слота чи бронювання.
+    ResourceType:
+      type: string
+      enum:
+      - consultation
+      - room
+      title: ResourceType
+      description: 'Тип ресурсу (глосарій): консультація викладача або аудиторія.'
+    ResourceUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 120
+            minLength: 1
+          - type: 'null'
+          title: Name
+          description: Нова назва.
+        capacity:
+          anyOf:
+          - type: integer
+            maximum: 1000.0
+            minimum: 1.0
+          - type: 'null'
+          title: Capacity
+          description: Нова місткість; лише для аудиторій.
+        provider_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Provider Id
+          description: Новий провайдер (INV-15).
+      additionalProperties: false
+      type: object
+      title: ResourceUpdate
+      description: 'Часткове оновлення ресурсу: змінюються лише передані поля (PATCH).'
+      examples:
+      - capacity: 28
+      - name: Аудиторія 1-225 (оновлена)
     Role:
       type: string
       enum:
@@ -299,6 +2754,153 @@ components:
       - admin
       title: Role
       description: Роль користувача (FR-007). Користувач може мати кілька ролей (`user_role`).
+    SlotCreate:
+      properties:
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок слота з часовим поясом (RFC 3339), наприклад +02:00 для Києва взимку. Час
+            без поясу відхиляється.
+        duration_minutes:
+          type: integer
+          multipleOf: 5.0
+          maximum: 120.0
+          minimum: 15.0
+          title: Duration Minutes
+          description: 'Тривалість: 15–120 хв із кроком 5 хв (A-005).'
+      additionalProperties: false
+      type: object
+      required:
+      - starts_at
+      - duration_minutes
+      title: SlotCreate
+      description: Новий разовий слот на ресурсі провайдера (FR-010).
+      examples:
+      - duration_minutes: 30
+        starts_at: '2027-02-15T10:00:00+02:00'
+    SlotDetail:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор слота (UUID).
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок слота, UTC (A-007).
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець слота, UTC; не належить слоту (півінтервал).
+        duration_minutes:
+          type: integer
+          title: Duration Minutes
+          description: Тривалість у хвилинах (A-005).
+        resource:
+          $ref: '#/components/schemas/ResourceSummary'
+          description: Ресурс, на якому слот.
+        provider:
+          $ref: '#/components/schemas/PersonSummary'
+          description: Провайдер ресурсу.
+        available:
+          type: boolean
+          title: Available
+          description: 'Чи вільний слот для бронювання зараз: не зайнятий, не заблокований, ще не почався
+            й у межах горизонту A-001. Хто забронював слот, не розкривається.'
+      type: object
+      required:
+      - id
+      - starts_at
+      - ends_at
+      - duration_minutes
+      - resource
+      - provider
+      - available
+      title: SlotDetail
+      description: Один слот із ознакою, чи можна його забронювати зараз.
+      examples:
+      - available: true
+        duration_minutes: 30
+        ends_at: '2026-10-20T08:00:00Z'
+        id: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+        provider:
+          full_name: Ірина Шевченко
+          id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+        resource:
+          id: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+          name: Консультація з баз даних
+          type: consultation
+        starts_at: '2026-10-20T07:30:00Z'
+    SlotList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SlotOut'
+          type: array
+          title: Items
+          description: Вільні слоти за зростанням часу початку.
+        pagination:
+          $ref: '#/components/schemas/CursorPagination'
+          description: Курсор наступної сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: SlotList
+      description: Сторінка результатів пошуку вільних слотів.
+    SlotOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор слота (UUID).
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок слота, UTC (A-007).
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець слота, UTC; не належить слоту (півінтервал).
+        duration_minutes:
+          type: integer
+          title: Duration Minutes
+          description: Тривалість у хвилинах (A-005).
+        resource:
+          $ref: '#/components/schemas/ResourceSummary'
+          description: Ресурс, на якому слот.
+        provider:
+          $ref: '#/components/schemas/PersonSummary'
+          description: Провайдер ресурсу.
+      type: object
+      required:
+      - id
+      - starts_at
+      - ends_at
+      - duration_minutes
+      - resource
+      - provider
+      title: SlotOut
+      description: Слот у результатах пошуку.
+      examples:
+      - duration_minutes: 30
+        ends_at: '2026-10-20T08:00:00Z'
+        id: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+        provider:
+          full_name: Ірина Шевченко
+          id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+        resource:
+          id: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+          name: Консультація з баз даних
+          type: consultation
+        starts_at: '2026-10-20T07:30:00Z'
   securitySchemes:
     demoBearer:
       type: http
