@@ -66,7 +66,7 @@ jobs:
         run: |
           .\.venv\Scripts\python.exe scripts/export_openapi.py --check
           if ($LASTEXITCODE -ne 0) {
-            Write-Host '::warning title=OpenAPI drift::docs/api/openapi-generated.yaml у main відрізняється від коду — перегенеруйте файл'
+            Write-Host '::warning title=OpenAPI drift::docs/api/openapi-generated.yaml differs from generated output; regenerate the committed spec'
           }
           exit 0
 
