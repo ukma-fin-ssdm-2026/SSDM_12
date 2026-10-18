@@ -186,7 +186,7 @@ python scripts/api_latency.py --path /api/v1/slots --concurrency 50 --requests 2
 
 | Дата | Машина | Запитів / паралельно | p50 | p95 | Помилок |
 |---|---|---|---|---|---|
-| 18.10.2026 | Intel Xeon Platinum 8573C, Linux 6.18.55, Python 3.13.5 (контейнер) | 2000 / 50 | 94,9 мс | 123,2 мс | 0 |
+| 18.10.2026 | Intel Xeon Platinum 8573C, Python 3.13.5 (контейнерне тестове середовище) | 2000 / 50 | 94,9 мс | 123,2 мс | 0 |
 
 ---
 
