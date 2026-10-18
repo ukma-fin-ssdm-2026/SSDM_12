@@ -49,6 +49,36 @@ jobs:
           .\.venv\Scripts\python.exe -m pytest
           if ($LASTEXITCODE -ne 0) { throw 'API tests failed' }
 
+      # Code-First: fail if the committed API docs differ from the generated files.
+      - name: Check OpenAPI is generated from code (Lab 4)
+        run: |
+          .\.venv\Scripts\python.exe scripts/export_openapi.py --check
+          if ($LASTEXITCODE -ne 0) { throw 'API docs differ from code. Run python scripts/export_openapi.py' }
+
+      # Use ASCII source and Unicode escapes for Windows PowerShell 5.1 scripts.
+      # Literal placeholder markers containing only spaces or an ellipsis are allowed.
+      - name: Check author slots are filled in docs/api (Lab 4)
+        run: |
+          @'
+          import re
+          import sys
+          from pathlib import Path
+
+          pattern = re.compile(r"\u2039(?![\s\u2026]*\u203a)")
+          matches = [
+              f"{path.as_posix()}:{number}: {line.strip()}"
+              for path in sorted(Path("docs/api").glob("*.md"))
+              for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+              if pattern.search(line)
+          ]
+          if matches:
+              print("\n".join(matches))
+              print("::error::Fill author placeholders in docs/api before merging.")
+              sys.exit(1)
+          print("[ ok ] No unfilled author placeholders in docs/api.")
+          '@ | .\.venv\Scripts\python.exe -
+          if ($LASTEXITCODE -ne 0) { throw 'Unfilled author placeholders in docs/api' }
+
       - name: Set up Java for PlantUML
         uses: actions/setup-java@v4
         with:
