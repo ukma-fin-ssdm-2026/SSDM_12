@@ -12,3 +12,8 @@ addopts = "-ra"
 # й стандарт кодування команда ухвалює в Лаб 5.
 line-length = 100
 target-version = "py312"
+
+# Manual mutation testing runs in Linux/WSL, not native Windows CI.
+[tool.mutmut]
+source_paths = ["src/api/"]
+pytest_add_cli_args_test_selection = ["tests/unit/"]
