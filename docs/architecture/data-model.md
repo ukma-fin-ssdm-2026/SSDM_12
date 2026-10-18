@@ -2,8 +2,8 @@
 
 > **Статус:** Лаб 3, чернетка для рецензії · **Власник:** @dysett (Керівник моделі даних)
 > **Діаграма:** [`uml/data-model.puml`](uml/data-model.puml) · **Пов'язані документи:**
-> [`high-level-design.md`](high-level-design.md) · [`threat-model.md`](threat-model.md) ·
-> [ADR-002](decisions/ADR-002.md)
+> [`high-level-design.md`](high-level-design.md) · [`threat-model.md`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/blob/main/docs/architecture/threat-model.md) ·
+> [ADR-002](https://github.com/ukma-fin-ssdm-2026/SSDM_12/blob/main/docs/architecture/decisions/ADR-002.md)
 
 Модель покриває дані всіх семи ключових функцій F1–F7 з `Project-Description.md` §2.4
 (покриття — у §5). Терміни — за глосарієм `requirements.md` §2.
@@ -124,7 +124,7 @@ INV-13 та INV-14 на кожному кроці, а невдала встав�
 Перевірено FK, `CHECK` і унікальність наступника, кілька `NULL`, успішне перенесення
 та повний відкат. У 20 прогонах по 100 конкурентних перенесень отримано по 1 успіху,
 а 99 невдалих перенесень зберігали старі бронювання. Таблиця результатів і межі
-перевірки — у [ADR-002](decisions/ADR-002.md), «Як перевіримо».
+перевірки — у [ADR-002](https://github.com/ukma-fin-ssdm-2026/SSDM_12/blob/main/docs/architecture/decisions/ADR-002.md), «Як перевіримо».
 
 ---
 
