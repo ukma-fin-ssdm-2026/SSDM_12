@@ -40,7 +40,7 @@ UniSlot — вебсистема, у якій викладач або відпо
 
 | Документ | Що всередині |
 |---|---|
-| [`docs/architecture/high-level-design.md`](docs/architecture/high-level-design.md) | Архітектурний огляд: драйвери, стиль, компоненти, інтерфейси, шари, розгортання, проєктні рішення DD-01…DD-16, відкриті питання |
+| [`docs/architecture/high-level-design.md`](docs/architecture/high-level-design.md) | Архітектурний огляд: драйвери, стиль, компоненти, інтерфейси, шари, розгортання, проєктні рішення DD-01…DD-18, відкриті питання |
 | [`docs/architecture/traceability-matrix.md`](docs/architecture/traceability-matrix.md) | Вимога → компонент → проєктне рішення → метод верифікації для всіх FR і NFR; сценарії атрибутів якості QAS-01…QAS-04 |
 | [`docs/architecture/data-model.md`](docs/architecture/data-model.md) | ER-модель, інваріанти цілісності, класифікація персональних і чутливих даних |
 | [`docs/architecture/threat-model.md`](docs/architecture/threat-model.md) | STRIDE над діаграмою розгортання: межі довіри TB1–TB5, реєстр загроз, прийняті ризики |
@@ -70,6 +70,8 @@ REST API UniSlot на FastAPI за підходом **Code-First**: специф
 | Специфікація OpenAPI (згенерована) | [`docs/api/openapi-generated.yaml`](docs/api/openapi-generated.yaml) |
 | Swagger UI на GitHub Pages | https://ukma-fin-ssdm-2026.github.io/SSDM_12/ — оновлюється на кожен push у `main` |
 | Каталог помилок | [`docs/api/errors.html`](docs/api/errors.html) — на нього веде поле `type` кожної помилки |
+| Проєктні рішення API | [`docs/api/api-design.md`](docs/api/api-design.md): ресурси, коди стану, помилки, пагінація, версіонування, безпека |
+| Атрибути якості API | [`docs/api/quality-attributes.md`](docs/api/quality-attributes.md): цілі з умовами провалу й компроміси |
 | Тести | [`tests/api/`](tests/api/) — контракт специфікації й кожна кінцева точка |
 
 ### Запуск на своєму комп'ютері
@@ -102,7 +104,7 @@ uvicorn api.main:app --app-dir src --reload --port 3000
 **Як код оновлює документацію.** Під час кожного старту сервера — і кожного автоматичного
 перезапуску `--reload` після збереження `.py`-файлу — застосунок перезаписує
 `docs/api/openapi-generated.yaml` і `docs/api/errors.html`. Змінені файли комітьте разом із
-кодом.
+кодом: CI перевіряє, що закомічена специфікація збігається з тією, яку генерує код.
 
 ### Тести й генерація без сервера
 
@@ -149,7 +151,7 @@ Swagger UI.
 
 ```
 SSDM_12/
-├── .github/workflows/      # конфігурація CI (GitHub Actions)
+├── .github/workflows/      # CI (ci.yml) і публікація документації API на Pages (api-docs.yml)
 ├── docs/
 │   ├── requirements/       # вимоги, користувацькі історії, матриця простежуваності
 │   │   ├── requirements.md
@@ -163,16 +165,26 @@ SSDM_12/
 │   │   ├── decisions/      # ADR-001…ADR-003
 │   │   ├── uml/            # діаграми PlantUML (.puml)
 │   │   └── validation/     # доказ спайка ADR-002
-│   ├── api/                # специфікація API та атрибути якості
+│   ├── api/                # API (Лаб 4)
+│   │   ├── api-design.md
+│   │   ├── quality-attributes.md
+│   │   ├── openapi-generated.yaml   # згенеровано з коду
+│   │   ├── errors.html              # згенеровано з коду
+│   │   └── index.html               # Swagger UI для GitHub Pages
 │   ├── code-quality/       # звіт рецензування коду
 │   └── testing/            # звіт про покриття, журнал налагодження
 │       ├── coverage-report.md
 │       ├── debugging-log.md
 │       └── debug-challenge/    # патч навмисного дефекту для повтору вправи
-├── src/                    # вихідний код
-├── tests/                  # тести
-├── scripts/                # перевірка узгодженості вимог і архітектури
+├── src/
+│   └── api/                # REST API (FastAPI): routers/, schemas/, stubs/
+├── tests/
+│   └── api/                # тести API
+├── scripts/                # перевірки вимог і архітектури, генерація OpenAPI, вимір затримки
 ├── Labs/                   # посилання на індивідуальні відео за лабораторними
+├── requirements.txt        # залежності API (версії закріплено)
+├── requirements-dev.txt    # залежності API + тести
+├── pyproject.toml          # налаштування pytest
 ├── README.md
 ├── TeamCharter.md
 ├── Project-Description.md
@@ -213,7 +225,7 @@ SSDM_12/
 - **Оновлення для Лаб 2:** розділ «Артефакти вимог» і оновлене дерево структури — чернетка з Claude (Anthropic); склад таблиці звірено з фактичним вмістом `docs/requirements/`, усі три посилання перевірено клацанням після злиття.
 - **Оновлення для Test-a-Thon:** розділ «Артефакти тестування» і доповнене дерево структури — чернетка з Claude (Opus 5); склад таблиці звірено з фактичним вмістом `docs/testing/`, обидва посилання перевірено після злиття. Нотатки про використання ШІ є всередині кожного з двох документів.
 - **Оновлення для Лаб 3:** розділ «Архітектура (Лаб 3)» і розгорнуте дерево `docs/architecture/` — чернетка з Claude (Anthropic); склад таблиці звірено з фактичним вмістом каталогу, усі посилання перевірено клацанням після злиття документів Лаб 3.
-- **Оновлення для Лаб 4 (каркас API):** розділ «API (Лаб 4)» з інструкцією запуску — чернетка з Claude (Anthropic). Команди запуску виконав сам на macOS 26, Python 3.15; посилання на `src/api/`, `docs/api/` і `tests/api/` перевірено клацанням у гілці PR.
+- **Оновлення для Лаб 4:** розділ «API (Лаб 4)» і дерево `src/api/`, `docs/api/` — чернетка з Claude (Anthropic). Команди запуску виконав сам на macOS 26, Python 3.14.5; склад таблиці звірено з фактичним вмістом `docs/api/`, усі посилання перевірено клацанням після злиття документів Лаб 4.
 
 ### Нотатка про цей документ
 

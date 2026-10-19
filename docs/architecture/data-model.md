@@ -170,7 +170,7 @@ INV-13 та INV-14 на кожному кроці, а невдала встав�
 | Стан (глосарій) | Умова | Що може студент |
 |---|---|---|
 | Активне | `status = confirmed` і зараз раніше за `slot.starts_at` | скасувати або перенести до `cancel_deadline_at` включно |
-| Триває (пропозиція AQ-05) | `status = confirmed` і `starts_at` ≤ зараз < `ends_at` | нічого (FR-045) |
+| Триває (AQ-05; `in_progress` в API) | `status = confirmed` і `starts_at` ≤ зараз < `ends_at` | нічого (FR-045) |
 | Завершене | `status = confirmed` і зараз ≥ `slot.ends_at` | нічого |
 | Скасоване | `status = cancelled` (вид: студентом, блокуванням провайдера або перенесенням) | нічого |
 
