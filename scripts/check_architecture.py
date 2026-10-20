@@ -295,8 +295,9 @@ def main():
     report("Модель даних: PK, персональні дані, опис сутностей", data_problems)
 
     # --- 11. Використання ШІ й README -----------------------------------------------
-    ai_missing = [str(p) for p in list(DOCS.values()) + adrs
-                  if "## Використання ШІ" not in p.read_text(encoding="utf-8")]
+    fence = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
+    ai_missing = [str(p) for p in list(DOCS.values()) + adrs + [DECISIONS / "README.md"]
+                  if "## Використання ШІ" not in fence.sub("", p.read_text(encoding="utf-8"))]
     readme = Path("README.md")
     if readme.is_file() and "docs/architecture/" not in readme.read_text(encoding="utf-8"):
         ai_missing.append("README.md: немає посилання на docs/architecture/")
