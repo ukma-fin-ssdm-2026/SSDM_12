@@ -31,6 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api.config import DOCS_BASE_URL
+from unislot.platform.errors import DomainError
 
 logger = logging.getLogger("unislot.api")
 
@@ -328,10 +329,11 @@ class Problem(BaseModel):
 
 
 class ApiProblem(Exception):
-    """Виняток, який обробник перетворює на відповідь problem+json.
+    """Виняток рівня REST API, який обробник перетворює на відповідь problem+json.
 
-    Заглушки сервісів кидають його напряму. Коли в Лаб 5–6 з'являться доменні
-    помилки модулів (HLD §9), шар REST API перекладатиме їх у `ApiProblem`.
+    Його кидають перевірки самого API (автентифікація, валідація) і заглушки сервісів.
+    Порушення доменних правил модулі описують підкласами
+    `unislot.platform.errors.DomainError`; їх перекладає `_on_domain_error` (HLD §9).
     """
 
     def __init__(
@@ -342,6 +344,11 @@ class ApiProblem(Exception):
         headers: dict[str, str] | None = None,
         **extensions: Any,
     ) -> None:
+        """Фіксує код із каталогу; `detail` за замовчуванням — опис `when` цього коду.
+
+        `extensions` — додаткові поля тіла помилки (`limit`, `cancel_deadline_at` тощо),
+        які оголошено в моделі `Problem`.
+        """
         self.code = code
         self.spec = CATALOG[code]
         self.detail = detail or self.spec.when
@@ -408,6 +415,23 @@ async def _on_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:
     return problem_response(request, exc.code, exc.detail, headers=exc.headers, **exc.extensions)
 
 
+async def _on_domain_error(request: Request, exc: DomainError) -> JSONResponse:
+    """Перекладає доменну помилку у problem+json за її кодом (HLD §9, DD-07)."""
+    try:
+        code = ErrorCode(exc.code)
+    except ValueError:
+        # Коду немає в каталозі — це дефект коду, а не помилка клієнта: 500 без деталей,
+        # а клас і код — лише в журнал сервера (безпечний збій, CWE-209).
+        logger.error(
+            "domain error %s has unknown code %r",
+            type(exc).__name__,
+            exc.code,
+            extra={"request_id": _request_id(request)},
+        )
+        return problem_response(request, ErrorCode.INTERNAL_ERROR)
+    return problem_response(request, code, exc.detail, **exc.context)
+
+
 async def _on_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
     return problem_response(
         request,
@@ -437,6 +461,7 @@ def install_error_handlers(app: FastAPI) -> None:
     """Реєструє обробники: усі відмови API мають один формат (problem+json)."""
     # Обробники типізовано конкретними винятками; Starlette викликає кожен лише для «свого».
     app.add_exception_handler(ApiProblem, _on_api_problem)  # type: ignore[arg-type]
+    app.add_exception_handler(DomainError, _on_domain_error)  # type: ignore[arg-type]
     app.add_exception_handler(
         RequestValidationError,
         _on_validation_error,  # type: ignore[arg-type]
