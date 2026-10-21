@@ -1,0 +1,31 @@
+# Architecture rules from HLD section 6 checked in CI (fitness function, Lecture 3).
+# Run from the repository root with src/ on the import path:
+#   PYTHONPATH=src lint-imports                       (macOS / Linux)
+#   $env:PYTHONPATH = "src"; lint-imports             (Windows PowerShell)
+# ASCII only: the Windows CI runner reads this file with the system code page.
+
+[importlinter]
+root_packages =
+    unislot
+    api
+include_external_packages = True
+
+[importlinter:contract:core-independent-of-rest-api]
+name = unislot modules do not import the REST API package (HLD 6, rule 1)
+type = forbidden
+source_modules =
+    unislot
+forbidden_modules =
+    api
+
+[importlinter:contract:framework-free-domain]
+name = Domain layers and platform errors stay free of web framework and ORM (HLD 6, 9)
+type = forbidden
+source_modules =
+    unislot.*.domain
+    unislot.platform.errors
+forbidden_modules =
+    fastapi
+    starlette
+    pydantic
+    sqlalchemy
