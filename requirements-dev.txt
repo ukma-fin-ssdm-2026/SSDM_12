@@ -6,3 +6,10 @@ httpx2==2.13.1
 # Повторювані вимірювання якості тестів (CI).
 pytest-cov==7.1.0
 hypothesis==6.170.0
+# Статичний аналіз (Лаб 5, статут §11.2). Ті самі версії — у .pre-commit-config.yaml.
+ruff==0.17.1
+bandit==1.9.4
+pip-audit==2.10.1
+detect-secrets==1.5.0
+import-linter==2.15
+pre-commit==4.7.0

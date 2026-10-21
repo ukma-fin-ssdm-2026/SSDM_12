@@ -1,4 +1,6 @@
 # Налаштування інструментів. Версія API живе в одному місці — src/api/config.py (API_VERSION).
+# Версії інструментів якості закріплено в requirements-dev.txt і .pre-commit-config.yaml:
+# оновлюємо обидва файли одним PR (статут §11.2).
 
 [tool.pytest.ini_options]
 # src/ — корінь імпорту пакета `api` (той самий, що й `uvicorn --app-dir src`).
@@ -7,11 +9,55 @@ testpaths = ["tests"]
 addopts = "-ra"
 
 [tool.ruff]
-# Код Лаб 4 відформатовано `ruff format` з першого коміту, щоб у Лаб 5 не було масового
-# переформатування, яке переписало б авторство рядків у git blame. Правила лінтера
-# й стандарт кодування команда ухвалює в Лаб 5.
+# Стандарт кодування — PEP 8 через `ruff format` (сумісний із Black) і PEP 257 для
+# докстрінгів (статут §11.1). Відхилення від PEP 8: рядок до 100 символів, а не 79.
 line-length = 100
 target-version = "py312"
+# Доказ спайка ADR-002 зберігаємо таким, яким його запускали в Лаб 3; Markdown не форматуємо:
+# у звітах огляду — дослівні цитати чужого коду.
+extend-exclude = ["docs/architecture/validation", "*.md"]
+
+[tool.ruff.lint]
+# Явний перелік, а не типовий набір Ruff: оновлення версії не змінює стандарт непомітно.
+select = [
+    "E4", "E7", "E9", "F", "W",  # pycodestyle і pyflakes: синтаксис, невикористані імена
+    "I",       # порядок імпортів (isort)
+    "N",       # іменування PEP 8: snake_case, PascalCase, UPPER_CASE
+    "UP",      # сучасний синтаксис Python 3.12
+    "B",       # ймовірні помилки (flake8-bugbear)
+    "S",       # безпека на рівні лінтера; повний аналіз — Bandit
+    "SIM", "C4", "PIE", "PERF",  # спрощення, генератори, зайвий код, продуктивність
+    "PT",      # стиль pytest
+    "DTZ",     # дати без часового поясу (A-007: усі моменти часу — UTC)
+    "ASYNC",   # блокувальні виклики в async-коді
+    "PLE", "PLW",  # помилки й попередження pylint
+    "RUF",     # правила самого Ruff
+    "D1",      # публічні модулі, класи й функції мають докстрінг (лише src/)
+]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # «неоднозначні» символи: кирилиця в текстах — норма (§11.1)
+    "N818",    # ApiProblem — назва з контракту помилок (DD-07), а не вада іменування
+    "PT018",   # складені assert у тестах API лишаємо; розбиваємо за правилом бойскаута
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert — механізм перевірок pytest
+    "D1",      # назва тесту описує сценарій; докстрінг — лише де потрібне «чому»
+    "DTZ001",  # Hypothesis вимагає межі без поясу, пояс задає параметр timezones
+]
+"scripts/**" = ["D1"]  # скрипти документує докстрінг модуля і --help
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.bandit]
+# Запуск: bandit -c pyproject.toml -r src scripts
+exclude_dirs = [".venv", "docs/architecture/validation"]
+
+[tool.bandit.assert_used]
+# B101 у тестах — хибне спрацювання: assert там і є перевіркою. У src/ правило діє.
+skips = ["*/tests/*.py", "*/test_*.py", "*/conftest.py"]
 
 # Manual mutation testing runs in Linux/WSL, not native Windows CI.
 [tool.mutmut]

@@ -19,6 +19,7 @@ from api.stubs.store import ResourceRec, store
 
 
 def to_out(rec: ResourceRec) -> ResourceOut:
+    """Схема відповіді ресурсу; про провайдера — лише id та ім'я (SEC-004)."""
     provider = store.users[rec.provider_id]
     return ResourceOut(
         id=rec.id,
@@ -44,6 +45,7 @@ def list_resources(
 
 
 def get_resource(resource_id: uuid.UUID) -> ResourceRec:
+    """Ресурс за id або 404 `RESOURCE_NOT_FOUND`."""
     rec = store.resources.get(resource_id)
     if rec is None:
         raise ApiProblem(ErrorCode.RESOURCE_NOT_FOUND)
@@ -85,6 +87,7 @@ def _snapshot(rec: ResourceRec) -> dict[str, Any]:
 
 
 def create_resource(actor: CurrentUser, data: ResourceCreate) -> ResourceRec:
+    """Створює ресурс (FR-060, FR-061) і пише запис аудиту в тому самому блокуванні (FR-066)."""
     with store.lock:
         _check_provider(data.provider_id)
         rec = ResourceRec(

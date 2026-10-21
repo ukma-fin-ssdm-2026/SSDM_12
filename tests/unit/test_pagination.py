@@ -6,7 +6,8 @@ import uuid
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from api.errors import ApiProblem
 from api.pagination import decode_cursor, encode_cursor

@@ -40,7 +40,8 @@ from pathlib import Path
 # Спільні шаблони ID вимог беремо зі scripts/check_requirements.py (Лаб 2),
 # щоб формат ID був описаний в одному місці.
 _spec = importlib.util.spec_from_file_location(
-    "check_requirements", Path(__file__).resolve().with_name("check_requirements.py"))
+    "check_requirements", Path(__file__).resolve().with_name("check_requirements.py")
+)
 req = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(req)
 
@@ -59,7 +60,15 @@ REQ_ID = r"(?:FR|" + NFR_ALT + r")-\d{3}"
 REQ_ROW = re.compile(r"^\|\s*(" + REQ_ID + r")\s*\|")
 STRIDE = set("STRIDE")
 RATINGS = {"висока", "середня", "низька"}
-QAS_PARTS = ("Джерело стимулу", "Стимул", "Артефакт", "Середовище", "Реакція", "Міра реакції", "Верифікація")
+QAS_PARTS = (
+    "Джерело стимулу",
+    "Стимул",
+    "Артефакт",
+    "Середовище",
+    "Реакція",
+    "Міра реакції",
+    "Верифікація",
+)
 ADR_SECTIONS = ("## Контекст", "## Рішення", "## Наслідки", "## Розглянуті альтернативи")
 RANGE = re.compile(r"\b([A-Z]+)-(\d{2,3})\s*(?:…|–|\.\.\.)\s*\1-(\d{2,3})\b")
 
@@ -99,8 +108,11 @@ def expand(ids_text, ordered):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
-    parser.add_argument("--strict", action="store_true",
-                        help="незаповнені місця «‹…›» для автора вважати порушенням (для CI)")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="незаповнені місця «‹…›» для автора вважати порушенням (для CI)",
+    )
     args = parser.parse_args()
 
     failures = 0
@@ -147,11 +159,17 @@ def main():
     report(f"Діаграми PlantUML ({len(pumls)} файлів)", bad_uml)
     if args.plantuml:
         # Команда фіксована, аргументи — шлях до jar і шляхи файлів репозиторію; shell не використовується.
-        run = subprocess.run(  # nosec B603 B607
-            ["java", "-jar", args.plantuml, "--check-syntax", *map(str, pumls)],
-            capture_output=True, text=True, check=False)
-        errors = [ln for ln in (run.stdout + run.stderr).splitlines()
-                  if ln.strip() and "JAVA_TOOL_OPTIONS" not in ln]
+        run = subprocess.run(  # nosec B603 B607  # noqa: S603
+            ["java", "-jar", args.plantuml, "--check-syntax", *map(str, pumls)],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        errors = [
+            ln
+            for ln in (run.stdout + run.stderr).splitlines()
+            if ln.strip() and "JAVA_TOOL_OPTIONS" not in ln
+        ]
         report("Синтаксис PlantUML (--check-syntax)", errors if run.returncode else [])
     else:
         print("[skip] Синтаксис PlantUML: передайте --plantuml шлях/до/plantuml.jar")
@@ -181,10 +199,14 @@ def main():
 
     no_row = [i for i in ordered if i not in rows]
     extra = [i for i in rows if i not in ordered]
-    report("Кожна FR і NFR має рядок у матриці", no_row + [f"{i}: такої вимоги немає" for i in extra])
+    report(
+        "Кожна FR і NFR має рядок у матриці", no_row + [f"{i}: такої вимоги немає" for i in extra]
+    )
     used = {c for comps in rows.values() for c in comps}
-    report(f"Кожен компонент HLD §4 ({len(components)}) покриває вимогу",
-           [f"{c}: жодної вимоги" for c in components if c not in used])
+    report(
+        f"Кожен компонент HLD §4 ({len(components)}) покриває вимогу",
+        [f"{c}: жодної вимоги" for c in components if c not in used],
+    )
 
     # --- 5. Зворотна матриця -----------------------------------------------------
     computed = {c: {r for r, comps in rows.items() if c in comps} for c in components}
@@ -203,7 +225,9 @@ def main():
             more = sorted(listed - computed[comp])
             reverse_problems.append(f"{comp}: бракує {lack or '—'}, зайві {more or '—'}")
         if len(c) > 2 and c[2].isdigit() and int(c[2]) != len(computed[comp]):
-            reverse_problems.append(f"{comp}: у колонці «Скільки» {c[2]}, а за прямою матрицею {len(computed[comp])}")
+            reverse_problems.append(
+                f"{comp}: у колонці «Скільки» {c[2]}, а за прямою матрицею {len(computed[comp])}"
+            )
     report("Зворотна матриця збігається з прямою", reverse_problems)
 
     # --- 6. Посилання на ID --------------------------------------------------------
@@ -220,7 +244,8 @@ def main():
     }
     id_pattern = re.compile(
         r"\b(?:(?:ADR-\d{3})|(?:DD|AQ|THR|QAS|INV)-\d{2}|(?:AR|AS)-\d|TB\d"
-        r"|(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALT + r")-\d{3})\b")
+        r"|(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALT + r")-\d{3})\b"
+    )
     files = list(DOCS.values()) + adrs + [DECISIONS / "README.md"] + pumls
     bad_refs = []
     for path in files:
@@ -228,26 +253,30 @@ def main():
             continue
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             for found in id_pattern.findall(line):
-                if found.startswith("TB"):
-                    prefix = "TB"
-                else:
-                    prefix = found.rsplit("-", 1)[0]
+                prefix = "TB" if found.startswith("TB") else found.rsplit("-", 1)[0]
                 pool = arch_defined.get(prefix, defined.get(prefix))
                 if pool is None or found not in pool:
                     bad_refs.append(f"{path}:{lineno}: {found}")
     report("Посилання на неіснуючі ID", bad_refs)
 
     # --- 7. Модель загроз ----------------------------------------------------------
-    threat_rows = [cells(ln) for ln in section(text["threat"], "## 5.").splitlines()
-                   if re.match(r"^\|\s*THR-\d{2}\s*\|", ln)]
-    threat_problems = [] if len(threat_rows) >= 5 else [f"загроз {len(threat_rows)}, потрібно щонайменше 5"]
+    threat_rows = [
+        cells(ln)
+        for ln in section(text["threat"], "## 5.").splitlines()
+        if re.match(r"^\|\s*THR-\d{2}\s*\|", ln)
+    ]
+    threat_problems = (
+        [] if len(threat_rows) >= 5 else [f"загроз {len(threat_rows)}, потрібно щонайменше 5"]
+    )
     for c in threat_rows:
         letters = {x.strip() for x in c[2].split(",")}
         rating = re.sub(r"[*]", "", c[4]).split(" ")[0]
         if not letters or not letters <= STRIDE:
             threat_problems.append(f"{c[0]}: категорія STRIDE «{c[2]}»")
         if rating not in RATINGS:
-            threat_problems.append(f"{c[0]}: оцінка «{c[4]}» — очікується висока / середня / низька")
+            threat_problems.append(
+                f"{c[0]}: оцінка «{c[4]}» — очікується висока / середня / низька"
+            )
         if len(c[5]) < 10:
             threat_problems.append(f"{c[0]}: немає контрзаходу чи рішення прийняти ризик")
     report(f"Модель загроз ({len(threat_rows)} загроз)", threat_problems)
@@ -256,13 +285,16 @@ def main():
     adr_problems = []
     for p in adrs:
         body = p.read_text(encoding="utf-8")
-        for s in ADR_SECTIONS:
-            if s not in body:
-                adr_problems.append(f"{p.name}: немає розділу «{s[3:]}»")
+        adr_problems.extend(
+            f"{p.name}: немає розділу «{s[3:]}»" for s in ADR_SECTIONS if s not in body
+        )
         if "**Статус:**" not in body:
             adr_problems.append(f"{p.name}: немає статусу")
-        alts = [ln for ln in section(body, "## Розглянуті альтернативи").splitlines()
-                if ln.startswith("|") and not re.match(r"^\|\s*(Альтернатива|-+)", ln)]
+        alts = [
+            ln
+            for ln in section(body, "## Розглянуті альтернативи").splitlines()
+            if ln.startswith("|") and not re.match(r"^\|\s*(Альтернатива|-+)", ln)
+        ]
         if len(alts) < 2:
             adr_problems.append(f"{p.name}: альтернатив {len(alts)}, потрібно щонайменше 2")
     report(f"ADR ({len(adrs)})", adr_problems)
@@ -284,20 +316,28 @@ def main():
     er = next((p for p in pumls if "entity " in p.read_text(encoding="utf-8")), None)
     if er:
         er_text = er.read_text(encoding="utf-8")
-        for name, body in re.findall(r'entity\s+"[^"]*"\s+as\s+(\w+)\s*\{(.*?)\n\}', er_text, re.DOTALL):
+        for name, body in re.findall(
+            r'entity\s+"[^"]*"\s+as\s+(\w+)\s*\{(.*?)\n\}', er_text, re.DOTALL
+        ):
             if "<<PK>>" not in body:
                 data_problems.append(f"{er.name}: сутність {name} без <<PK>>")
         if "<<ПД>>" not in er_text:
             data_problems.append(f"{er.name}: не позначено персональні дані <<ПД>>")
         tables = re.findall(r'entity\s+"(\w+)', er_text)
-        data_problems += [f"data-model.md: не описано сутність {t}" for t in tables
-                          if f"`{t}`" not in text["data"]]
+        data_problems += [
+            f"data-model.md: не описано сутність {t}"
+            for t in tables
+            if f"`{t}`" not in text["data"]
+        ]
     report("Модель даних: PK, персональні дані, опис сутностей", data_problems)
 
     # --- 11. Використання ШІ й README -----------------------------------------------
     fence = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
-    ai_missing = [str(p) for p in list(DOCS.values()) + adrs + [DECISIONS / "README.md"]
-                  if "## Використання ШІ" not in fence.sub("", p.read_text(encoding="utf-8"))]
+    ai_missing = [
+        str(p)
+        for p in list(DOCS.values()) + adrs + [DECISIONS / "README.md"]
+        if "## Використання ШІ" not in fence.sub("", p.read_text(encoding="utf-8"))
+    ]
     readme = Path("README.md")
     if readme.is_file() and "docs/architecture/" not in readme.read_text(encoding="utf-8"):
         ai_missing.append("README.md: немає посилання на docs/architecture/")
@@ -306,8 +346,12 @@ def main():
     # --- 12. Місця для автора ‹…› ---------------------------------------------------
     # Місце — «‹» зі словами всередині; сама позначка «‹…›» у тексті місцем не є.
     slot = re.compile(r"‹(?![\s…]*›)")
-    slots = [f"{p}:{n}: {ln.strip()[:70]}" for p in list(DOCS.values()) + adrs
-             for n, ln in enumerate(p.read_text(encoding="utf-8").splitlines(), 1) if slot.search(ln)]
+    slots = [
+        f"{p}:{n}: {ln.strip()[:70]}"
+        for p in list(DOCS.values()) + adrs
+        for n, ln in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+        if slot.search(ln)
+    ]
     if args.strict or not slots:
         report("Місця для автора ‹…› заповнено", slots)
     else:
@@ -315,8 +359,10 @@ def main():
         for s in slots:
             print(f"       {s}")
 
-    print(f"\nВимог у матриці: {len(rows)} з {len(ordered)} · компонентів: {len(components)} · "
-          f"діаграм: {len(pumls)} · ADR: {len(adrs)} · загроз: {len(threat_rows)} · QAS: {len(qas)}")
+    print(
+        f"\nВимог у матриці: {len(rows)} з {len(ordered)} · компонентів: {len(components)} · "
+        f"діаграм: {len(pumls)} · ADR: {len(adrs)} · загроз: {len(threat_rows)} · QAS: {len(qas)}"
+    )
     if failures:
         print(f"Порушень: {failures}")
         return 1

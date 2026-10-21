@@ -87,6 +87,8 @@ DEMO_TOKENS: dict[str, uuid.UUID] = {
 
 @dataclass
 class UserRec:
+    """Користувач (`app_user` + ролі з `user_role`)."""
+
     id: uuid.UUID
     full_name: str
     email: str
@@ -95,6 +97,8 @@ class UserRec:
 
 @dataclass
 class ResourceRec:
+    """Ресурс: консультація або аудиторія з провайдером (INV-08, INV-15)."""
+
     id: uuid.UUID
     name: str
     type: ResourceType
@@ -104,6 +108,8 @@ class ResourceRec:
 
 @dataclass
 class SlotRec:
+    """Слот ресурсу; час зберігається в UTC (A-007)."""
+
     id: uuid.UUID
     resource_id: uuid.UUID
     starts_at: datetime
@@ -112,6 +118,8 @@ class SlotRec:
 
 @dataclass
 class TimeBlockRec:
+    """Проміжок, який провайдер оголосив недоступним (FR-014)."""
+
     id: uuid.UUID
     resource_id: uuid.UUID
     starts_at: datetime
@@ -121,6 +129,8 @@ class TimeBlockRec:
 
 @dataclass
 class PolicyRec:
+    """Політика бронювання: ліміт A-002 і вікно скасування A-003."""
+
     id: uuid.UUID
     booking_limit: int  # A-002
     cancel_window: timedelta  # A-003
@@ -128,6 +138,8 @@ class PolicyRec:
 
 @dataclass
 class BookingRec:
+    """Бронювання; у сховищі лише `confirmed` або `cancelled` (`data-model.md` §7)."""
+
     id: uuid.UUID
     slot_id: uuid.UUID
     student_id: uuid.UUID
@@ -270,6 +282,7 @@ class StubStore:
     # --- Запити, спільні для модулів --------------------------------------------------
 
     def user_by_token(self, token: str) -> UserRec | None:
+        """Користувач за демо-токеном або None, якщо токен невідомий (DD-18)."""
         user_id = DEMO_TOKENS.get(token)
         return self.users.get(user_id) if user_id else None
 

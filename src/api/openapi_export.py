@@ -96,6 +96,10 @@ def check_artifacts(app: FastAPI, out_dir: Path = DOCS_API) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI `scripts/export_openapi.py`: записати файли або з `--check` порівняти їх із кодом.
+
+    Повертає код виходу: 0 — успіх, 1 — закомічені файли розходяться з кодом (крок CI падає).
+    """
     parser = argparse.ArgumentParser(description="Генерація OpenAPI з коду UniSlot API.")
     parser.add_argument(
         "--check",
