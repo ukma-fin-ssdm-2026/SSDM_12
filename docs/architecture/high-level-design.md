@@ -414,10 +414,9 @@ PERF-002: 100 одночасних запитів) обслуговує один
 - **Оновлення для Лаб 5 (§6, §12, AQ-08):** формулювання й каркас `src/unislot/` разом із
   `.importlinter` згенеровано з Claude (Anthropic). Перевірив: `lint-imports` — 2 контракти
   KEPT; негативний контроль — тимчасовий `import fastapi` у кінці `src/unislot/platform/errors.py` (рядок 39) зламав
-  контракт `framework-free-domain`: `Contracts: 1 kept, 1 broken`, код виходу 1; окрім прямого
-  порушення `unislot.platform.errors -> fastapi` інструмент показав і транзитивне —
-  `unislot.booking.domain.errors -> unislot.platform.errors (l.13) -> fastapi`; після прибирання
-  рядка — знову `Contracts: 2 kept, 0 broken` (71 файл, 227 залежностей);
+  контракт `framework-free-domain`: `Contracts: 1 kept, 1 broken`, код виходу 1, єдине порушення —
+  `unislot.platform.errors -> fastapi (l.39)`; після прибирання рядка — знову
+  `Contracts: 2 kept, 0 broken` (67 файлів, 212 залежностей на цьому коміті);
   `check_architecture.py --strict` — 0 порушень. Сам вирішив: REST API лишається пакетом `src/api/`, а не переїжджає в `src/unislot/api/`, як показував
   каркас §6: межу тримає не тека, а напрям залежностей, і його перевіряє контракт
   `core-independent-of-rest-api` у CI — від перенесення він не став би строгішим. Натомість
