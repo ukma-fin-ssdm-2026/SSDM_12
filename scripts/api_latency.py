@@ -24,10 +24,10 @@ from urllib.parse import urlparse
 def one_request(url: str, token: str) -> tuple[float, int]:
     # Схему URL перевірено в main(): лише http/https до сервера, який задав користувач.
     headers = {"Authorization": f"Bearer {token}"}
-    request = urllib.request.Request(url, headers=headers)
+    request = urllib.request.Request(url, headers=headers)  # noqa: S310
     started = time.perf_counter()
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:  # nosec B310
+        with urllib.request.urlopen(request, timeout=10) as response:  # nosec B310  # noqa: S310
             response.read()
             status = response.status
     except urllib.error.HTTPError as err:

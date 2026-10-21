@@ -39,6 +39,7 @@ def booking_state(booking: BookingRec, slot: SlotRec, now: datetime) -> BookingS
 
 
 def to_out(booking: BookingRec, now: datetime) -> BookingOut:
+    """Схема відповіді: похідний стан, слот, ресурс і провайдер (лише ім'я, SEC-004)."""
     slot = store.slots[booking.slot_id]
     resource = store.resources[slot.resource_id]
     provider = store.users[resource.provider_id]

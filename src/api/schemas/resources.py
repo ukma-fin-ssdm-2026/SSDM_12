@@ -85,6 +85,7 @@ class ResourceCreate(BaseModel):
     @field_validator("capacity")
     @classmethod
     def capacity_matches_type(cls, value: int | None, info: ValidationInfo) -> int | None:
+        """INV-08: місткість обов'язкова для аудиторії й заборонена для консультації."""
         # Поля перевіряються в порядку оголошення, тож `type` уже перевірено.
         # Помилка прив'язана до поля body.capacity, а не до всього тіла.
         resource_type = info.data.get("type")
@@ -115,6 +116,7 @@ class ResourceUpdate(BaseModel):
     @field_validator("name", "provider_id", mode="before")
     @classmethod
     def reject_explicit_null(cls, value: Any) -> Any:
+        """Явний `null` у `name` чи `provider_id` — помилка 422, а не «очистити поле»."""
         # Відрізняємо «поле не передали» (не змінювати) від «передали null» (помилка):
         # саме цю різницю загубив PATCH у коді, який ми рецензували (review-report.md, п. 1).
         # Валідатор не викликається для пропущених полів, бо validate_default вимкнено.
@@ -124,6 +126,7 @@ class ResourceUpdate(BaseModel):
 
     @model_validator(mode="after")
     def not_empty(self) -> Self:
+        """Порожній PATCH `{}` відхиляємо: він нічого не змінює й найчастіше є помилкою клієнта."""
         if not self.model_fields_set:
             raise ValueError("передайте хоча б одне поле: порожнє оновлення нічого не змінює")
         return self

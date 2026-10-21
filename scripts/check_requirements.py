@@ -43,9 +43,10 @@ DEFINITION_PATTERNS = {
     "US": (r"^### (US-\d{3}):", "user-stories"),
     "TC": (r"^\|\s*(TC-\d{3})\s*\|", "rtm"),
 }
-NFR_DEFINITION = r"^#### ((?:%s)-\d{3})" % "|".join(NFR_PREFIXES)
+NFR_ALTERNATIVES = "|".join(NFR_PREFIXES)
+NFR_DEFINITION = r"^#### ((?:" + NFR_ALTERNATIVES + r")-\d{3})"
 
-ANY_ID = r"(?:FR|US|TC|BN|A|C|R|OQ|%s)-\d{3}" % "|".join(NFR_PREFIXES)
+ANY_ID = r"(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALTERNATIVES + r")-\d{3}"
 
 # Заголовки функцій оголошують зарезервований діапазон ID,
 # наприклад «### F1. Автентифікація та авторизація (FR-001…FR-009)».
@@ -113,8 +114,10 @@ def check_hardcoded_numbers(text):
     for lineno, line in enumerate(text["requirements"].splitlines(), 1):
         if not re.match(r"^- \*\*FR-\d{3}\*\*", line):
             continue
-        for m in re.finditer(r"(?<![\w-])(\d+)\s*" + unit, line):
-            hits.append((lineno, m.group(0), line.strip()[:80]))
+        hits.extend(
+            (lineno, m.group(0), line.strip()[:80])
+            for m in re.finditer(r"(?<![\w-])(\d+)\s*" + unit, line)
+        )
     return hits
 
 
@@ -127,9 +130,11 @@ def check_stories(text, defined):
         count = len(re.findall(r"^- \[[ x]\] \*\*Given\*\*", body, re.M))
         if count < MIN_CRITERIA:
             thin.append((story_id, count))
-    for story_id in sorted(defined["US"]):
-        if not re.search(rf"^\|\s*{story_id}\s*\|", text["rtm"], re.M):
-            missing_rows.append(story_id)
+    missing_rows.extend(
+        story_id
+        for story_id in sorted(defined["US"])
+        if not re.search(rf"^\|\s*{story_id}\s*\|", text["rtm"], re.M)
+    )
     return thin, missing_rows
 
 
@@ -142,7 +147,7 @@ def check_coverage(text, defined):
         if len(cells) < 8:
             continue
         referenced_fr |= set(re.findall(r"FR-\d{3}", cells[5]))
-        referenced_nfr |= set(re.findall(r"(?:%s)-\d{3}" % "|".join(NFR_PREFIXES), cells[6]))
+        referenced_nfr |= set(re.findall(r"(?:" + NFR_ALTERNATIVES + r")-\d{3}", cells[6]))
     nfr_defined = set().union(*(defined[p] for p in NFR_PREFIXES))
     return sorted(defined["FR"] - referenced_fr), sorted(nfr_defined - referenced_nfr)
 
@@ -166,16 +171,22 @@ def main():
             print(f"[ ok ] {title}")
 
     report("Дублікати визначень ID", duplicates, lambda d: f"{d[0]} визначено {d[1]} разів")
-    report("Посилання на неіснуючі ID", check_references(text, defined),
-           lambda b: f"{b[0]} р.{b[1]}: {b[2]}")
-    report("Повнота полів NFR", check_nfr_fields(text),
-           lambda g: f"{g[0]}: бракує {', '.join(g[1])}")
-    report("Числа, вписані в текст FR", check_hardcoded_numbers(text),
-           lambda h: f"р.{h[0]}: «{h[1]}» у «{h[2]}…»")
+    report(
+        "Посилання на неіснуючі ID",
+        check_references(text, defined),
+        lambda b: f"{b[0]} р.{b[1]}: {b[2]}",
+    )
+    report(
+        "Повнота полів NFR", check_nfr_fields(text), lambda g: f"{g[0]}: бракує {', '.join(g[1])}"
+    )
+    report(
+        "Числа, вписані в текст FR",
+        check_hardcoded_numbers(text),
+        lambda h: f"р.{h[0]}: «{h[1]}» у «{h[2]}…»",
+    )
 
     thin, missing_rows = check_stories(text, defined)
-    report(f"Критеріїв на історію (мінімум {MIN_CRITERIA})", thin,
-           lambda t: f"{t[0]}: {t[1]}")
+    report(f"Критеріїв на історію (мінімум {MIN_CRITERIA})", thin, lambda t: f"{t[0]}: {t[1]}")
     report("Рядок RTM для кожної історії", missing_rows, lambda s: f"{s}: рядка немає")
 
     fr_gap, nfr_gap = check_coverage(text, defined)

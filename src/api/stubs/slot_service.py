@@ -20,6 +20,7 @@ def _minutes(slot: SlotRec) -> int:
 
 
 def to_out(slot: SlotRec) -> SlotOut:
+    """Схема слота для пошуку: час, тривалість, ресурс і провайдер (лише ім'я)."""
     resource = store.resources[slot.resource_id]
     provider = store.users[resource.provider_id]
     return SlotOut(
@@ -35,6 +36,7 @@ def to_out(slot: SlotRec) -> SlotOut:
 
 
 def to_detail(slot: SlotRec, now: datetime) -> SlotDetail:
+    """Схема одного слота з ознакою `available` на момент `now`."""
     return SlotDetail(**to_out(slot).model_dump(), available=is_free(slot, now))
 
 
@@ -103,6 +105,7 @@ def search_free(
 
 
 def get_slot(slot_id: uuid.UUID) -> SlotRec:
+    """Слот за id або 404 `SLOT_NOT_FOUND`."""
     slot = store.slots.get(slot_id)
     if slot is None:
         raise ApiProblem(ErrorCode.SLOT_NOT_FOUND)
