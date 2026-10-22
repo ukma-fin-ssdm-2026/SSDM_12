@@ -36,10 +36,14 @@ jobs:
         run: python scripts/check_requirements.py
 
       # Версії закріплено: інакше згенерована специфікація залежала б від машини.
+      # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
+      # (PYSEC-2026-196, -2875, -2876, -3721). Усі виправлені у 26.2 — звідси нижня межа.
       - name: Install API dependencies (Lab 4)
         run: |
           python -m venv .venv
           if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
+          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
+          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
           .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
           if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
 
@@ -79,17 +83,12 @@ jobs:
       # Audits the packages installed in .venv (application, test and analysis tools, pip)
       # and the MCP server dependencies. An accepted risk is passed as --ignore-vuln <ID>
       # together with a justification in docs/code-quality/static-analysis.md.
-      
-      # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
-      # (PYSEC-2026-196, -2875, -2876, -3721). Усі виправлені у 26.2 — звідси нижня межа.
       - name: Audit dependencies with pip-audit (Lab 5)
         env:
           PYTHONIOENCODING: utf-8
         run: |
           .\.venv\Scripts\pip-audit.exe --progress-spinner off
           if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package installed in .venv' }
-          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
-          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
           .\.venv\Scripts\pip-audit.exe --progress-spinner off -r requirements-mcp.txt
           if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package in requirements-mcp.txt' }
 
