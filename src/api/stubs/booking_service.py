@@ -1,9 +1,11 @@
-"""Заглушка `BookingService` (HLD §5.2) для Лаб 4: правила бронювання на даних у пам'яті.
+"""Заглушка `BookingService` (HLD §5.2): сценарії бронювання на даних у пам'яті.
 
-Порядок перевірок повторює майбутній доменний модуль: спершу стан слота (існує,
-не почався, у горизонті, не заблокований, не зайнятий), потім обмеження студента
-(ліміт A-002, перетин FR-035). Усі зміни — під `store.lock`, як у транзакції;
-справжню гарантію REL-001 дасть PostgreSQL (ADR-002).
+З Лаб 5 правила бронювання живуть у доменному шарі `unislot.booking.domain.rules`,
+а тут лишилася роль майбутнього шару application: знайти записи, зібрати для правил
+значення (інтервали, політику, «чи зайнятий слот»), застосувати зміну під
+`store.lock`, як у транзакції. Порушення правил домен кидає як `DomainError`, і
+REST API перекладає їх у 409 (HLD §9). Справжню гарантію REL-001 дасть PostgreSQL
+(ADR-002).
 """
 
 from __future__ import annotations
@@ -18,6 +20,8 @@ from api.schemas.bookings import BookingOut, BookingSlot
 from api.schemas.common import PersonSummary, ResourceSummary
 from api.security import CurrentUser
 from api.stubs.store import BookingRec, SlotRec, store
+from unislot.booking.domain import rules
+from unislot.booking.domain.model import BookingPolicy, Interval
 
 _STATE_ORDER = {
     BookingState.ACTIVE: 0,
@@ -27,15 +31,20 @@ _STATE_ORDER = {
 }
 
 
+def _interval(slot: SlotRec) -> Interval:
+    return Interval(slot.starts_at, slot.ends_at)
+
+
+def _policy() -> BookingPolicy | None:
+    policy = store.policy
+    if policy is None:
+        return None
+    return BookingPolicy(policy.booking_limit, policy.cancel_window)
+
+
 def booking_state(booking: BookingRec, slot: SlotRec, now: datetime) -> BookingState:
-    """Похідний стан (`data-model.md` §7): у сховищі лише confirmed/cancelled."""
-    if booking.status is BookingStatus.CANCELLED:
-        return BookingState.CANCELLED
-    if now < slot.starts_at:
-        return BookingState.ACTIVE
-    if now < slot.ends_at:
-        return BookingState.IN_PROGRESS
-    return BookingState.COMPLETED
+    """Похідний стан (`data-model.md` §7): обчислює доменне правило `derive_state`."""
+    return rules.derive_state(booking.status, _interval(slot), now)
 
 
 def to_out(booking: BookingRec, now: datetime) -> BookingOut:
@@ -53,7 +62,7 @@ def to_out(booking: BookingRec, now: datetime) -> BookingOut:
         ),
         provider=PersonSummary(id=provider.id, full_name=provider.full_name),
         cancel_deadline_at=booking.cancel_deadline_at,
-        can_cancel=state is BookingState.ACTIVE and now <= booking.cancel_deadline_at,
+        can_cancel=rules.can_cancel(state, booking.cancel_deadline_at, now),
         created_at=booking.created_at,
         cancelled_at=booking.cancelled_at,
         cancellation_kind=booking.cancellation_kind,
@@ -63,23 +72,14 @@ def to_out(booking: BookingRec, now: datetime) -> BookingOut:
 
 
 def _check_slot_bookable(slot: SlotRec, now: datetime) -> None:
-    """Стан слота: не почався (A-006), у горизонті (A-001), не заблокований, не зайнятий."""
-    if slot.starts_at <= now:
-        raise ApiProblem(
-            ErrorCode.SLOT_STARTED, "Запис на слот закривається в момент його початку."
-        )
-    if slot.starts_at > now + HORIZON:
-        raise ApiProblem(
-            ErrorCode.SLOT_OUT_OF_HORIZON,
-            "Слот пізніший за горизонт бронювання; він стане доступним згодом.",
-        )
-    if store.is_blocked(slot):
-        raise ApiProblem(ErrorCode.SLOT_BLOCKED)
-    if store.confirmed_booking_for_slot(slot.id) is not None:
-        raise ApiProblem(
-            ErrorCode.SLOT_ALREADY_BOOKED,
-            "Цей слот щойно забронював інший студент або він уже був зайнятий.",
-        )
+    """Збирає стан слота зі сховища й передає доменному правилу (A-006, A-001, FR-014)."""
+    rules.ensure_slot_bookable(
+        _interval(slot),
+        now,
+        HORIZON,
+        blocked=store.is_blocked(slot),
+        taken=store.confirmed_booking_for_slot(slot.id) is not None,
+    )
 
 
 def _open_bookings(student_id: uuid.UUID, now: datetime) -> list[tuple[BookingRec, SlotRec]]:
@@ -97,19 +97,10 @@ def _check_student_limits(
     student: CurrentUser, slot: SlotRec, now: datetime, *, replacing: uuid.UUID | None = None
 ) -> None:
     """Ліміт A-002 (крім перенесення, FR-044) і перетин з власними бронюваннями (FR-035)."""
-    open_bookings = [(b, s) for b, s in _open_bookings(student.id, now) if b.id != replacing]
-    if replacing is None:
-        policy = store.policy
-        active = sum(1 for _, s in open_bookings if s.starts_at > now)
-        if policy is not None and active >= policy.booking_limit:
-            raise ApiProblem(
-                ErrorCode.BOOKING_LIMIT_REACHED,
-                f"Ліміт — {policy.booking_limit} активні бронювання, у вас уже {active}.",
-                limit=policy.booking_limit,
-                active_bookings=active,
-            )
-    if any(s.starts_at < slot.ends_at and slot.starts_at < s.ends_at for _, s in open_bookings):
-        raise ApiProblem(ErrorCode.BOOKING_OVERLAP)
+    open_slots = [_interval(s) for b, s in _open_bookings(student.id, now) if b.id != replacing]
+    rules.ensure_within_student_limits(
+        open_slots, _interval(slot), now, _policy(), counts_against_limit=replacing is None
+    )
 
 
 def _new_booking(student: CurrentUser, slot: SlotRec, now: datetime) -> BookingRec:
@@ -122,7 +113,9 @@ def _new_booking(student: CurrentUser, slot: SlotRec, now: datetime) -> BookingR
         student_id=student.id,
         status=BookingStatus.CONFIRMED,
         policy_id=policy.id,
-        cancel_deadline_at=slot.starts_at - policy.cancel_window,
+        cancel_deadline_at=rules.cancel_deadline(
+            slot.starts_at, BookingPolicy(policy.booking_limit, policy.cancel_window)
+        ),
         created_at=now,
     )
     store.bookings[booking.id] = booking
@@ -170,20 +163,9 @@ def get_owned(student: CurrentUser, booking_id: uuid.UUID) -> BookingRec:
 
 def _check_changeable(booking: BookingRec, now: datetime) -> None:
     """Скасувати чи перенести можна лише активне бронювання до граничного часу
-    (FR-040, FR-044, FR-045)."""
+    (FR-040, FR-044, FR-045): рішення ухвалює доменне правило `ensure_changeable`."""
     slot = store.slots[booking.slot_id]
-    if booking.status is BookingStatus.CANCELLED:
-        raise ApiProblem(ErrorCode.BOOKING_ALREADY_CANCELLED)
-    if now >= slot.starts_at:
-        raise ApiProblem(
-            ErrorCode.SLOT_STARTED, "Після початку слота бронювання змінювати не можна."
-        )
-    if now > booking.cancel_deadline_at:
-        raise ApiProblem(
-            ErrorCode.CANCELLATION_DEADLINE_PASSED,
-            f"Скасувати чи перенести можна було до {booking.cancel_deadline_at.isoformat()}.",
-            cancel_deadline_at=booking.cancel_deadline_at,
-        )
+    rules.ensure_changeable(booking.status, _interval(slot), booking.cancel_deadline_at, now)
 
 
 def cancel(student: CurrentUser, booking_id: uuid.UUID, now: datetime) -> BookingRec:
