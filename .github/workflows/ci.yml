@@ -36,18 +36,76 @@ jobs:
         run: python scripts/check_requirements.py
 
       # Версії закріплено: інакше згенерована специфікація залежала б від машини.
+      # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
+      # (PYSEC-2026-196, -2875, -2876, -3721). Усі виправлені у 26.2 — звідси нижня межа.
       - name: Install API dependencies (Lab 4)
         run: |
           python -m venv .venv
           if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
+          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
+          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
           .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
           if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
+
+      # Lab 5 quality gates (charter 11.2). Static checks run before tests: they take seconds
+      # and stop a broken change early. Configuration lives in pyproject.toml, .importlinter
+      # and .secrets.baseline; the same tools run locally in .pre-commit-config.yaml.
+      - name: Lint with Ruff (Lab 5)
+        run: |
+          .\.venv\Scripts\ruff.exe check src tests scripts --output-format=github
+          if ($LASTEXITCODE -ne 0) { throw 'Ruff found violations: run ruff check --fix locally' }
+
+      - name: Check formatting with Ruff (Lab 5)
+        run: |
+          .\.venv\Scripts\ruff.exe format --check src tests scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Unformatted files: run ruff format src tests scripts' }
+
+      - name: Security scan with Bandit (Lab 5)
+        run: |
+          .\.venv\Scripts\bandit.exe -c pyproject.toml -r src scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Bandit reported a security issue' }
+
+      # Every tracked file is checked against the audited baseline: a new secret fails the
+      # build even if the commit was made in the GitHub web editor, where hooks do not run.
+      # Exit code 3 means only line numbers in the baseline moved (no new secret): warn, pass.
+      - name: Scan for secrets with detect-secrets (Lab 5)
+        run: |
+          $files = git ls-files
+          if ($LASTEXITCODE -ne 0) { throw 'git ls-files failed' }
+          .\.venv\Scripts\detect-secrets-hook.exe --baseline .secrets.baseline $files
+          $code = $LASTEXITCODE
+          if ($code -eq 3) {
+            Write-Host '::warning title=Secrets baseline::Line numbers are out of date; run detect-secrets scan --baseline .secrets.baseline and commit it'
+            exit 0
+          }
+          if ($code -ne 0) { throw 'Potential secret found: remove it, or audit a false positive in .secrets.baseline' }
+
+      # Audits the packages installed in .venv (application, test and analysis tools, pip)
+      # and the MCP server dependencies. An accepted risk is passed as --ignore-vuln <ID>
+      # together with a justification in docs/code-quality/static-analysis.md.
+      - name: Audit dependencies with pip-audit (Lab 5)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          .\.venv\Scripts\pip-audit.exe --progress-spinner off
+          if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package installed in .venv' }
+          .\.venv\Scripts\pip-audit.exe --progress-spinner off -r requirements-mcp.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package in requirements-mcp.txt' }
+
+      # Architecture fitness function (HLD 6): contracts in .importlinter.
+      - name: Check architecture contracts with import-linter (Lab 5)
+        env:
+          PYTHONPATH: src
+          PYTHONIOENCODING: utf-8
+        run: |
+          .\.venv\Scripts\lint-imports.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Import contract broken: see HLD section 6' }
 
       # The build job remains the required PR check on the existing Windows runner.
       # Initial conservative gate: raise it after reviewing coverage from CI.
       - name: Run API tests with branch coverage
         run: |
-          .\.venv\Scripts\python.exe -m pytest --cov=api --cov-branch --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=50
+          .\.venv\Scripts\python.exe -m pytest --cov=api --cov=unislot --cov-branch --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=50
           if ($LASTEXITCODE -ne 0) { throw 'API tests or coverage gate failed' }
 
       - name: Upload API coverage report
