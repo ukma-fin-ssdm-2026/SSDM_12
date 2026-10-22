@@ -2,11 +2,19 @@
 
 Значення збігаються з `docs/architecture/data-model.md`: це ті самі рядки, що
 зберігатиме PostgreSQL, тож перехід із заглушок на БД не змінить контракт.
+
+Переліки бронювання з Лаб 5 живуть у доменному шарі (`unislot.booking.domain.model`):
+правила домену обчислюють стан, а домен не імпортує REST API. Тут їх реекспортовано,
+тож імпорти `from api.enums import BookingState` і специфікація OpenAPI не змінилися.
 """
 
 from __future__ import annotations
 
 from enum import StrEnum
+
+from unislot.booking.domain.model import BookingState, BookingStatus, CancellationKind
+
+__all__ = ["BookingState", "BookingStatus", "CancellationKind", "ResourceType", "Role"]
 
 
 class Role(StrEnum):
@@ -22,30 +30,3 @@ class ResourceType(StrEnum):
 
     CONSULTATION = "consultation"
     ROOM = "room"
-
-
-class BookingStatus(StrEnum):
-    """Збережений стан бронювання (`data-model.md` §7): лише два значення."""
-
-    CONFIRMED = "confirmed"
-    CANCELLED = "cancelled"
-
-
-class BookingState(StrEnum):
-    """Похідний стан бронювання для користувача (`data-model.md` §7, AQ-05).
-
-    Обчислюється з `status` і часу слота; у БД не зберігається.
-    """
-
-    ACTIVE = "active"  # підтверджене, слот ще не почався
-    IN_PROGRESS = "in_progress"  # слот триває (AQ-05)
-    COMPLETED = "completed"  # слот завершився
-    CANCELLED = "cancelled"
-
-
-class CancellationKind(StrEnum):
-    """Хто або що скасувало бронювання (INV-13)."""
-
-    STUDENT = "student"
-    PROVIDER_BLOCK = "provider_block"
-    RESCHEDULED = "rescheduled"
