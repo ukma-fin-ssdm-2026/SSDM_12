@@ -1,8 +1,8 @@
 """Точка входу REST API UniSlot.
 
-Локальний запуск з кореня репозиторію:
+Локальний запуск з кореня репозиторію (демо-токени діють лише з UNISLOT_DEMO_AUTH=1):
 
-    uvicorn api.main:app --app-dir src --reload --port 3000
+    UNISLOT_DEMO_AUTH=1 uvicorn api.main:app --app-dir src --reload --port 3000
 
 Swagger UI — http://localhost:3000/api-docs, ReDoc — http://localhost:3000/redoc.
 Під час кожного старту (і кожного перезапуску через --reload) сервер записує

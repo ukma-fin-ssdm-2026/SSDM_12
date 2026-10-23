@@ -84,6 +84,7 @@ macOS або Linux:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
+export UNISLOT_DEMO_AUTH=1        # демо-токени діють лише з цією змінною (V-01)
 uvicorn api.main:app --app-dir src --reload --port 3000
 ```
 
@@ -94,12 +95,16 @@ Windows (PowerShell; якщо активацію заблоковано — сп
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
+$env:UNISLOT_DEMO_AUTH = "1"      # демо-токени діють лише з цією змінною (V-01)
 uvicorn api.main:app --app-dir src --reload --port 3000
 ```
 
 Далі відкрийте http://localhost:3000/api-docs → **Authorize** → введіть демо-токен
 `demo-student` (або `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`) →
-**Try it out**. Демо-токени — заглушка автентифікації Лаб 4, а не секрети.
+**Try it out**. Демо-токени — заглушка автентифікації Лаб 4, а не секрети. Саме тому
+сервер, запущений без `UNISLOT_DEMO_AUTH=1`, їх не приймає й відповідає `401`: інакше
+будь-хто з токеном `demo-admin` із цього README став би адміністратором
+(V-01, [`static-analysis.md`](docs/code-quality/static-analysis.md)).
 
 **Як код оновлює документацію.** Під час кожного старту сервера — і кожного автоматичного
 перезапуску `--reload` після збереження `.py`-файлу — застосунок перезаписує

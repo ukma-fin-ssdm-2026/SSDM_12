@@ -303,6 +303,7 @@ US-011 → `create_resource`, `update_resource`; US-014 → `list_my_bookings`, 
 | Механізм | Де | Загроза / вимога |
 |---|---|---|
 | Токен на кожен запит, крім `/health`; `401` з `WWW-Authenticate` | `security.get_current_user` | FR-007 |
+| Демо-токени діють лише з `UNISLOT_DEMO_AUTH=1`; за замовчуванням — `401` (безпечний збій) | `config.py` | V-01 (`static-analysis.md`), THR-04 |
 | Ролі на кожній операції (deny-by-default); тест перевіряє, що кожна операція, крім `/health`, вимагає автентифікації | `security.require_roles`, `test_contract.py` | SEC-002, THR-04 |
 | Перевірка власника в сервісі; `403` без даних об'єкта | `booking_service.get_owned`, `slot_service.create_slot` | SEC-004, THR-03 |
 | `extra="forbid"` у вхідних схемах | `schemas/` | THR-04 |
