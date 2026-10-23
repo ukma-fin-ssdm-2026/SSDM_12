@@ -221,7 +221,23 @@ FastAPI, Starlette, Pydantic і SQLAlchemy (HLD §6, §9). Коректніст�
 
 ### 9.3. Виправлена вразливість із регресійним тестом
 
-Відповідний результат має бути додано в окремому PR Павла Дзюбака з виправленням V-01 (див. §5).
+- **Вразливість:** V-01 (§5) — демо-токени, зокрема `demo-admin`, діяли на сервері без налаштувань.
+- **PR:** #177 `fix(security): disable demo tokens unless UNISLOT_DEMO_AUTH is set`,
+  автор — Павло Дзюбак.
+- **Тест:** [`tests/api/test_platform.py`](../../tests/api/test_platform.py),
+  `test_demo_auth_is_off_unless_enabled`: прибирає змінну `UNISLOT_DEMO_AUTH` і перевіряє, що
+  `GET /api/v1/auth/me` з `Bearer demo-admin` дає `401 AUTH_REQUIRED`.
+- **Падає до виправлення:** перший коміт PR містить лише тест — CI червоний на кроці
+  «Run API tests with branch coverage», `FAILED … test_demo_auth_is_off_unless_enabled`:
+  https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40010685835/job/120609964889?pr=177.
+- **Проходить після:** другий коміт змінює `default=True` на `default=False` у `src/api/config.py` —
+  CI зелений: https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40013201875/job/120618543737?pr=177.
+- **Що змінилося разом із виправленням:** тести (`tests/conftest.py`), MCP-сервер, README і
+  `quality-attributes.md` вмикають демо-режим явно (`UNISLOT_DEMO_AUTH=1`); рядок DD-18 у HLD і
+  таблицю безпеки `api-design.md` §4.8 доповнено.
+- **Як перевірив сам:** запустив сервер без UNISLOT_DEMO_AUTH та з UNISLOT_DEMO_AUTH=1; результат:
+  без UNISLOT_DEMO_AUTH — 401 Unauthorized
+  UNISLOT_DEMO_AUTH=1 — 200 OK.
 
 ---
 
