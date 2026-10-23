@@ -5,7 +5,7 @@ pytest==9.1.1
 httpx2==2.13.1
 # Повторювані вимірювання якості тестів (CI).
 pytest-cov==7.1.0
-hypothesis==6.170.0
+hypothesis==6.170.5
 # Статичний аналіз (Лаб 5, статут §11.2). Ті самі версії — у .pre-commit-config.yaml.
 ruff==0.17.1
 bandit==1.9.4
