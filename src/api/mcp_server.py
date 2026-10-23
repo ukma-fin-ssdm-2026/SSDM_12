@@ -23,6 +23,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 # Агент не має перезаписувати docs/api/ під час старту.
 os.environ.setdefault("UNISLOT_EXPORT_OPENAPI", "0")
+# MCP-сервер — локальний інструмент розробника, що діє від імені демо-користувача:
+# демо-автентифікацію вмикаємо явно, бо за замовчуванням вона вимкнена (V-01).
+os.environ.setdefault("UNISLOT_DEMO_AUTH", "1")
 
 from fastmcp import FastMCP
 
