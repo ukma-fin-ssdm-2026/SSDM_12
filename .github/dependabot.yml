@@ -1,0 +1,36 @@
+# Dependabot (Lab 5 bonus: dependency audit; charter 11.2).
+# Version updates arrive as pull requests and go through the same review and CI as any
+# other change. Analysis tools pinned in .pre-commit-config.yaml (ruff, bandit,
+# detect-secrets) are updated by hand in one PR together with that file, so Dependabot
+# skips them. A bump of fastapi, pydantic or starlette can change the generated OpenAPI
+# spec: such a PR is merged only together with a regenerated docs/api/ (ci.yml drift check).
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Kyiv"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      api-stack:
+        patterns: ["fastapi", "pydantic", "starlette", "uvicorn*"]
+    ignore:
+      - dependency-name: "ruff"
+      - dependency-name: "bandit"
+      - dependency-name: "detect-secrets"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Kyiv"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
