@@ -180,7 +180,7 @@ PostgreSQL (Лаб 6) чи з ін'єкцією збоїв (Лаб 9) — це �
 конкретній машині й **не підтверджує PERF-001**: бази даних тут немає.
 
 ```bash
-uvicorn api.main:app --app-dir src --port 3000          # термінал 1
+UNISLOT_DEMO_AUTH=1 uvicorn api.main:app --app-dir src --port 3000   # термінал 1
 python scripts/api_latency.py --path /api/v1/slots --concurrency 50 --requests 2000   # термінал 2
 ```
 

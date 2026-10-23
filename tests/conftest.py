@@ -14,6 +14,9 @@ from datetime import UTC, datetime
 # Тести не мають записувати docs/api/ — вимикаємо експорт до імпорту застосунку
 # (Ruff дозволяє імпорти після зміни os.environ, тож E402 тут не спрацьовує).
 os.environ["UNISLOT_EXPORT_OPENAPI"] = "0"
+# Демо-автентифікацію тести вмикають явно, як і локальний запуск (V-01, static-analysis.md):
+# за замовчуванням сервер демо-токенів не приймає.
+os.environ["UNISLOT_DEMO_AUTH"] = "1"
 
 import pytest
 from fastapi.testclient import TestClient

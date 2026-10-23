@@ -1,4 +1,4 @@
 # MCP-сервер з API (бонус Лаб 4): застосунок + FastMCP. Окремий файл, бо FastMCP
 # не потрібен ні для запуску API, ні для тестів і CI.
 -r requirements.txt
-fastmcp==4.1.0
+fastmcp==4.1.2

@@ -49,6 +49,22 @@ def test_demo_auth_can_be_switched_off(monkeypatch, client: TestClient) -> None:
         get_settings.cache_clear()
 
 
+def test_demo_auth_is_off_unless_enabled(monkeypatch, client: TestClient) -> None:
+    """V-01 (docs/code-quality/static-analysis.md): безпечне значення за замовчуванням.
+
+    Без змінної UNISLOT_DEMO_AUTH сервер не приймає демо-токени, зокрема `demo-admin`,
+    який відкрито описаний у README й OpenAPI. До виправлення цей запит давав 200.
+    """
+    monkeypatch.delenv("UNISLOT_DEMO_AUTH", raising=False)
+    get_settings.cache_clear()
+    try:
+        r = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer demo-admin"})
+        assert r.status_code == 401
+        assert r.json()["code"] == "AUTH_REQUIRED"
+    finally:
+        get_settings.cache_clear()
+
+
 def test_request_id_is_echoed_or_replaced(client: TestClient) -> None:
     assert (
         client.get("/health", headers={"X-Request-ID": "trace-12345678"}).headers["X-Request-ID"]

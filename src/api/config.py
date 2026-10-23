@@ -41,7 +41,8 @@ class Settings:
     # Записувати специфікацію у docs/api/ під час старту сервера (цикл Code-First
     # на локальній машині). У тестах і в майбутньому контейнері — вимкнено.
     export_openapi_on_startup: bool
-    # Демо-автентифікація за токенами `demo-*` (лише Лаб 4; DD-06 — цільова схема).
+    # Демо-автентифікація за токенами `demo-*` (DD-18; DD-06 — цільова схема).
+    # Вимкнена, доки її не ввімкнули явно (V-01 у static-analysis.md).
     demo_auth_enabled: bool
     # Джерела, яким дозволено CORS (через кому). Порожньо — CORS вимкнено.
     cors_origins: tuple[str, ...]
@@ -53,6 +54,8 @@ def get_settings() -> Settings:
     origins = os.environ.get("UNISLOT_CORS_ORIGINS", "")
     return Settings(
         export_openapi_on_startup=_flag("UNISLOT_EXPORT_OPENAPI", default=True),
-        demo_auth_enabled=_flag("UNISLOT_DEMO_AUTH", default=True),
+        # Безпечний збій (OWASP): токени `demo-*` відкрито описані в README й OpenAPI,
+        # серед них `demo-admin`. Сервер, запущений без змінної, їх не приймає (V-01).
+        demo_auth_enabled=_flag("UNISLOT_DEMO_AUTH", default=False),
         cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip()),
     )

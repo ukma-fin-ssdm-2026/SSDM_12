@@ -1,6 +1,8 @@
 """Вимір часу відповіді GET-запиту API під паралельним навантаженням (Лаб 4, quality-attributes.md).
 
-Спершу запустіть API (uvicorn api.main:app --app-dir src --port 3000), потім:
+Спершу запустіть API з демо-автентифікацією, бо скрипт надсилає демо-токен:
+    UNISLOT_DEMO_AUTH=1 uvicorn api.main:app --app-dir src --port 3000
+потім:
     python scripts/api_latency.py --path /api/v1/slots --concurrency 50 --requests 2000
 
 Друкує кількість запитів, частку помилок і перцентилі p50, p95, max у мілісекундах.
