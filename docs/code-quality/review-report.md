@@ -122,6 +122,368 @@ return str(value)[:200]
   замовчуванням ([`static-analysis.md`](static-analysis.md) §5), виправлена в PR #177.
 - **Запит до команди Monkey-Business** на огляд нашого `src/api/`: запиту немає на дату здачі.
 
+## ШІ-огляд того самого коду (бонус PR-11)
+
+### Мета й умови
+
+Для порівняння ручного огляду з незалежним аналізом я використала **Claude (Anthropic)**. Об'єкт — API `ukma-fin-ssdm-2026/Monkey-Business-project` на коміті `73d7d4f1ad92a2670556e82d7751acd57ccf4a13`, ті самі вісім файлів `src/api/`. Дата незалежного огляду — **24.10.2026**. Claude повідомив, що не використовував попередніх рецензій, а код не запускав і не змінював. Цей факт базується на заяві інструмента; незалежність забезпечувалася окремим запитом без тексту нашого огляду.
+
+### Промпт незалежному рецензенту
+
+> Ти — незалежний senior Python/FastAPI code reviewer. Проведи незалежний code review реалізації REST API проєкту Monkey-Business-project на коміті `73d7d4f1ad92a2670556e82d7751acd57ccf4a13`. Перевір лише такі файли: `src/api/README.md`, `src/api/errors.py`, `src/api/main.py`, `src/api/mcp_server.py`, `src/api/routers/card_links.py`, `src/api/routers/cards.py`, `src/api/schemas.py`, `src/api/store.py`. Оціни стиль і стандарти кодування, якість та підтримуваність, безпеку й обробку помилок, використання FastAPI/Pydantic, документацію та тестованість. Дай рівно 3 сильні сторони, 3 пропозиції покращення, 1 ризик безпеки та короткий підсумок. Для знахідок наведи файли, рядки та фрагменти коду. Не використовуй попередні code review, висновки інших рецензентів та новіші версії коду. Не змінюй код. Якщо не маєш доступу до файлу, повідом про це.
+
+### Первинний результат Claude (повністю, без редагування)
+
+<details>
+<summary>Розгорнути повний оригінальний огляд Claude</summary>
+
+# Незалежний code review REST API — Monkey-Business-project
+
+- **Репозиторій:** https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project
+- **Коміт:** `73d7d4f1ad92a2670556e82d7751acd57ccf4a13`
+- **Дата огляду:** 24.10.2026
+- **Обсяг:** `src/api/README.md`, `src/api/errors.py`, `src/api/main.py`, `src/api/mcp_server.py`, `src/api/routers/card_links.py`, `src/api/routers/cards.py`, `src/api/schemas.py`, `src/api/store.py`
+
+**Доступ до файлів:** усі вісім файлів прочитано саме з указаного коміту, новіші версії не використовувалися. Огляд статичний: код не запускався й не змінювався. Попередні рецензії та висновки інших рецензентів не використовувалися.
+
+**Критерії оцінки:**
+
+1. Стиль і стандарти кодування.
+2. Якість, читабельність і підтримуваність.
+3. Безпека, валідація та обробка помилок.
+4. Коректність використання FastAPI, Pydantic та інших бібліотек.
+5. Документація, статичний аналіз і можливість тестування.
+
+---
+
+## 1. Сильні сторони
+
+### 1.1. Усі помилки мають один формат, і кожен запит отримує свій ідентифікатор
+
+**Файл:** `src/api/errors.py`, рядки 46–52, 59–78, 80–102
+
+```python
+def error_responses(not_found: str, invalid: str = "Невалідні параметри запиту") -> dict:
+    return {
+        404: {"model": ErrorResponse, "description": not_found},
+        422: {"model": ErrorResponse, "description": invalid},
+    }
+```
+
+```python
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request.state.request_id = f"req_{uuid.uuid4().hex[:10]}"
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    return response
+```
+
+**Чому це добре рішення:**
+
+- Помилки предметної області (`ApiError`) і помилки валідації (`RequestValidationError`) повертаються в одному форматі: `code`, `message`, `details`, `request_id`, `documentation`.
+- Той самий `request_id` іде і в тіло відповіді, і в заголовок `X-Request-ID`. Тому помилку з боку клієнта легко зіставити з логами сервера.
+- Хелпер `error_responses()` явно описує 422 через `ErrorResponse`. Без цього FastAPI показав би у специфікації свій стандартний `HTTPValidationError`, який не збігається з тим, що API реально повертає. Коментар у рядках 47–48 показує, що автори помітили цю розбіжність.
+
+### 1.2. Вхідні дані перевіряються самими типами Pydantic і FastAPI, а не ручним кодом
+
+**Файли:** `src/api/schemas.py`, рядки 66–91 і 132–137; `src/api/routers/cards.py`, рядки 79–84
+
+```python
+company: str = Field(..., min_length=1, max_length=200, ...)
+vacancy_url: Optional[HttpUrl] = Field(default=None, ...)
+requirements_text: Optional[str] = Field(default=None, max_length=5000, ...)
+```
+
+```python
+limit: int = Query(default=20, ge=1, le=100, description="Розмір сторінки (макс. 100)"),
+offset: int = Query(default=0, ge=0, description="Зсув від початку списку"),
+```
+
+```python
+@field_validator("company", "position")
+@classmethod
+def not_blank(cls, value: Optional[str]) -> Optional[str]:
+    if value is not None and not value.strip():
+        raise ValueError("поле не може бути порожнім рядком")
+    return value
+```
+
+**Чому це добре рішення:**
+
+- Що використано: `UUID` у параметрах шляху, `HttpUrl`, обмеження довжини, enum `CardStatus` і межі пагінації.
+- Невалідний ввід відсікається ще до обробника, а ті самі обмеження автоматично потрапляють в OpenAPI.
+- Розмір сторінки обмежено зверху (`le=100`), тож клієнт не може запросити необмежено великий список.
+- Валідатор `not_blank` закриває випадок рядка з самих пробілів у PATCH: `min_length=1` такий рядок пропустив би.
+
+### 1.3. Вкладені ресурси перевіряють, кому вони належать, а operationId чисті
+
+**Файли:** `src/api/routers/cards.py`, рядки 58–62 (такий самий код у `src/api/routers/card_links.py`, рядки 24–28); `src/api/store.py`, рядки 116–121; `src/api/main.py`, рядки 41–43
+
+```python
+def _require_card(board_id: UUID, card_id: UUID) -> dict:
+    record = store.get_card(card_id)
+    if record is None or record["board_id"] != board_id:
+        raise NotFoundError(f"Картку {card_id} на дошці {board_id} не знайдено")
+    return record
+```
+
+```python
+def delete_link(card_id: UUID, link_id: UUID) -> bool:
+    link = card_links_db.get(link_id)
+    if link is None or link["card_id"] != card_id:
+        return False
+```
+
+```python
+# they also become the MCP tool names in mcp_server.py, so handler names must stay unique.
+generate_unique_id_function=lambda route: route.name,
+```
+
+**Чому це добре рішення:**
+
+- Картку з чужої дошки не можна прочитати чи змінити, підставивши інший `board_id` у шлях: на розбіжність API відповідає 404. Те саме для посилання, яке не належить картці.
+- operationId виходять короткими (`list_cards`, `move_card`). Вони водночас стають назвами інструментів MCP у `mcp_server.py`. Коментар прямо пояснює, що через це імена обробників мають бути унікальними. У поточному коді всі 10 імен унікальні.
+
+---
+
+## 2. Пропозиції покращення
+
+### 2.1. PATCH не дає очистити поле: явний `null` мовчки ігнорується
+
+**Файли:** `src/api/store.py`, рядок 81; `src/api/routers/cards.py`, рядки 150–153; `src/api/schemas.py`, рядки 103–130
+
+```python
+# store.py:81
+record.update({k: v for k, v in changes.items() if v is not None})
+```
+
+```python
+# cards.py:150
+changes = payload.model_dump(exclude_unset=True)
+```
+
+**Проблема.** Роутер правильно бере лише передані поля (`exclude_unset=True`), але сховище потім відкидає всі значення `None`. Тому `PATCH {"deadline": null}` або `{"vacancy_url": null}` повертає 200, а дедлайн чи посилання лишаються старими. Крім того, `CardUpdate` приймає `{"company": null}`: тип там `Optional[str]`, а `not_blank` пропускає `None`. Такий запит теж «успішний», хоча нічого не змінює.
+
+**Наслідок.** Клієнт не може зняти дедлайн чи вимкнути посилання на вакансію, а API про це не повідомляє. Це тиха помилка коректності, яку складно відловити на фронтенді.
+
+**Рекомендоване виправлення:**
+
+- Прибрати фільтр `if v is not None` у `store.update_card` і покладатися лише на `exclude_unset`.
+- Для полів, які не можуть бути порожніми (`company`, `position`, `notifications_enabled`, `status`), явно відхиляти `null` через `model_validator(mode="before")` у `CardUpdate`. Тоді на `null` API поверне 422, а не тихий 200.
+- Додати тести на обидва сценарії: очищення поля, яке може бути порожнім, і `null` для обов'язкового поля.
+
+### 2.2. `move_card` не відповідає власному опису і не перевіряє етап
+
+**Файли:** `src/api/routers/cards.py`, рядки 179–182 і 191–193; `src/api/store.py`, рядки 67 і 90–97
+
+```python
+# cards.py:180-182
+"Дія як під-ресурс, а не PATCH основного ресурсу: переміщення "
+"зачіпає позиції інших карток етапу (FR-004, FR-005), тобто це "
+"бізнес-операція, а не проста заміна поля."
+```
+
+```python
+# store.py:94-96
+record["stage_id"] = stage_id
+record["position_index"] = position_index
+record["updated_at"] = datetime.now(timezone.utc)
+```
+
+**Проблема:**
+
+- Документація в OpenAPI обіцяє перерахунок позицій інших карток, але сховище змінює лише саму картку.
+- `stage_id` ніде не перевіряється на належність дошці. Немає ні функції на кшталт `stage_exists`, ні відповіді 404/409, і так само в `create_card`.
+- `position_index` обмежений лише знизу (`ge=0`, `schemas.py:147-149`).
+
+**Наслідок:**
+
+- Після переміщень у кількох карток може бути однаковий `position_index`, а в нумерації з'являються «дірки». Порядок у `list_cards` (сортування в `store.py:58`) тоді стає непередбачуваним.
+- Картку можна перемістити в етап, якого не існує.
+- Згенерована специфікація розходиться з поведінкою, а через MCP ця неправдива документація дістається і AI-агентам.
+
+**Рекомендоване виправлення:**
+
+- Реалізувати перенумерацію: зсунути картки в цільовому етапі та стиснути позиції у вихідному.
+- Обмежити `position_index` поточною кількістю карток у цільовому етапі.
+- Додати перевірку етапу з поверненням 404 або 422.
+- Або, якщо це свідома заглушка, чесно змінити `description` ендпоінта і додати тест, який фіксує поточну поведінку.
+
+### 2.3. Тестованість і підтримуваність: глобальний стан, дублювання та побічні ефекти під час запуску
+
+**Файли:** `src/api/store.py`, рядки 21–41; `src/api/routers/cards.py`, рядки 35–50 і 58–62; `src/api/routers/card_links.py`, рядки 24–28; `src/api/main.py`, рядки 7–33
+
+```python
+# store.py:23, 41
+cards_db: dict[UUID, dict] = { ... }
+card_links_db: dict[UUID, dict] = {}
+```
+
+```python
+# main.py:30-33
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    save_openapi_spec(app)
+    yield
+```
+
+```python
+# main.py:8-10
+from fastapi import FastAPI
+import yaml
+from pathlib import Path
+```
+
+**Проблема:**
+
+- Роутери напряму імпортують модуль `store` з глобальними словниками, без `Depends`. Окремі тести діляться одним станом, і замінити сховище на PostgreSQL (обіцяно в docstring `store.py`) без правок роутерів не вийде.
+- `_require_card` дубльовано у двох роутерах.
+- `_to_card_out` вручну переписує 13 полів, хоча моделі мають `from_attributes`, а `CardOut.model_validate(record)` зробив би те саме.
+- `lifespan` при кожному старті перезаписує файл у репозиторії і друкує результат через `print`, а не через `logging`.
+- Сигнатури `store` неточні: `update_card` і `move_card` повертають `Optional[dict]`, а результат без перевірки передається в `_to_card_out(record: dict)`. mypy позначить це як помилку.
+- Порядок імпортів у `main.py` не за PEP 8 / isort: `fastapi`, потім `yaml`, потім `pathlib`. У `save_openapi_spec` немає анотації типу повернення.
+
+**Наслідок:**
+
+- Тести проблемно ізолювати, а зміна моделі вимагає правок у кількох місцях.
+- У контейнері з файловою системою лише для читання застосунок падає на старті через `PermissionError` у `lifespan`.
+- Статичний аналіз (mypy, ruff) одразу дасть зауваження.
+
+**Рекомендоване виправлення:**
+
+- Винести сховище в клас-репозиторій і передавати його через `Depends(get_store)`. Тоді в тестах можна підміняти його через `app.dependency_overrides`.
+- Перенести `_require_card` у спільний модуль залежностей (наприклад, `src/api/deps.py`).
+- Використати `CardOut.model_validate(record)` замість ручного копіювання полів.
+- Генерувати YAML лише за явною командою, як уже зроблено в `if __name__ == "__main__"`, або під прапорцем у налаштуваннях. Замінити `print` на `logging`.
+- Додати `ruff` і `mypy` у CI.
+
+---
+
+## 3. Потенційна вразливість або ризик
+
+### Немає автентифікації та авторизації (BOLA / OWASP API1), і через MCP усі операції, включно з видаленням, доступні AI-агенту
+
+**Файли:** `src/api/routers/cards.py`, рядки 157–171; `src/api/store.py`, рядки 44–45; `src/api/mcp_server.py`, рядок 20; `src/api/README.md`, рядок 52
+
+```python
+# cards.py:165-171
+def delete_card(
+    board_id: UUID = Path(..., description="Ідентифікатор дошки"),
+    card_id: UUID = Path(..., description="Ідентифікатор картки"),
+) -> None:
+    _require_board(board_id)
+    _require_card(board_id, card_id)
+    store.delete_card(card_id)
+```
+
+```python
+# mcp_server.py:20
+mcp = FastMCP.from_fastapi(app, name="Tech Interview Board API")
+```
+
+```text
+# README.md:52
+Демо-дошка для перевірки: `board_id = 11111111-1111-1111-1111-111111111111`.
+```
+
+**Чому це ризик.** Жоден ендпоінт не має залежностей безпеки: немає `Depends`, `Security`, `HTTPBearer`/`OAuth2PasswordBearer` чи перевірки власника дошки. Єдиний «доступ» — знання `board_id` і `card_id`, а ідентифікатор демо-дошки опубліковано в README. Перевірка з п. 1.3 захищає від плутанини між дошками, але не від стороннього користувача.
+
+**Коли проблема стає реальною:**
+
+- API запущено не лише на localhost, наприклад з `--host 0.0.0.0` або на стенді.
+- Або MCP-сервер підключено до агента, який одночасно читає вміст карток (`requirements_text`, посилання). `FastMCP.from_fastapi` перетворює на інструменти всі ендпоінти, включно з `delete_card` і `delete_link`.
+
+**Можливі наслідки:**
+
+- Будь-хто може читати, змінювати чи видаляти чужі картки.
+- Через prompt injection у тексті вакансії агента можна схилити викликати деструктивний інструмент.
+- Видалення остаточне (`cards.py:162`: «Видаляє картку остаточно»), а журналу дій немає.
+
+**Як усунути:**
+
+1. Додати залежність автентифікації (наприклад, OAuth2/JWT) на рівні `APIRouter(dependencies=[Depends(get_current_user)])`.
+2. Перевіряти, що поточний користувач володіє `board_id`, у спільній залежності `require_board_access`, яку використовують усі ендпоінти карток і посилань.
+3. Для MCP обмежити набір інструментів лише читанням або вимагати підтвердження для DELETE. Для цього стане в пригоді фільтрація маршрутів у FastMCP.
+4. Ідентифікатор демо-дошки тримати лише в конфігурації для розробки.
+
+---
+
+## 4. Підсумок
+
+Як навчальна реалізація підходу Code-First код якісний:
+
+- чітка структура: роутери, схеми, помилки, сховище;
+- ретельні OpenAPI-анотації з посиланнями на вимоги (FR-xxx);
+- коректне використання Pydantic v2 (`HttpUrl`, `Field` з обмеженнями, `field_validator`, `model_dump(exclude_unset=True)`);
+- єдиний формат помилок і продумана інтеграція з MCP.
+
+Основні слабкі місця:
+
+- семантика сховища: PATCH не очищає поля, а `move_card` не перераховує позиції, всупереч опису;
+- відсутність шару доступу;
+- важка тестованість через глобальний стан.
+
+**Пріоритети виправлень:**
+
+1. **Високий:** автентифікація та перевірка власника дошки (п. 3), до будь-якого розгортання поза localhost або підключення MCP до агента, який обробляє недовірений вміст.
+2. **Високий:** семантика PATCH для `null` (п. 2.1).
+3. **Середній:** логіка `move_card` і перевірка етапу або чесний опис цієї поведінки (п. 2.2).
+4. **Середній:** сховище через `Depends`, генерація YAML не під час старту, `ruff` і `mypy` у CI (п. 2.3).
+
+**Дрібніші зауваження (поза обов'язковими пунктами):**
+
+- Необроблене виключення (500) не проходить через уніфікований формат: у `register_error_handlers` немає обробника для `Exception`.
+- `provided_value` у `errors.py:86` повертає клієнту `str(err.get("input"))` без обмеження довжини. Для помилки «поле відсутнє» це може бути все тіло запиту.
+
+---
+
+## Джерела (коміт `73d7d4f`)
+
+- [src/api/README.md](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/README.md)
+- [src/api/errors.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/errors.py)
+- [src/api/main.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/main.py)
+- [src/api/mcp_server.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/mcp_server.py)
+- [src/api/routers/card_links.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/routers/card_links.py)
+- [src/api/routers/cards.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/routers/cards.py)
+- [src/api/schemas.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/schemas.py)
+- [src/api/store.py](https://github.com/ukma-fin-ssdm-2026/Monkey-Business-project/blob/73d7d4f1ad92a2670556e82d7751acd57ccf4a13/src/api/store.py)
+
+</details>
+
+### Порівняння з оглядом команди
+
+| Критерій | Наш попередній огляд | Незалежний Claude |
+|---|---|---|
+| Сильні сторони | Єдиний формат помилок, змістовні docstring, Code-First | Єдиний формат помилок, типізована валідація, належність ресурсів і MCP |
+| Коректність API | `PATCH` не очищує nullable-поля | Та сама проблема; додатково — `move_card` не перенумеровує позиції |
+| Підтримуваність | Дублювання `_require_card`, ручне копіювання полів | Дублювання, глобальний стан, недостатня ізоляція тестів |
+| Інструменти якості | Немає лінтера й перевірок у CI на початковому коміті | Рекомендовано додати Ruff і mypy |
+| Безпека | CWE-209: розкриття даних у відповіді 422 — головна знахідка | Відсутність автентифікації/авторизації — головний ризик; CWE-209 — додаткове зауваження |
+
+### Перевірка знахідок за кодом
+
+Я звірила ключові твердження з вихідними файлами коміту `73d7d4f`:
+
+- `src/api/store.py:81`: вираз `record.update({k: v for k, v in changes.items() if v is not None})` відкидає явно переданий `null`, хоча роутер уже використовує `exclude_unset=True`.
+- `src/api/store.py:90–97`: `move_card` змінює лише поля вибраної картки й не перенумеровує решту.
+- `src/api/routers/cards.py:58–62` і `src/api/routers/card_links.py:24–28`: `_require_card` повторюється.
+- `src/api/errors.py:86`: `provided_value=str(err.get("input"))` може повертати надлишкові вхідні дані у відповіді 422.
+- `src/api/routers/cards.py`: обробники не перевіряють особу поточного користувача або права доступу; реальний ризик виникає за умови доступності API стороннім користувачам.
+
+### Висновки
+
+Обидва огляди виявили дефект `PATCH` і дублювання коду. Claude додатково звернув увагу на фактичну реалізацію переміщення карток, глобальний стан і відсутність контролю доступу. Наш попередній огляд докладніше розглянув небезпеку повернення даних у 422 та якість CI. Отже, незалежний ШІ-огляд корисний як додаткова перспектива, але висновки слід звіряти з конкретною версією вихідного коду, враховуючи навчальний характер заглушок та умови експлуатації.
+
+### Використання ШІ у PR-11
+
+- **Інструмент:** Claude (Anthropic).
+- **Застосування:** незалежний статичний огляд восьми файлів API на коміті `73d7d4f`; повний результат наведено вище без редагування.
+- **Як перевірено:** я зіставила висновки Claude з попереднім оглядом та вихідним кодом, відокремила збіги й додаткові ризики.
+- **Власне рішення:** порівнювала не тільки кількість спільних знахідок, а їхню практичну вагу, умови прояву та пріоритет виправлення.
+
+---
+
 ## Використання ШІ
 
 - **Інструмент:** Claude
