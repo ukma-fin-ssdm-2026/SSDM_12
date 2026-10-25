@@ -62,12 +62,27 @@ def encode_cursor(starts_at: datetime, item_id: uuid.UUID) -> str:
     return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
 
 
+def cursor_fields(data: object) -> tuple[str, str]:
+    """Перевіряє структуру JSON перед розбором часу та UUID.
+
+    Значення перевіряє `decode_cursor`; тут лише типи двох обов'язкових полів.
+    Зокрема UUID(7) кидає AttributeError, тому числовий id слід відхилити раніше.
+    """
+    if not isinstance(data, dict):
+        raise TypeError("cursor must be an object")
+    starts_at, item_id = data.get("s"), data.get("i")
+    if not isinstance(starts_at, str) or not isinstance(item_id, str):
+        raise TypeError("cursor fields must be strings")
+    return starts_at, item_id
+
+
 def decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
     """Розбирає курсор; зіпсований курсор — помилка валідації параметра `cursor` (422)."""
     try:
         padded = cursor + "=" * (-len(cursor) % 4)
         data = json.loads(base64.urlsafe_b64decode(padded.encode()))
-        starts_at, item_id = datetime.fromisoformat(data["s"]), uuid.UUID(data["i"])
+        start_text, id_text = cursor_fields(data)
+        starts_at, item_id = datetime.fromisoformat(start_text), uuid.UUID(id_text)
         if starts_at.tzinfo is None:
             raise ValueError("cursor time without timezone")
         return starts_at, item_id
