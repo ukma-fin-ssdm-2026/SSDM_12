@@ -12,12 +12,39 @@ from unittest.mock import Mock
 
 import pytest
 
+from api import clock
 from api.enums import ResourceType
 from api.errors import ApiProblem, ErrorCode
 from api.policy import HORIZON, KYIV
 from api.schemas.slots import SlotCreate
+from api.security import CurrentUser
 from api.stubs import slot_service as service
 from api.stubs.store import Ids, store
+
+
+
+@pytest.fixture
+def now() -> datetime:
+    """Deterministic clock configured by tests/conftest.py."""
+    return clock.utc_now()
+
+
+@pytest.fixture
+def provider() -> CurrentUser:
+    """Provider owning the demo database consultation resource."""
+    user = store.users[Ids.PROVIDER]
+    return CurrentUser(
+        id=user.id, full_name=user.full_name, email=user.email, roles=frozenset(user.roles)
+    )
+
+
+@pytest.fixture
+def other_student() -> CurrentUser:
+    """Second demo student with independent bookings."""
+    user = store.users[Ids.STUDENT_2]
+    return CurrentUser(
+        id=user.id, full_name=user.full_name, email=user.email, roles=frozenset(user.roles)
+    )
 
 
 @pytest.mark.parametrize(
