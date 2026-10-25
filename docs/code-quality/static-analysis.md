@@ -213,7 +213,41 @@ FastAPI, Starlette, Pydantic і SQLAlchemy (HLD §6, §9). Коректніст�
 
 ### 9.1. Pre-commit із пошуком секретів
 
-Для окремого PR Никити Бабакова: що перевіряє кожен хук і доказ спрацювання.
+У корені репозиторію налаштовано .pre-commit-config.yaml (PR #164). Конфігурація містить такі хуки:
+Ruff check — перевірка стилю та якості коду.
+Ruff format — форматування Python-коду.
+Bandit — статичний аналіз безпеки.
+detect-secrets — пошук секретів із використанням .secrets.baseline.
+check-yaml — перевірка YAML.
+check-toml — перевірка TOML.
+check-merge-conflict — пошук маркерів конфліктів Git.
+check-added-large-files — перевірка великих файлів.
+detect-private-key — пошук приватних ключів.
+**Результат запуску** pre-commit run --all-files
+Перевірку виконано 24.10.2026 на macOS 26, Python 3.14.5.
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+bandit...................................................................Passed
+Detect secrets...........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check for merge conflicts................................................Passed
+check for added large files..............................................Passed
+detect private key.......................................................Passed
+Усі дев'ять перевірок завершилися успішно.
+**Доказ блокування коміту із секретом**
+Для перевірки роботи detect-secrets створено тестовий файл precommit-demo.txt із випадковим рядком формату GitHub-токена ghp_…. Це не справжній токен.
+Під час спроби виконати коміт отримано:
+Detect secrets...........................................................Failed
+- hook id: detect-secrets
+- exit code: 1
+ERROR: Potential secrets about to be committed to git repo!
+Secret Type: Base64 High Entropy String
+Location:    precommit-demo.txt:1
+Secret Type: GitHub Token
+Location:    precommit-demo.txt:1
+Коміт заблоковано. Тестовий файл видалено, до репозиторію він не потрапив.
+Хуки pre-commit працюють локально під час створення коміту. Для змін через вебредактор GitHub перевірка секретів виконується окремим кроком CI Scan for secrets with detect-secrets (§8).
 
 ### 9.2. Аудит залежностей
 

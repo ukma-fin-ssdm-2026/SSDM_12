@@ -156,6 +156,27 @@ stdio-сервер — розділ про MCP у документації аг�
 Агент діє від імені демо-користувача з `UNISLOT_MCP_TOKEN` (за замовчуванням `demo-student`).
 Приклад завдання: «Які аудиторії вільні завтра? Забронюй найранішу».
 
+## Якість коду (Лаб 5)
+
+| Що | Де |
+|---|---|
+| Огляд коду іншої команди за п'ятьма критеріями, ШІ-огляд того самого коду | [`docs/code-quality/review-report.md`](docs/code-quality/review-report.md) |
+| Статичний аналіз: інструменти, покриття, знахідки й рішення, вразливість V-01 | [`docs/code-quality/static-analysis.md`](docs/code-quality/static-analysis.md) |
+| Прогрес реалізації: компоненти HLD і їхній стан, доменний шар `Booking` | [`docs/code-quality/progress.md`](docs/code-quality/progress.md) |
+| Політика якості та огляду коду: стандарт, інструменти, кроки огляду, DoD | [`TeamCharter.md`](TeamCharter.md), розділ 11 |
+| Конфігурація інструментів | [`pyproject.toml`](pyproject.toml) (Ruff, Bandit), [`.importlinter`](.importlinter), [`.secrets.baseline`](.secrets.baseline), [`.pre-commit-config.yaml`](.pre-commit-config.yaml), [`.github/dependabot.yml`](.github/dependabot.yml) |
+
+Ті самі перевірки працюють у трьох місцях: хуки pre-commit на вашому комп'ютері, кроки job
+`build` у CI на кожен pull request і щотижневі PR від Dependabot. Хуки встановлюються один раз:
+
+```bash
+pip install -r requirements-dev.txt
+pre-commit install            # далі перевірки запускаються на кожен git commit
+pre-commit run --all-files    # перевірити весь репозиторій вручну
+```
+
+Окремі інструменти — команди в [`static-analysis.md`](docs/code-quality/static-analysis.md) §2.
+
 ## Артефакти тестування
 
 | Документ | Що всередині |
@@ -206,21 +227,31 @@ SSDM_12/
 │   │   ├── openapi-generated.yaml   # згенеровано з коду
 │   │   ├── errors.html              # згенеровано з коду
 │   │   └── index.html               # Swagger UI для GitHub Pages
-│   ├── code-quality/       # звіт рецензування коду
-│   └── testing/            # звіт про покриття, журнал налагодження
-│       ├── coverage-report.md
-│       ├── debugging-log.md
-│       └── debug-challenge/    # патч навмисного дефекту для повтору вправи
+│   ├── code-quality/       # якість коду (Лаб 5)
+│   │   ├── review-report.md
+│   │   ├── static-analysis.md
+│   │   └── progress.md
+│   ├── testing/            # звіт про покриття, журнал налагодження
+│   │   ├── coverage-report.md
+│   │   ├── debugging-log.md
+│   │   └── debug-challenge/    # патч навмисного дефекту для повтору вправи
+│   ├── validation/         # план тестування й журнал взаємного огляду (Лаб 7)
+│   └── quality/            # налаштування мутаційного й property-based тестування
 ├── src/
-│   └── api/                # REST API (FastAPI): routers/, schemas/, stubs/
+│   ├── api/                # REST API (FastAPI): routers/, schemas/, stubs/
+│   └── unislot/            # модулі бізнес-логіки за HLD §6; домен Booking — booking/domain/
 ├── tests/
-│   └── api/                # тести API
+│   ├── api/                # тести через API
+│   └── unit/               # ізольовані тести: домен, пагінація, правила
 ├── scripts/                # перевірки вимог і архітектури, генерація OpenAPI, вимір затримки
 ├── Labs/                   # посилання на індивідуальні відео за лабораторними
 ├── requirements.txt        # залежності API (версії закріплено)
 ├── requirements-dev.txt    # залежності API + тести
 ├── requirements-mcp.txt    # залежності API + MCP-сервер (бонус)
-├── pyproject.toml          # налаштування pytest
+├── pyproject.toml          # налаштування pytest, Ruff і Bandit
+├── .importlinter           # архітектурні контракти HLD §6 (import-linter)
+├── .pre-commit-config.yaml # хуки: Ruff, Bandit, detect-secrets
+├── .secrets.baseline       # аудитовані хибні спрацювання detect-secrets
 ├── README.md
 ├── TeamCharter.md
 ├── Project-Description.md
@@ -229,7 +260,7 @@ SSDM_12/
 ```
 
 Каталоги `docs/` наповнюються поступово: `requirements/` — Лаб 2, `architecture/` — Лаб 3,
-`api/` — Лаб 4, `code-quality/` і `testing/` уже наповнені, далі додаються `validation/`,
+`api/` — Лаб 4, `code-quality/` — Лаб 5, `testing/` і `validation/` — Лаб 6–7, далі додаються
 `refactoring/`, `reliability/`, `ci-cd/`.
 
 ## Технологічний стек
@@ -240,7 +271,7 @@ SSDM_12/
 | Доступ до даних | SQLAlchemy 2.x, Alembic |
 | База даних | PostgreSQL 16 |
 | Тестування | pytest, pytest-cov |
-| Якість коду | Ruff, Bandit, SonarCloud |
+| Якість коду | Ruff, Bandit, detect-secrets, pip-audit, import-linter, pre-commit, Dependabot; SonarCloud — Лаб 8 |
 | CI/CD | GitHub Actions |
 | Середовище | Docker Compose |
 
@@ -262,6 +293,8 @@ SSDM_12/
 - **Оновлення для Test-a-Thon:** розділ «Артефакти тестування» і доповнене дерево структури — чернетка з Claude (Opus 5); склад таблиці звірено з фактичним вмістом `docs/testing/`, обидва посилання перевірено після злиття. Нотатки про використання ШІ є всередині кожного з двох документів.
 - **Оновлення для Лаб 3:** розділ «Архітектура (Лаб 3)» і розгорнуте дерево `docs/architecture/` — чернетка з Claude (Anthropic); склад таблиці звірено з фактичним вмістом каталогу, усі посилання перевірено клацанням після злиття документів Лаб 3.
 - **Оновлення для Лаб 4:** розділ «API (Лаб 4)» і дерево `src/api/`, `docs/api/` — чернетка з Claude (Anthropic). Команди запуску виконав сам на macOS 26, Python 3.14.5; склад таблиці звірено з фактичним вмістом `docs/api/`, усі посилання перевірено клацанням після злиття документів Лаб 4.
+- **Оновлення для Лаб 5:** розділ «Якість коду (Лаб 5)», дерево структури й рядок стеку — чернетка з
+  Claude (Anthropic); склад таблиці звірено з фактичними файлами `docs/code-quality/` і конфігурацій, команди pre-commit виконано на macOS 26, Python 3.14.5: усі дев'ять хуків пройшли успішно. Окремо перевірено роботу detect-secrets: хук заблокував тестовий коміт із фейковим GitHub-токеном. Результати наведено в docs/code-quality/static-analysis.md §9.1.
 - **MCP-сервер (бонус Лаб 4):** `src/api/mcp_server.py` і розділ «MCP-сервер для агента» — чернетка з Claude (Anthropic). Перевірив сам клієнтом FastMCP у пам'яті, без агента (macOS 26, Python 3.14.5): `pip install -r requirements-mcp.txt` поставив `fastmcp 4.1.0` з `fastmcp-slim` і `mcp 2.3.0`, усе з готових wheels під `cp314`; сервер піднявся, у списку **14 інструментів** із назвами, що дорівнюють `operationId` специфікації. `get_me` повернув демо-студентку з роллю `student` — отже токен із `UNISLOT_MCP_TOKEN` доходить до застосунку; `search_free_slots` повернув слоти з полями `resource` і `provider` (перший — «Аудиторія 1-225», 90 хвилин). У журналі застосунку обидва виклики видно як `GET /api/v1/auth/me` і `GET /api/v1/slots` зі статусом 200: інструменти справді звертаються до кінцевих точок API, а не до окремої реалізації. Розбіжностей не виявив.
 
 ### Нотатка про цей документ
