@@ -65,3 +65,8 @@ tmp/
 .mutmut-cache/
 .mutmut-cache*
 mutants/
+
+# Lab6: publish the required HTML coverage report; ignore disposable copies.
+!docs/testing/lab06/htmlcov/
+!docs/testing/lab06/htmlcov/**
+.lab06-tmp/

@@ -59,6 +59,14 @@ exclude_dirs = [".venv", "docs/architecture/validation"]
 # B101 у тестах — хибне спрацювання: assert там і є перевіркою. У src/ правило діє.
 skips = ["*/tests/*.py", "*/test_*.py", "*/conftest.py"]
 
+[tool.coverage.run]
+branch = true
+source = ["api", "unislot"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+
 # Manual mutation testing runs in Linux/WSL, not native Windows CI.
 [tool.mutmut]
 source_paths = ["src/api/"]
