@@ -12,6 +12,7 @@ from api.policy import HORIZON, KYIV
 from api.schemas.common import PersonSummary, ResourceSummary
 from api.schemas.slots import SlotCreate, SlotDetail, SlotOut
 from api.security import CurrentUser
+from api.slot_rules import kyiv_day_bounds
 from api.stubs.store import SlotRec, store
 
 
@@ -77,6 +78,7 @@ def search_free(
     """
     if day is not None:
         check_search_date(day, now)
+    bounds = kyiv_day_bounds(day) if day is not None else None
     after = decode_cursor(cursor) if cursor else None
     found = []
     for slot in store.slots.values():
@@ -87,7 +89,7 @@ def search_free(
             continue
         if resource_type is not None and resource.type is not resource_type:
             continue
-        if day is not None and slot.starts_at.astimezone(KYIV).date() != day:
+        if bounds is not None and not bounds[0] <= slot.starts_at < bounds[1]:
             continue
         if min_capacity is not None and (
             resource.type is not ResourceType.ROOM or (resource.capacity or 0) < min_capacity
