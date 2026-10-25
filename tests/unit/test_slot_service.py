@@ -16,11 +16,10 @@ from api import clock
 from api.enums import ResourceType
 from api.errors import ApiProblem, ErrorCode
 from api.policy import HORIZON, KYIV
-from api.schemas.slots import SlotCreate
 from api.security import CurrentUser
+from api.schemas.slots import SlotCreate
 from api.stubs import slot_service as service
 from api.stubs.store import Ids, store
-
 
 
 @pytest.fixture
