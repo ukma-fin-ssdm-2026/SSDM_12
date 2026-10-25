@@ -12,6 +12,7 @@ from typing import Any
 from api import clock
 from api.enums import ResourceType, Role
 from api.errors import ApiProblem, ErrorCode
+from api.resource_rules import capacity_valid
 from api.schemas.common import PersonSummary
 from api.schemas.resources import ResourceCreate, ResourceOut
 from api.security import CurrentUser
@@ -135,6 +136,18 @@ def update_resource(
                 )
         if "provider_id" in changes:
             _check_provider(changes["provider_id"])
+        if "capacity" in changes and not capacity_valid(rec.type, changes["capacity"]):
+            raise ApiProblem(
+                ErrorCode.VALIDATION_FAILED,
+                "Місткість аудиторії має бути цілим числом від 1 до 1000.",
+                errors=[
+                    {
+                        "field": "body.capacity",
+                        "type": "capacity_out_of_range",
+                        "message": "Задайте ціле число від 1 до 1000",
+                    }
+                ],
+            )
         before = _snapshot(rec)
         for name, value in changes.items():
             setattr(rec, name, value)

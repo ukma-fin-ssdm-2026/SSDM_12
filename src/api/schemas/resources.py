@@ -9,11 +9,11 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 
 from api.enums import ResourceType
 from api.pagination import OffsetPagination
+from api.resource_rules import MAX_CAPACITY as CAPACITY_MAX
 from api.schemas.common import PersonSummary
 from api.stubs.store import Ids
 
 NAME_MAX = 120
-CAPACITY_MAX = 1000
 
 
 class ResourceOut(BaseModel):

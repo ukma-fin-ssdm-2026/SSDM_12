@@ -1,0 +1,625 @@
+{
+  "executed_utc": "2026-10-24T22:19:15.866275+00:00",
+  "tool": "cosmic-ray",
+  "version": "8.7.0",
+  "module": "src/api/resource_rules.py",
+  "source_sha256": "ce89fccaede2c12d94f1033a4f96281463053e35e0a302683f94d31b28306c6b",
+  "scope": "all default Cosmic Ray operators on resource_rules; targeted unit tests",
+  "counts": {
+    "killed": 34,
+    "survived": 4
+  },
+  "total": 38,
+  "mutation_score": 89.47368421052632,
+  "working_source_unchanged": true,
+  "results": [
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Eq",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY == capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F..F......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n2 failed, 8 passed, 2 deselected in 0.55s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Eq",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity == MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F.F.......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\n2 failed, 8 passed, 2 deselected in 0.65s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_NotEq",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY != capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "..F.FF....                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\n3 failed, 7 passed, 2 deselected in 0.61s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_NotEq",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity != MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "...F..F...                                                               [100%]\r\n================================== FAILURES ===================================\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\n2 failed, 8 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Lt",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY < capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "..F.......                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\n1 failed, 9 passed, 2 deselected in 0.52s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Lt",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity < MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "...F......                                                               [100%]\r\n================================== FAILURES ===================================\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Gt",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY > capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F.FFFF....                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\n5 failed, 5 passed, 2 deselected in 0.55s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Gt",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity > MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F.FF..F...                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\n4 failed, 6 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_GtE",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY >= capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F..FFF....                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\n4 failed, 6 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_GtE",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity >= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F.F...F...                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\n3 failed, 7 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Is",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY is capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F..F......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n2 failed, 8 passed, 2 deselected in 0.55s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_Is",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity is MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F.FF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n3 failed, 7 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_IsNot",
+      "occurrence": 0,
+      "start_pos": [
+        15,
+        29
+      ],
+      "end_pos": [
+        15,
+        31
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY is not capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "..F.FF....                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\n3 failed, 7 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_LtE_IsNot",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        41
+      ],
+      "end_pos": [
+        15,
+        43
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            and MIN_CAPACITY <= capacity is not MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "......F...                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\n1 failed, 9 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Eq",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "survived",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind == ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "..........                                                               [100%]\r\n10 passed, 2 deselected in 0.29s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Eq",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "survived",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind == ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "..........                                                               [100%]\r\n10 passed, 2 deselected in 0.28s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_NotEq",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind != ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "FFFF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n4 failed, 6 passed, 2 deselected in 0.58s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_NotEq",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind != ResourceType.CONSULTATION and capacity is None\n ",
+      "output": ".F.......F                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_unknown_resource_type_is_rejected ____________________\r\n\r\n    def test_unknown_resource_type_is_rejected():\r\n>       assert not capacity_valid(\"unknown\", None)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid('unknown', None)\r\n\r\ntests\\unit\\test_resource_rules.py:30: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_unknown_resource_type_is_rejected\r\n2 failed, 8 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Lt",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind < ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "FFFF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n4 failed, 6 passed, 2 deselected in 0.55s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Lt",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind < ResourceType.CONSULTATION and capacity is None\n ",
+      "output": ".F........                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\n1 failed, 9 passed, 2 deselected in 0.52s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_LtE",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind <= ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": ".F........                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\n1 failed, 9 passed, 2 deselected in 0.62s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_LtE",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "survived",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind <= ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "..........                                                               [100%]\r\n10 passed, 2 deselected in 0.29s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Gt",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind > ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "F.FF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n3 failed, 7 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_Gt",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind > ResourceType.CONSULTATION and capacity is None\n ",
+      "output": ".F.......F                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_unknown_resource_type_is_rejected ____________________\r\n\r\n    def test_unknown_resource_type_is_rejected():\r\n>       assert not capacity_valid(\"unknown\", None)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid('unknown', None)\r\n\r\ntests\\unit\\test_resource_rules.py:30: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_unknown_resource_type_is_rejected\r\n2 failed, 8 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_GtE",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "survived",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind >= ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "..........                                                               [100%]\r\n10 passed, 2 deselected in 0.30s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_GtE",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind >= ResourceType.CONSULTATION and capacity is None\n ",
+      "output": ".........F                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_unknown_resource_type_is_rejected ____________________\r\n\r\n    def test_unknown_resource_type_is_rejected():\r\n>       assert not capacity_valid(\"unknown\", None)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid('unknown', None)\r\n\r\ntests\\unit\\test_resource_rules.py:30: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_unknown_resource_type_is_rejected\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_IsNot",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        12
+      ],
+      "end_pos": [
+        11,
+        14
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if kind is not ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "FFFF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n4 failed, 6 passed, 2 deselected in 0.60s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_IsNot",
+      "occurrence": 1,
+      "start_pos": [
+        17,
+        16
+      ],
+      "end_pos": [
+        17,
+        18
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind is not ResourceType.CONSULTATION and capacity is None\n ",
+      "output": ".F.......F                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_unknown_resource_type_is_rejected ____________________\r\n\r\n    def test_unknown_resource_type_is_rejected():\r\n>       assert not capacity_valid(\"unknown\", None)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid('unknown', None)\r\n\r\ntests\\unit\\test_resource_rules.py:30: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_unknown_resource_type_is_rejected\r\n2 failed, 8 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceComparisonOperator_Is_IsNot",
+      "occurrence": 2,
+      "start_pos": [
+        17,
+        58
+      ],
+      "end_pos": [
+        17,
+        60
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind is ResourceType.CONSULTATION and capacity is not None\n ",
+      "output": ".F........                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/ReplaceUnaryOperator_Delete_Not",
+      "occurrence": 0,
+      "start_pos": [
+        14,
+        16
+      ],
+      "end_pos": [
+        14,
+        19
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -11,7 +11,7 @@\n     if kind is ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n-            and not isinstance(capacity, bool)\n+            and  isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None",
+      "output": "F.FF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n3 failed, 7 passed, 2 deselected in 0.60s\r\n"
+    },
+    {
+      "operator": "core/AddNot",
+      "occurrence": 0,
+      "start_pos": [
+        11,
+        7
+      ],
+      "end_pos": [
+        11,
+        32
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -8,7 +8,7 @@\n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:\n     \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\n-    if kind is ResourceType.ROOM:\n+    if not kind is ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)",
+      "output": "FFFF......                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n>       assert capacity_valid(ResourceType.ROOM, 20)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 20)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:10: AssertionError\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n>       assert capacity_valid(ResourceType.CONSULTATION, None)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, None)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:15: AssertionError\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - Asser...\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n4 failed, 6 passed, 2 deselected in 0.54s\r\n"
+    },
+    {
+      "operator": "core/ReplaceAndWithOr",
+      "occurrence": 0,
+      "start_pos": [
+        14,
+        12
+      ],
+      "end_pos": [
+        14,
+        15
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -11,7 +11,7 @@\n     if kind is ResourceType.ROOM:\n         return (\n             isinstance(capacity, int)\n-            and not isinstance(capacity, bool)\n+            or not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None",
+      "output": "F...FFFFF.                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n        assert capacity_valid(ResourceType.ROOM, 20)\r\n>       assert not capacity_valid(ResourceType.ROOM, None)\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\ntests\\unit\\test_resource_rules.py:11: \r\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\r\n\r\nkind = <ResourceType.ROOM: 'room'>, capacity = None\r\n\r\n    def capacity_valid(kind: ResourceType, capacity: object) -> bool:\r\n        \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\r\n        if kind is ResourceType.ROOM:\r\n            return (\r\n                isinstance(capacity, int)\r\n                or not isinstance(capacity, bool)\r\n>               and MIN_CAPACITY <= capacity <= MAX_CAPACITY\r\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n            )\r\nE           TypeError: '<=' not supported between instances of 'int' and 'NoneType'\r\n\r\nsrc\\api\\resource_rules.py:15: TypeError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[20] __________\r\n\r\nvalue = '20'\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\ntests\\unit\\test_resource_rules.py:26: \r\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\r\n\r\nkind = <ResourceType.ROOM: 'room'>, capacity = '20'\r\n\r\n    def capacity_valid(kind: ResourceType, capacity: object) -> bool:\r\n        \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\r\n        if kind is ResourceType.ROOM:\r\n            return (\r\n                isinstance(capacity, int)\r\n                or not isinstance(capacity, bool)\r\n>               and MIN_CAPACITY <= capacity <= MAX_CAPACITY\r\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n            )\r\nE           TypeError: '<=' not supported between instances of 'int' and 'str'\r\n\r\nsrc\\api\\resource_rules.py:15: TypeError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1.5] __________\r\n\r\nvalue = 1.5\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1.5)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - TypeE...\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[20]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1.5]\r\n6 failed, 4 passed, 2 deselected in 0.67s\r\n"
+    },
+    {
+      "operator": "core/ReplaceAndWithOr",
+      "occurrence": 1,
+      "start_pos": [
+        15,
+        12
+      ],
+      "end_pos": [
+        15,
+        15
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -12,7 +12,7 @@\n         return (\n             isinstance(capacity, int)\n             and not isinstance(capacity, bool)\n-            and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n+            or MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n     return kind is ResourceType.CONSULTATION and capacity is None\n ",
+      "output": "F...FFFFF.                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________________________ test_room_requires_capacity _________________________\r\n\r\n    def test_room_requires_capacity():\r\n        assert capacity_valid(ResourceType.ROOM, 20)\r\n>       assert not capacity_valid(ResourceType.ROOM, None)\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\ntests\\unit\\test_resource_rules.py:11: \r\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\r\n\r\nkind = <ResourceType.ROOM: 'room'>, capacity = None\r\n\r\n    def capacity_valid(kind: ResourceType, capacity: object) -> bool:\r\n        \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\r\n        if kind is ResourceType.ROOM:\r\n            return (\r\n                isinstance(capacity, int)\r\n                and not isinstance(capacity, bool)\r\n>               or MIN_CAPACITY <= capacity <= MAX_CAPACITY\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n            )\r\nE           TypeError: '<=' not supported between instances of 'int' and 'NoneType'\r\n\r\nsrc\\api\\resource_rules.py:15: TypeError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[-1] __________\r\n\r\nvalue = -1\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, -1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[20] __________\r\n\r\nvalue = '20'\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n\r\ntests\\unit\\test_resource_rules.py:26: \r\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\r\n\r\nkind = <ResourceType.ROOM: 'room'>, capacity = '20'\r\n\r\n    def capacity_valid(kind: ResourceType, capacity: object) -> bool:\r\n        \"\"\"INV-08: room = integer 1..1000; consultation = no capacity (bool is not int).\"\"\"\r\n        if kind is ResourceType.ROOM:\r\n            return (\r\n                isinstance(capacity, int)\r\n                and not isinstance(capacity, bool)\r\n>               or MIN_CAPACITY <= capacity <= MAX_CAPACITY\r\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n            )\r\nE           TypeError: '<=' not supported between instances of 'int' and 'str'\r\n\r\nsrc\\api\\resource_rules.py:15: TypeError\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1.5] __________\r\n\r\nvalue = 1.5\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1.5)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_requires_capacity - TypeE...\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[-1]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[20]\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1.5]\r\n6 failed, 4 passed, 2 deselected in 0.57s\r\n"
+    },
+    {
+      "operator": "core/ReplaceAndWithOr",
+      "occurrence": 2,
+      "start_pos": [
+        17,
+        45
+      ],
+      "end_pos": [
+        17,
+        48
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -14,5 +14,5 @@\n             and not isinstance(capacity, bool)\n             and MIN_CAPACITY <= capacity <= MAX_CAPACITY\n         )\n-    return kind is ResourceType.CONSULTATION and capacity is None\n+    return kind is ResourceType.CONSULTATION or capacity is None\n ",
+      "output": ".F.......F                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_consultation_cannot_have_capacity ____________________\r\n\r\n    def test_consultation_cannot_have_capacity():\r\n        assert capacity_valid(ResourceType.CONSULTATION, None)\r\n>       assert not capacity_valid(ResourceType.CONSULTATION, 20)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.CONSULTATION: 'consultation'>, 20)\r\nE        +    where <ResourceType.CONSULTATION: 'consultation'> = ResourceType.CONSULTATION\r\n\r\ntests\\unit\\test_resource_rules.py:16: AssertionError\r\n___________________ test_unknown_resource_type_is_rejected ____________________\r\n\r\n    def test_unknown_resource_type_is_rejected():\r\n>       assert not capacity_valid(\"unknown\", None)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid('unknown', None)\r\n\r\ntests\\unit\\test_resource_rules.py:30: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_consultation_cannot_have_capacity\r\nFAILED tests/unit/test_resource_rules.py::test_unknown_resource_type_is_rejected\r\n2 failed, 8 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/NumberReplacer",
+      "occurrence": 0,
+      "start_pos": [
+        5,
+        15
+      ],
+      "end_pos": [
+        5,
+        16
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -2,7 +2,7 @@\n \n from api.enums import ResourceType\n \n-MIN_CAPACITY = 1\n+MIN_CAPACITY = 2\n MAX_CAPACITY = 1000\n \n ",
+      "output": "..F.......                                                               [100%]\r\n================================== FAILURES ===================================\r\n___________________ test_room_capacity_inclusive_bounds[1] ____________________\r\n\r\nvalue = 1\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1]\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/NumberReplacer",
+      "occurrence": 1,
+      "start_pos": [
+        5,
+        15
+      ],
+      "end_pos": [
+        5,
+        16
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -2,7 +2,7 @@\n \n from api.enums import ResourceType\n \n-MIN_CAPACITY = 1\n+MIN_CAPACITY = 0\n MAX_CAPACITY = 1000\n \n ",
+      "output": "....F.....                                                               [100%]\r\n================================== FAILURES ===================================\r\n__________ test_non_integer_or_out_of_range_capacity_is_rejected[0] ___________\r\n\r\nvalue = 0\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 0)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[0]\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    },
+    {
+      "operator": "core/NumberReplacer",
+      "occurrence": 2,
+      "start_pos": [
+        6,
+        15
+      ],
+      "end_pos": [
+        6,
+        19
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -3,7 +3,7 @@\n from api.enums import ResourceType\n \n MIN_CAPACITY = 1\n-MAX_CAPACITY = 1000\n+MAX_CAPACITY = 1001\n \n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:",
+      "output": "......F...                                                               [100%]\r\n================================== FAILURES ===================================\r\n_________ test_non_integer_or_out_of_range_capacity_is_rejected[1001] _________\r\n\r\nvalue = 1001\r\n\r\n    @pytest.mark.parametrize(\"value\", [0, -1, 1001, \"20\", 1.5])\r\n    def test_non_integer_or_out_of_range_capacity_is_rejected(value):\r\n>       assert not capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert not True\r\nE        +  where True = capacity_valid(<ResourceType.ROOM: 'room'>, 1001)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:26: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_non_integer_or_out_of_range_capacity_is_rejected[1001]\r\n1 failed, 9 passed, 2 deselected in 0.60s\r\n"
+    },
+    {
+      "operator": "core/NumberReplacer",
+      "occurrence": 3,
+      "start_pos": [
+        6,
+        15
+      ],
+      "end_pos": [
+        6,
+        19
+      ],
+      "worker_outcome": "normal",
+      "outcome": "killed",
+      "diff": "--- mutation diff ---\n--- a/src\\api\\resource_rules.py\n+++ b/src\\api\\resource_rules.py\n@@ -3,7 +3,7 @@\n from api.enums import ResourceType\n \n MIN_CAPACITY = 1\n-MAX_CAPACITY = 1000\n+MAX_CAPACITY = 999\n \n \n def capacity_valid(kind: ResourceType, capacity: object) -> bool:",
+      "output": "...F......                                                               [100%]\r\n================================== FAILURES ===================================\r\n__________________ test_room_capacity_inclusive_bounds[1000] __________________\r\n\r\nvalue = 1000\r\n\r\n    @pytest.mark.parametrize(\"value\", [1, 1000])\r\n    def test_room_capacity_inclusive_bounds(value):\r\n>       assert capacity_valid(ResourceType.ROOM, value)\r\nE       AssertionError: assert False\r\nE        +  where False = capacity_valid(<ResourceType.ROOM: 'room'>, 1000)\r\nE        +    where <ResourceType.ROOM: 'room'> = ResourceType.ROOM\r\n\r\ntests\\unit\\test_resource_rules.py:21: AssertionError\r\n=========================== short test summary info ===========================\r\nFAILED tests/unit/test_resource_rules.py::test_room_capacity_inclusive_bounds[1000]\r\n1 failed, 9 passed, 2 deselected in 0.53s\r\n"
+    }
+  ]
+}
