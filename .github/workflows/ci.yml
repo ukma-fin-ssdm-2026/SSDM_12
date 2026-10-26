@@ -44,7 +44,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
           .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
           if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
-          .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+          .\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
           if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
 
       # Lab 5 quality gates (charter 11.2). Static checks run before tests: they take seconds
@@ -102,10 +102,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Import contract broken: see HLD section 6' }
 
       # The build job remains the required PR check on the existing Windows runner.
-      # Initial conservative gate: raise it after reviewing coverage from CI.
+      # Lab6 measured baseline supports a 90% gate over both api and unislot.
       - name: Run API tests with branch coverage
         run: |
-          .\.venv\Scripts\python.exe -m pytest --cov=api --cov=unislot --cov-branch --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=50
+          .\.venv\Scripts\python.exe scripts/run_lab06.py
           if ($LASTEXITCODE -ne 0) { throw 'API tests or coverage gate failed' }
 
       - name: Upload API coverage report
@@ -113,7 +113,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-coverage
-          path: coverage.xml
+          path: |
+            coverage.xml
+            docs/testing/lab06/htmlcov/
+            docs/testing/lab06/coverage.json
+            docs/testing/lab06/junit.xml
+            docs/testing/lab06/test-run.txt
+            docs/testing/lab06/run.json
           if-no-files-found: warn
 
       # Code-First: fail if the committed API docs differ from the generated files.
