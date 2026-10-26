@@ -7,16 +7,17 @@
 
 ```powershell
 cd C:\SSDM_12
-.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
 .\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m pytest --cov=api --cov-branch --cov-report=term-missing --cov-report=html:htmlcov --cov-fail-under=50
+.\.venv\Scripts\python.exe scripts\run_lab06.py
 ```
 
-HTML-звіт: `htmlcov/index.html`. Порогове значення 50% тимчасове,
-вихідна точка для контролю регресій, **не ціль курсу**. Його потрібно
-підвищувати лише після аналізу фактичного покриття.
+HTML-звіт: `docs/testing/lab06/htmlcov/index.html`. Сукупний поріг — **90%** для `api`
+і `unislot` разом (Лаб6, PR-08); його застосовує той самий `scripts/run_lab06.py`,
+який запускає CI. Поріг не знижуємо для проходження: регресія означає дописати тести
+або узгодити зміну за §11.5 статуту.
 
-CI використовує ту саму команду для покриття й додає `coverage.xml` як артефакт.
+CI виконує ту саму команду й публікує `coverage.xml`, HTML, JSON і JUnit як артефакти.
 Назва обов'язкової перевірки `build` та Windows runner не змінені.
 
 ## Мутаційне тестування (опційно, лише Linux / WSL)

@@ -421,7 +421,7 @@ CI і захист гілки `main`; решту — рецензент за к�
 | detect-secrets | 1.5.0 | секрети в репозиторії | pre-commit | Scan for secrets with detect-secrets |
 | pip-audit | 2.10.1 | вразливі залежності | — | Audit dependencies with pip-audit |
 | import-linter | 2.15 | архітектурні контракти HLD §6 | — | Check architecture contracts |
-| pytest, pytest-cov | 9.1.1, 7.1.0 | тести й покриття гілок, поріг 50 % | вручну | Run API tests with branch coverage |
+| pytest, pytest-cov | 9.1.1, 7.1.0 | тести з обліком гілок; сукупний поріг 90 % для api+unislot (Лаб6) | вручну | Run API tests with branch coverage |
 | Dependabot | — | щотижневі PR з оновленнями pip і GitHub Actions | — | ті самі кроки на PR |
 
 - Кожен крок CI блокує злиття: `build` — обов'язкова перевірка ruleset `main-protection`.
@@ -462,7 +462,7 @@ CI і захист гілки `main`; решту — рецензент за к�
 - [ ] `ruff format` і `ruff check` — без зауважень;
 - [ ] Bandit, detect-secrets, pip-audit, import-linter — без нових знахідок або з рішенням за §11.5;
 - [ ] нова поведінка має тест; виправлення дефекту — регресійний тест, що падав до виправлення;
-- [ ] усі тести зелені, покриття гілок не нижче порогу CI;
+- [ ] усі тести зелені; сукупне покриття рядків і переходів coverage.py для api+unislot не нижче порогу CI 90 %; відсоток самих гілок записується окремо;
 - [ ] публічні модулі, класи й функції мають докстрінги; змінений контракт API — разом із
       перегенерованим `docs/api/`;
 - [ ] документ у `docs/`, якого стосується зміна, оновлено в тому самому PR;
