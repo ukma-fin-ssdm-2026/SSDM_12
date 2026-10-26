@@ -177,20 +177,48 @@ pre-commit run --all-files    # перевірити весь репозитор
 
 Окремі інструменти — команди в [`static-analysis.md`](docs/code-quality/static-analysis.md) §2.
 
-## Артефакти тестування
+## Тести й налагодження (Лаб 6)
 
 | Документ | Що всередині |
 |---|---|
-| [`docs/testing/coverage-report.md`](docs/testing/coverage-report.md) | Активність «Test-a-Thon»: підключення JaCoCo й пороги покриття, базовий стан, аналіз прогалин за класами, склад 119 доданих модульних тестів, знахідки F-1…F-8 |
-| [`docs/testing/debugging-log.md`](docs/testing/debugging-log.md) | Челендж зі структурованого налагодження: правила вправи, журнал сесії за кроками, першопричина дефекту B-01, регресійні тести, розбір польотів, довідник прийомів |
+| [`docs/testing/testing-strategy.md`](docs/testing/testing-strategy.md) | Стратегія тестування UniSlot: поточний стан і межі висновку, наступні рівні після появи PostgreSQL і UI, спеціальні перевірки, супровід у CI |
+| [`docs/testing/coverage-report.md`](docs/testing/coverage-report.md) | Звіт про покриття власного коду: 236 тестів, 162 ізольовані unit-випадки у 12 файлах, рядки 98.08%, гілки 93.88%, сукупно 97.51% при порозі 90% |
+| [`docs/testing/debugging-log.md`](docs/testing/debugging-log.md) | Журнал налагодження UniSlot: реальний дефект структури курсора (D-01) і навмисна помилка межі скасування (D-02) — від симптому до регресійного тесту |
+| [`docs/testing/lab06/mutation-report.md`](docs/testing/lab06/mutation-report.md) | Мутаційне тестування `resource_rules.py`: 34/38 → 38/38 убитих мутантів і знайдений дефект `is` проти `==` на StrEnum |
+| [`docs/testing/lab06/htmlcov/index.html`](docs/testing/lab06/htmlcov/index.html) | HTML-звіт покриття з порядковою деталізацією; поруч `coverage.json`, `junit.xml` і `run.json` із SHA-256 коду та тестів |
 
-**Як читати разом.** `coverage-report.md` показує, де тестів не було і чим ці прогалини
-закрито; `debugging-log.md` бере одну з цих прогалин і доводить її ціну на конкретному
-дефекті — помилці пагінації, яку наявний набір тестів пропускав повністю.
+**Як читати разом.** `testing-strategy.md` пояснює, що саме ми перевіряємо й чого свідомо
+ще не перевіряємо; `coverage-report.md` дає цифри й називає прогалини; `debugging-log.md`
+показує два дефекти від симптому до регресії; `mutation-report.md` доводить, що високе
+покриття саме по собі нічого не гарантує.
 
-Обидва документи стосуються чужої кодової бази
-([`Spectrum-project`](https://github.com/ukma-fin-ssdm-2026/Spectrum-project),
-комміт `43da8d7`) — як і [`docs/code-quality/review-report.md`](docs/code-quality/review-report.md).
+Матеріали Test-a-Thon по чужій кодовій базі
+([`Spectrum-project`](https://github.com/ukma-fin-ssdm-2026/Spectrum-project), комміт `43da8d7`)
+збережено окремо в [`docs/testing/external/spectrum/`](docs/testing/external/spectrum/README.md),
+щоб не змішувати з доказами UniSlot. Огляд того самого коду —
+[`docs/code-quality/review-report.md`](docs/code-quality/review-report.md).
+
+### Як відтворити результати Лаб 6
+
+[Матеріали Лаб 6](Labs/Lab06/README.md) · [Стратегія](docs/testing/testing-strategy.md) ·
+[Покриття](docs/testing/coverage-report.md) · [Журнал налагодження](docs/testing/debugging-log.md) ·
+[Контрольний список](Labs/Lab06/requirements-checklist.md).
+
+```bash
+python -m pip install -r requirements-testing.txt
+python scripts/run_lab06.py     # весь api і unislot, branch coverage, gate 90%, HTML/JSON/JUnit
+python scripts/debug_lab06.py   # відтворює RED→GREEN у тимчасовій копії, робоче дерево не чіпає
+python scripts/check_lab06.py   # контроль повноти артефактів Лаб 6
+```
+
+Поріг 90% застосовує той самий `run_lab06.py`, який викликає CI
+([`ci.yml`](.github/workflows/ci.yml)); локальний і CI-прогін — це буквально одна команда.
+`run.json` зберігає SHA-256 усіх файлів `src/` і `tests/`, тож звіт неможливо непомітно
+відірвати від коду, який він описує.
+
+Матеріали Test-a-Thon по чужому проєкту збережено окремо в
+[`docs/testing/external/spectrum/`](docs/testing/external/spectrum/README.md).
+Особисті TDD-коміти й відео кожного учасника подаються за вимогами Лаб 6.
 
 ## Команда
 
@@ -231,11 +259,15 @@ SSDM_12/
 │   │   ├── review-report.md
 │   │   ├── static-analysis.md
 │   │   └── progress.md
-│   ├── testing/            # звіт про покриття, журнал налагодження
+│   ├── testing/            # тести й налагодження (Лаб 6)
+│   │   ├── testing-strategy.md
 │   │   ├── coverage-report.md
 │   │   ├── debugging-log.md
-│   │   └── debug-challenge/    # патч навмисного дефекту для повтору вправи
+│   │   ├── debug-challenge/    # патчі навмисних дефектів для повтору вправ
+│   │   ├── lab06/              # HTML/JSON/JUnit покриття, докази перевірок, run.json
+│   │   └── external/spectrum/  # матеріали Test-a-Thon по чужому проєкту
 │   ├── validation/         # план тестування й журнал взаємного огляду (Лаб 7)
+│   ├── refactoring/        # журнал рефакторингу й метрики SonarCloud (Лаб 8)
 │   └── quality/            # налаштування мутаційного й property-based тестування
 ├── src/
 │   ├── api/                # REST API (FastAPI): routers/, schemas/, stubs/
@@ -244,9 +276,13 @@ SSDM_12/
 │   ├── api/                # тести через API
 │   └── unit/               # ізольовані тести: домен, пагінація, правила
 ├── scripts/                # перевірки вимог і архітектури, генерація OpenAPI, вимір затримки
+│                           # плюс інструменти Лаб 6: run_lab06, debug_lab06, check_lab06, mutation_lab06
 ├── Labs/                   # посилання на індивідуальні відео за лабораторними
+│   └── Lab06/              # матеріали Лаб 6 і контрольний список вимог
 ├── requirements.txt        # залежності API (версії закріплено)
 ├── requirements-dev.txt    # залежності API + тести
+├── requirements-testing.txt # залежності API + тести + інструменти покриття (Лаб 6)
+├── requirements-mutation.txt # Cosmic Ray для мутаційного тестування (бонус, локально)
 ├── requirements-mcp.txt    # залежності API + MCP-сервер (бонус)
 ├── pyproject.toml          # налаштування pytest, Ruff і Bandit
 ├── .importlinter           # архітектурні контракти HLD §6 (import-linter)
@@ -260,8 +296,8 @@ SSDM_12/
 ```
 
 Каталоги `docs/` наповнюються поступово: `requirements/` — Лаб 2, `architecture/` — Лаб 3,
-`api/` — Лаб 4, `code-quality/` — Лаб 5, `testing/` і `validation/` — Лаб 6–7, далі додаються
-`refactoring/`, `reliability/`, `ci-cd/`.
+`api/` — Лаб 4, `code-quality/` — Лаб 5, `testing/` — Лаб 6, `refactoring/` — Лаб 8;
+`validation/` доповнюється в Лаб 7, далі додаються `reliability/` і `ci-cd/`.
 
 ## Технологічний стек
 
@@ -295,6 +331,13 @@ SSDM_12/
 - **Оновлення для Лаб 4:** розділ «API (Лаб 4)» і дерево `src/api/`, `docs/api/` — чернетка з Claude (Anthropic). Команди запуску виконав сам на macOS 26, Python 3.14.5; склад таблиці звірено з фактичним вмістом `docs/api/`, усі посилання перевірено клацанням після злиття документів Лаб 4.
 - **Оновлення для Лаб 5:** розділ «Якість коду (Лаб 5)», дерево структури й рядок стеку — чернетка з
   Claude (Anthropic); склад таблиці звірено з фактичними файлами `docs/code-quality/` і конфігурацій, команди pre-commit виконано на macOS 26, Python 3.14.5: усі дев'ять хуків пройшли успішно. Окремо перевірено роботу detect-secrets: хук заблокував тестовий коміт із фейковим GitHub-токеном. Результати наведено в docs/code-quality/static-analysis.md §9.1.
+- **Оновлення для Лаб 6:** розділ «Тести й налагодження (Лаб 6)» з переписаною таблицею артефактів
+  і підрозділом про відтворення і гілки дерева `docs/testing/`, `Labs/Lab06/`, `scripts/` — чернетка з
+  Claude (Opus 5). Склад таблиці звірено з фактичним вмістом каталогу після злиття PR-07;
+  усі посилання перевірено клацанням. Цифри покриття взято з `docs/testing/lab06/coverage.json`
+  того самого коміту, а не з підготовчих матеріалів: після рефакторингу Лаб 8 вони змінилися
+  з 98.06 / 93.75 / 97.48 на наведені. Заразом у дереві виправлено гілку `docs/refactoring/`,
+  яка з'явилася в Лаб 8 і без якої дерево лишалося б неповним.
 - **MCP-сервер (бонус Лаб 4):** `src/api/mcp_server.py` і розділ «MCP-сервер для агента» — чернетка з Claude (Anthropic). Перевірив сам клієнтом FastMCP у пам'яті, без агента (macOS 26, Python 3.14.5): `pip install -r requirements-mcp.txt` поставив `fastmcp 4.1.0` з `fastmcp-slim` і `mcp 2.3.0`, усе з готових wheels під `cp314`; сервер піднявся, у списку **14 інструментів** із назвами, що дорівнюють `operationId` специфікації. `get_me` повернув демо-студентку з роллю `student` — отже токен із `UNISLOT_MCP_TOKEN` доходить до застосунку; `search_free_slots` повернув слоти з полями `resource` і `provider` (перший — «Аудиторія 1-225», 90 хвилин). У журналі застосунку обидва виклики видно як `GET /api/v1/auth/me` і `GET /api/v1/slots` зі статусом 200: інструменти справді звертаються до кінцевих точок API, а не до окремої реалізації. Розбіжностей не виявив.
 
 ### Нотатка про цей документ
