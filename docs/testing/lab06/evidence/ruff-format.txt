@@ -1,0 +1,5 @@
+Command: python -m ruff format --check src tests scripts
+Exit code: 0
+Status: PASS
+
+75 files already formatted

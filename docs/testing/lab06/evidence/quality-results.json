@@ -1,0 +1,31 @@
+{
+  "generated_at_utc": "2026-10-26T18:53:03.764214+00:00",
+  "base_commit": "107e3e2bc607d642bec624783c14a86ed8e0f961",
+  "python_version": "3.13.0",
+  "platform": "macOS",
+  "tests": {
+    "passed": 236,
+    "failed": 0,
+    "total_coverage_percent": 97.51,
+    "line_coverage_percent": 98.08,
+    "branch_coverage_percent": 93.88
+  },
+  "checks": {
+    "ruff-check": {
+      "status": "PASS",
+      "evidence": "ruff-check.txt"
+    },
+    "ruff-format": {
+      "status": "PASS",
+      "evidence": "ruff-format.txt"
+    },
+    "bandit": {
+      "status": "PASS",
+      "evidence": "bandit.txt"
+    },
+    "openapi-check": {
+      "status": "PASS",
+      "evidence": "openapi-check.txt"
+    }
+  }
+}
