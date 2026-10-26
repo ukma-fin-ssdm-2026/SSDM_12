@@ -1,0 +1,5 @@
+Command: python scripts/export_openapi.py --check
+Exit code: 0
+Status: PASS
+
+[ ok ] openapi-generated.yaml і errors.html збігаються з кодом.

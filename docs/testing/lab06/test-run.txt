@@ -1,0 +1,62 @@
+........................................................................ [ 30%]
+........................................................................ [ 61%]
+........................................................................ [ 91%]
+....................                                                     [100%]
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.13.0-final-0 _______________
+
+Name                                     Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------------
+src/api/__init__.py                          0      0      0      0   100%
+src/api/clock.py                             4      0      0      0   100%
+src/api/config.py                           23      0      2      0   100%
+src/api/enums.py                            11      0      0      0   100%
+src/api/errors.py                          154      2     16      1    98%   469-470
+src/api/main.py                             56      6     20      2    84%   66, 101-104, 130
+src/api/mcp_server.py                       13     13      2      0     0%   16-43
+src/api/middleware.py                       25      0      2      0   100%
+src/api/openapi_export.py                   63      1     14      1    97%   135
+src/api/pagination.py                       44      0      6      0   100%
+src/api/policy.py                           10      0      0      0   100%
+src/api/request_ids.py                       6      0      0      0   100%
+src/api/resource_rules.py                    7      0      2      0   100%
+src/api/routers/__init__.py                  3      0      0      0   100%
+src/api/routers/auth.py                     11      0      0      0   100%
+src/api/routers/bookings.py                 45      0      2      0   100%
+src/api/routers/health.py                   13      0      0      0   100%
+src/api/routers/resources.py                32      0      0      0   100%
+src/api/routers/slots.py                    30      0      0      0   100%
+src/api/schemas/__init__.py                  0      0      0      0   100%
+src/api/schemas/auth.py                     10      0      0      0   100%
+src/api/schemas/bookings.py                 35      0      0      0   100%
+src/api/schemas/common.py                   13      0      0      0   100%
+src/api/schemas/resources.py                51      1      8      1    97%   125
+src/api/schemas/slots.py                    27      0      0      0   100%
+src/api/security.py                         41      0      8      0   100%
+src/api/slot_rules.py                        6      0      0      0   100%
+src/api/stubs/__init__.py                    0      0      0      0   100%
+src/api/stubs/booking_service.py           116      1     32      1    99%   41
+src/api/stubs/resource_service.py           60      0     18      0   100%
+src/api/stubs/slot_service.py               82      0     30      0   100%
+src/api/stubs/store.py                     157      0      6      0   100%
+src/unislot/__init__.py                      0      0      0      0   100%
+src/unislot/admin/__init__.py                0      0      0      0   100%
+src/unislot/audit/__init__.py                0      0      0      0   100%
+src/unislot/auth/__init__.py                 0      0      0      0   100%
+src/unislot/availability/__init__.py         0      0      0      0   100%
+src/unislot/booking/__init__.py              0      0      0      0   100%
+src/unislot/booking/domain/__init__.py       0      0      0      0   100%
+src/unislot/booking/domain/errors.py        24      0      0      0   100%
+src/unislot/booking/domain/model.py         30      0      2      0   100%
+src/unislot/booking/domain/rules.py         41      0     26      0   100%
+src/unislot/notifications/__init__.py        0      0      0      0   100%
+src/unislot/platform/__init__.py             0      0      0      0   100%
+src/unislot/platform/errors.py               8      0      0      0   100%
+src/unislot/search/__init__.py               0      0      0      0   100%
+------------------------------------------------------------------------------------
+TOTAL                                     1251     24    196      6    98%
+Coverage HTML written to dir docs/testing/lab06/htmlcov
+Coverage XML written to file coverage.xml
+Coverage JSON written to file docs/testing/lab06/coverage.json
+Required test coverage of 90% reached. Total coverage: 97.51%
+236 passed in 3.41s
