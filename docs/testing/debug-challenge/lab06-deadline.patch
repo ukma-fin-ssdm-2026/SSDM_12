@@ -1,0 +1,9 @@
+--- a/src/unislot/booking/domain/rules.py
++++ b/src/unislot/booking/domain/rules.py
+@@ -125,5 +125,5 @@
+         raise BookingAlreadyCancelled
+     if now >= slot.starts_at:
+         raise SlotStarted("Після початку слота бронювання змінювати не можна.")
+-    if now > deadline:
++    if now >= deadline:
+         raise CancellationDeadlinePassed(deadline)
