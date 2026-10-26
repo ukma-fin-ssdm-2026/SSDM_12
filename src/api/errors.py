@@ -357,6 +357,25 @@ class ApiProblem(Exception):
         super().__init__(f"{code}: {self.detail}")
 
 
+def validation_problem(detail: str, *, field: str, kind: str, message: str) -> ApiProblem:
+    """Проблема 422 `VALIDATION_FAILED` з однією помилкою поля (DD-07).
+
+    Один конструктор на всі місця, де сервіс сам відхиляє значення поля: форма
+    `errors[]` лишається однаковою незалежно від того, хто кинув помилку.
+
+    Args:
+        detail: Пояснення випадку для людини.
+        field: Шлях до поля, напр. `body.capacity`.
+        kind: Машинний тип помилки валідації (поле `type` у відповіді).
+        message: Що саме не так із полем.
+    """
+    return ApiProblem(
+        ErrorCode.VALIDATION_FAILED,
+        detail,
+        errors=[{"field": field, "message": message, "type": kind}],
+    )
+
+
 def _request_id(request: Request) -> str:
     """request_id, який виставило middleware; запасний — новий UUID."""
     return getattr(request.state, "request_id", None) or uuid.uuid4().hex

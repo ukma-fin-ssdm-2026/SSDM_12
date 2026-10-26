@@ -11,7 +11,7 @@ from typing import Any
 
 from api import clock
 from api.enums import ResourceType, Role
-from api.errors import ApiProblem, ErrorCode
+from api.errors import ApiProblem, ErrorCode, validation_problem
 from api.resource_rules import capacity_valid
 from api.schemas.common import PersonSummary
 from api.schemas.resources import ResourceCreate, ResourceOut
@@ -103,51 +103,51 @@ def create_resource(actor: CurrentUser, data: ResourceCreate) -> ResourceRec:
         return rec
 
 
+def _check_capacity_presence(rec: ResourceRec, capacity: int | None) -> None:
+    """INV-08: консультація місткості не має, аудиторія без місткості не існує."""
+    if rec.type is ResourceType.CONSULTATION and capacity is not None:
+        raise validation_problem(
+            "Консультація не має місткості (INV-08).",
+            field="body.capacity",
+            kind="capacity_not_allowed",
+            message="Місткість задається лише для аудиторій",
+        )
+    if rec.type is ResourceType.ROOM and capacity is None:
+        raise validation_problem(
+            "Аудиторія мусить мати місткість (INV-08).",
+            field="body.capacity",
+            kind="capacity_required",
+            message="Місткість аудиторії не може бути null",
+        )
+
+
+def _check_capacity_range(rec: ResourceRec, capacity: int | None) -> None:
+    """Значення місткості в допустимих межах для типу ресурсу (`capacity_valid`)."""
+    if not capacity_valid(rec.type, capacity):
+        raise validation_problem(
+            "Місткість аудиторії має бути цілим числом від 1 до 1000.",
+            field="body.capacity",
+            kind="capacity_out_of_range",
+            message="Задайте ціле число від 1 до 1000",
+        )
+
+
 def update_resource(
     actor: CurrentUser, resource_id: uuid.UUID, changes: dict[str, Any]
 ) -> ResourceRec:
-    """Застосовує лише передані поля (`exclude_unset`). Тип ресурсу незмінний."""
+    """Застосовує лише передані поля (`exclude_unset`). Тип ресурсу незмінний.
+
+    Порядок перевірок зафіксовано: наявність місткості, потім провайдер, потім межі
+    місткості. Його видно у відповіді, коли запит ламає кілька правил одночасно.
+    """
     with store.lock:
         rec = get_resource(resource_id)
         if "capacity" in changes:
-            if rec.type is ResourceType.CONSULTATION and changes["capacity"] is not None:
-                raise ApiProblem(
-                    ErrorCode.VALIDATION_FAILED,
-                    "Консультація не має місткості (INV-08).",
-                    errors=[
-                        {
-                            "field": "body.capacity",
-                            "type": "capacity_not_allowed",
-                            "message": "Місткість задається лише для аудиторій",
-                        }
-                    ],
-                )
-            if rec.type is ResourceType.ROOM and changes["capacity"] is None:
-                raise ApiProblem(
-                    ErrorCode.VALIDATION_FAILED,
-                    "Аудиторія мусить мати місткість (INV-08).",
-                    errors=[
-                        {
-                            "field": "body.capacity",
-                            "type": "capacity_required",
-                            "message": "Місткість аудиторії не може бути null",
-                        }
-                    ],
-                )
+            _check_capacity_presence(rec, changes["capacity"])
         if "provider_id" in changes:
             _check_provider(changes["provider_id"])
-        if "capacity" in changes and not capacity_valid(rec.type, changes["capacity"]):
-            raise ApiProblem(
-                ErrorCode.VALIDATION_FAILED,
-                "Місткість аудиторії має бути цілим числом від 1 до 1000.",
-                errors=[
-                    {
-                        "field": "body.capacity",
-                        "type": "capacity_out_of_range",
-                        "message": "Задайте ціле число від 1 до 1000",
-                    }
-                ],
-            )
+        if "capacity" in changes:
+            _check_capacity_range(rec, changes["capacity"])
         before = _snapshot(rec)
         for name, value in changes.items():
             setattr(rec, name, value)

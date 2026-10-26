@@ -22,7 +22,7 @@ from typing import Annotated
 from fastapi import Query
 from pydantic import BaseModel, Field
 
-from api.errors import ApiProblem, ErrorCode
+from api.errors import validation_problem
 
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 20
@@ -87,10 +87,9 @@ def decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
             raise ValueError("cursor time without timezone")
         return starts_at, item_id
     except (ValueError, KeyError, TypeError, binascii.Error) as exc:
-        raise ApiProblem(
-            ErrorCode.VALIDATION_FAILED,
+        raise validation_problem(
             "Курсор пошкоджений або отриманий не з цього API.",
-            errors=[
-                {"field": "query.cursor", "message": "Invalid cursor", "type": "cursor_invalid"}
-            ],
+            field="query.cursor",
+            kind="cursor_invalid",
+            message="Invalid cursor",
         ) from exc
