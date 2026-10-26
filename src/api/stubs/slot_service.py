@@ -13,7 +13,7 @@ from api.schemas.common import PersonSummary, ResourceSummary
 from api.schemas.slots import SlotCreate, SlotDetail, SlotOut
 from api.security import CurrentUser
 from api.slot_rules import kyiv_day_bounds
-from api.stubs.store import SlotRec, store
+from api.stubs.store import ResourceRec, SlotRec, store
 
 
 def _minutes(slot: SlotRec) -> int:
@@ -61,6 +61,48 @@ def check_search_date(day: date, now: datetime) -> None:
         )
 
 
+def _matches_filters(
+    slot: SlotRec,
+    resource: ResourceRec,
+    *,
+    provider_id: uuid.UUID | None,
+    resource_type: ResourceType | None,
+    bounds: tuple[datetime, datetime] | None,
+    min_capacity: int | None,
+) -> bool:
+    """Чи проходить слот усі задані фільтри пошуку.
+
+    `min_capacity` застосовується лише до аудиторій: якщо фільтр задано, консультації
+    з результатів зникають (FR-022, US-004). Незадані фільтри нічого не відсікають.
+    """
+    if provider_id is not None and resource.provider_id != provider_id:
+        return False
+    if resource_type is not None and resource.type is not resource_type:
+        return False
+    if bounds is not None and not bounds[0] <= slot.starts_at < bounds[1]:
+        return False
+    if min_capacity is None:
+        return True
+    return resource.type is ResourceType.ROOM and (resource.capacity or 0) >= min_capacity
+
+
+def _is_after_cursor(slot: SlotRec, after: tuple[datetime, uuid.UUID] | None) -> bool:
+    """Чи стоїть слот строго після позиції курсора в порядку (starts_at, id)."""
+    return after is None or (slot.starts_at, str(slot.id)) > (after[0], str(after[1]))
+
+
+def _cut_page(found: list[SlotRec], limit: int) -> tuple[list[SlotRec], str | None]:
+    """Ріже впорядкований список на сторінку та курсор наступної сторінки.
+
+    Курсор — позиція останнього елемента сторінки; він є лише тоді, коли за сторінкою
+    ще щось лишилося.
+    """
+    has_more = len(found) > limit
+    page = found[:limit]
+    next_cursor = encode_cursor(page[-1].starts_at, page[-1].id) if has_more else None
+    return page, next_cursor
+
+
 def search_free(
     *,
     now: datetime,
@@ -85,25 +127,20 @@ def search_free(
         resource = store.resources[slot.resource_id]
         if not is_free(slot, now):
             continue
-        if provider_id is not None and resource.provider_id != provider_id:
-            continue
-        if resource_type is not None and resource.type is not resource_type:
-            continue
-        if bounds is not None and not bounds[0] <= slot.starts_at < bounds[1]:
-            continue
-        if min_capacity is not None and (
-            resource.type is not ResourceType.ROOM or (resource.capacity or 0) < min_capacity
+        if not _matches_filters(
+            slot,
+            resource,
+            provider_id=provider_id,
+            resource_type=resource_type,
+            bounds=bounds,
+            min_capacity=min_capacity,
         ):
             continue
-        if after is not None and (slot.starts_at, str(slot.id)) <= (after[0], str(after[1])):
+        if not _is_after_cursor(slot, after):
             continue
         found.append(slot)
     found.sort(key=lambda s: (s.starts_at, str(s.id)))
-    page = found[: limit + 1]  # «limit + 1»: чи є наступна сторінка — без окремого підрахунку
-    has_more = len(page) > limit
-    page = page[:limit]
-    next_cursor = encode_cursor(page[-1].starts_at, page[-1].id) if has_more else None
-    return page, next_cursor
+    return _cut_page(found, limit)
 
 
 def get_slot(slot_id: uuid.UUID) -> SlotRec:
