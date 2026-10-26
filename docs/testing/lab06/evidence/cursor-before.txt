@@ -1,0 +1,366 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________________ test_non_string_cursor_uuid_returns_422 ___________________
+
+client = <starlette.testclient.TestClient object at 0x0000014200CF8830>
+
+    def test_non_string_cursor_uuid_returns_422(client):
+        payload = {"s": "2026-10-20T09:00:00Z", "i": 7}
+        cursor = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+>       result = client.get(
+            "/api/v1/slots",
+            params={"cursor": cursor},
+            headers={"Authorization": "Bearer demo-student"},
+        )
+
+tests\api\test_lab06_regressions.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:1113: in get
+    return self.request(
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\testclient.py:457: in request
+    return super().request(
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:797: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:980: in send
+    response = self._send_handling_auth(
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:1008: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:1043: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\httpx2\_client.py:1076: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\anyio\from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\pdeny\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\pdeny\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Codex\l6rt_20261025\Lib\site-packages\anyio\from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\applications.py:1216: in __call__
+    await super().__call__(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_asgi.py:151: in __call__
+    await self.app(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py:203: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\api\middleware.py:46: in request_context
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py:179: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py:149: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:2788: in app
+    await route.handle(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:1819: in handle
+    await self.original_router.handle(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:2871: in handle
+    await included_router._handle_selected(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:1845: in _handle_selected
+    await original_route.handle(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:1308: in handle
+    await effective_context.app(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:165: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:151: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:727: in app
+    raw_response = await run_endpoint_function(
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py:362: in run_endpoint_function
+    return await run_in_threadpool(
+C:\Codex\l6rt_20261025\Lib\site-packages\starlette\concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\anyio\to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_api.py:244: in _run_sync_endpoint
+    return function(**arguments)
+           ^^^^^^^^^^^^^^^^^^^^^
+src\api\routers\slots.py:99: in search_free_slots
+    items, next_cursor = service.search_free(
+src\api\stubs\slot_service.py:82: in search_free
+    after = decode_cursor(cursor) if cursor else None
+            ^^^^^^^^^^^^^^^^^^^^^
+src\api\pagination.py:70: in decode_cursor
+    starts_at, item_id = datetime.fromisoformat(data["s"]), uuid.UUID(data["i"])
+                                                            ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <[AttributeError("'uuid.UUID' object has no attribute 'int'") raised in repr()] UUID object at 0x1420218a210>
+hex = 7, bytes = None, bytes_le = None, fields = None, int = None
+version = None, is_safe = <SafeUUID.unknown: None>
+
+    def __init__(self, hex=None, bytes=None, bytes_le=None, fields=None,
+                       int=None, version=None,
+                       *, is_safe=SafeUUID.unknown):
+        r"""Create a UUID from either a string of 32 hexadecimal digits,
+        a string of 16 bytes as the 'bytes' argument, a string of 16 bytes
+        in little-endian order as the 'bytes_le' argument, a tuple of six
+        integers (32-bit time_low, 16-bit time_mid, 16-bit time_hi_version,
+        8-bit clock_seq_hi_variant, 8-bit clock_seq_low, 48-bit node) as
+        the 'fields' argument, or a single 128-bit integer as the 'int'
+        argument.  When a string of hex digits is given, curly braces,
+        hyphens, and a URN prefix are all optional.  For example, these
+        expressions all yield the same UUID:
+    
+        UUID('{12345678-1234-5678-1234-567812345678}')
+        UUID('12345678123456781234567812345678')
+        UUID('urn:uuid:12345678-1234-5678-1234-567812345678')
+        UUID(bytes='\x12\x34\x56\x78'*4)
+        UUID(bytes_le='\x78\x56\x34\x12\x34\x12\x78\x56' +
+                      '\x12\x34\x56\x78\x12\x34\x56\x78')
+        UUID(fields=(0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678))
+        UUID(int=0x12345678123456781234567812345678)
+    
+        Exactly one of 'hex', 'bytes', 'bytes_le', 'fields', or 'int' must
+        be given.  The 'version' argument is optional; if given, the resulting
+        UUID will have its variant and version set according to RFC 4122,
+        overriding the given 'hex', 'bytes', 'bytes_le', 'fields', or 'int'.
+    
+        is_safe is an enum exposed as an attribute on the instance.  It
+        indicates whether the UUID has been generated in a way that is safe
+        for multiprocessing applications, via uuid_generate_time_safe(3).
+        """
+    
+        if [hex, bytes, bytes_le, fields, int].count(None) != 4:
+            raise TypeError('one of the hex, bytes, bytes_le, fields, '
+                            'or int arguments must be given')
+        if hex is not None:
+>           hex = hex.replace('urn:', '').replace('uuid:', '')
+                  ^^^^^^^^^^^
+E           AttributeError: 'int' object has no attribute 'replace'
+
+C:\Users\pdeny\AppData\Local\Programs\Python\Python313\Lib\uuid.py:178: AttributeError
+---------------------------- Captured stderr call -----------------------------
+unhandled error
+Traceback (most recent call last):
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_asgi.py", line 151, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 203, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\middleware.py", line 46, in request_context
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 179, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\routing.py", line 676, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 2788, in app
+    await route.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1819, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 2871, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1845, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1308, in handle
+    await effective_context.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 165, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 151, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 727, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 362, in run_endpoint_function
+    return await run_in_threadpool(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        _run_sync_endpoint, function=dependant.call, arguments=values
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_api.py", line 244, in _run_sync_endpoint
+    return function(**arguments)
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\routers\slots.py", line 99, in search_free_slots
+    items, next_cursor = service.search_free(
+                         ~~~~~~~~~~~~~~~~~~~^
+        now=clock.utc_now(),
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+        cursor=cursor,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\stubs\slot_service.py", line 82, in search_free
+    after = decode_cursor(cursor) if cursor else None
+            ~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\pagination.py", line 70, in decode_cursor
+    starts_at, item_id = datetime.fromisoformat(data["s"]), uuid.UUID(data["i"])
+                                                            ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\pdeny\AppData\Local\Programs\Python\Python313\Lib\uuid.py", line 178, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+          ^^^^^^^^^^^
+AttributeError: 'int' object has no attribute 'replace'
+------------------------------ Captured log call ------------------------------
+ERROR    unislot.api:errors.py:456 unhandled error
+Traceback (most recent call last):
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_asgi.py", line 151, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 203, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\middleware.py", line 46, in request_context
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 179, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\routing.py", line 676, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 2788, in app
+    await route.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1819, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 2871, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1845, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 1308, in handle
+    await effective_context.app(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 165, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 151, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 727, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\routing.py", line 362, in run_endpoint_function
+    return await run_in_threadpool(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        _run_sync_endpoint, function=dependant.call, arguments=values
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\anyio\_backends\_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "C:\Codex\l6rt_20261025\Lib\site-packages\fastapi\telemetry\_api.py", line 244, in _run_sync_endpoint
+    return function(**arguments)
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\routers\slots.py", line 99, in search_free_slots
+    items, next_cursor = service.search_free(
+                         ~~~~~~~~~~~~~~~~~~~^
+        now=clock.utc_now(),
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+        cursor=cursor,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\stubs\slot_service.py", line 82, in search_free
+    after = decode_cursor(cursor) if cursor else None
+            ~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Codex\Methods for developing software systems\Lab06_Denys_PR06_published_2026-10-26\cursor-pr06-mw_jf45i\src\api\pagination.py", line 70, in decode_cursor
+    starts_at, item_id = datetime.fromisoformat(data["s"]), uuid.UUID(data["i"])
+                                                            ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\pdeny\AppData\Local\Programs\Python\Python313\Lib\uuid.py", line 178, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+          ^^^^^^^^^^^
+AttributeError: 'int' object has no attribute 'replace'
+=========================== short test summary info ===========================
+FAILED tests/api/test_lab06_regressions.py::test_non_string_cursor_uuid_returns_422
+1 failed in 1.36s

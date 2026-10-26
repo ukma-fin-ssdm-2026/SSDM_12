@@ -1,0 +1,91 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+_____________________ test_cancel_exact_deadline_allowed ______________________
+
+student = CurrentUser(id=UUID('3c357b14-bd0d-424b-8924-17eb737a4907'), full_name='Олена Коваль', email='olena.koval@unislot.example', roles=frozenset({<Role.STUDENT: 'student'>}))
+
+    def test_cancel_exact_deadline_allowed(student):
+        booking = store.bookings[Ids.BOOKING_ACTIVE]
+        deadline = booking.cancel_deadline_at
+    
+>       result = service.cancel(student, booking.id, deadline)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_booking_service.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\api\stubs\booking_service.py:175: in cancel
+    _check_changeable(booking, now)
+src\api\stubs\booking_service.py:168: in _check_changeable
+    rules.ensure_changeable(booking.status, _interval(slot), booking.cancel_deadline_at, now)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+status = <BookingStatus.CONFIRMED: 'confirmed'>
+slot = Interval(starts_at=datetime.datetime(2026, 10, 21, 7, 0, tzinfo=datetime.timezone.utc), ends_at=datetime.datetime(2026, 10, 21, 7, 30, tzinfo=datetime.timezone.utc))
+deadline = datetime.datetime(2026, 10, 21, 5, 0, tzinfo=datetime.timezone.utc)
+now = datetime.datetime(2026, 10, 21, 5, 0, tzinfo=datetime.timezone.utc)
+
+    def ensure_changeable(
+        status: BookingStatus, slot: Interval, deadline: datetime, now: datetime
+    ) -> None:
+        """Скасувати чи перенести можна лише чинне бронювання до граничного часу включно.
+    
+        Raises:
+            BookingAlreadyCancelled: бронювання вже скасоване (FR-040).
+            SlotStarted: слот почався — змінювати не можна нікому (FR-045).
+            CancellationDeadlinePassed: `now` пізніше за граничний час (FR-041, FR-044).
+        """
+        if status is BookingStatus.CANCELLED:
+            raise BookingAlreadyCancelled
+        if now >= slot.starts_at:
+            raise SlotStarted("Після початку слота бронювання змінювати не можна.")
+        if now >= deadline:
+>           raise CancellationDeadlinePassed(deadline)
+E           unislot.booking.domain.errors.CancellationDeadlinePassed: CANCELLATION_DEADLINE_PASSED: Скасувати чи перенести можна було до 2026-10-21T05:00:00+00:00.
+
+src\unislot\booking\domain\rules.py:129: CancellationDeadlinePassed
+_________ test_can_cancel_view_agrees_with_command_at_exact_deadline __________
+
+student = CurrentUser(id=UUID('3c357b14-bd0d-424b-8924-17eb737a4907'), full_name='Олена Коваль', email='olena.koval@unislot.example', roles=frozenset({<Role.STUDENT: 'student'>}))
+
+    def test_can_cancel_view_agrees_with_command_at_exact_deadline(student):
+        booking = store.bookings[Ids.BOOKING_ACTIVE]
+        deadline = booking.cancel_deadline_at
+        assert service.to_out(booking, deadline).can_cancel is True
+>       service.cancel(student, booking.id, deadline)
+
+tests\unit\test_booking_service.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\api\stubs\booking_service.py:175: in cancel
+    _check_changeable(booking, now)
+src\api\stubs\booking_service.py:168: in _check_changeable
+    rules.ensure_changeable(booking.status, _interval(slot), booking.cancel_deadline_at, now)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+status = <BookingStatus.CONFIRMED: 'confirmed'>
+slot = Interval(starts_at=datetime.datetime(2026, 10, 21, 7, 0, tzinfo=datetime.timezone.utc), ends_at=datetime.datetime(2026, 10, 21, 7, 30, tzinfo=datetime.timezone.utc))
+deadline = datetime.datetime(2026, 10, 21, 5, 0, tzinfo=datetime.timezone.utc)
+now = datetime.datetime(2026, 10, 21, 5, 0, tzinfo=datetime.timezone.utc)
+
+    def ensure_changeable(
+        status: BookingStatus, slot: Interval, deadline: datetime, now: datetime
+    ) -> None:
+        """Скасувати чи перенести можна лише чинне бронювання до граничного часу включно.
+    
+        Raises:
+            BookingAlreadyCancelled: бронювання вже скасоване (FR-040).
+            SlotStarted: слот почався — змінювати не можна нікому (FR-045).
+            CancellationDeadlinePassed: `now` пізніше за граничний час (FR-041, FR-044).
+        """
+        if status is BookingStatus.CANCELLED:
+            raise BookingAlreadyCancelled
+        if now >= slot.starts_at:
+            raise SlotStarted("Після початку слота бронювання змінювати не можна.")
+        if now >= deadline:
+>           raise CancellationDeadlinePassed(deadline)
+E           unislot.booking.domain.errors.CancellationDeadlinePassed: CANCELLATION_DEADLINE_PASSED: Скасувати чи перенести можна було до 2026-10-21T05:00:00+00:00.
+
+src\unislot\booking\domain\rules.py:129: CancellationDeadlinePassed
+=========================== short test summary info ===========================
+FAILED tests/unit/test_booking_service.py::test_cancel_exact_deadline_allowed
+FAILED tests/unit/test_booking_service.py::test_can_cancel_view_agrees_with_command_at_exact_deadline
+2 failed in 0.78s
