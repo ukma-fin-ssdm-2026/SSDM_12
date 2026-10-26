@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime
 
 from api.enums import BookingState, BookingStatus, CancellationKind
-from api.errors import ApiProblem, ErrorCode
+from api.errors import ApiProblem, ErrorCode, validation_problem
 from api.policy import HORIZON
 from api.schemas.bookings import BookingOut, BookingSlot
 from api.schemas.common import PersonSummary, ResourceSummary
@@ -189,16 +189,11 @@ def reschedule(
         old = get_owned(student, booking_id)
         _check_changeable(old, now)
         if new_slot_id == old.slot_id:
-            raise ApiProblem(
-                ErrorCode.VALIDATION_FAILED,
+            raise validation_problem(
                 "Новий слот збігається з поточним.",
-                errors=[
-                    {
-                        "field": "body.new_slot_id",
-                        "type": "same_slot",
-                        "message": "Оберіть інший слот",
-                    }
-                ],
+                field="body.new_slot_id",
+                kind="same_slot",
+                message="Оберіть інший слот",
             )
         new_slot = store.slots.get(new_slot_id)
         if new_slot is None:
