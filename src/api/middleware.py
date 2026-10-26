@@ -14,22 +14,20 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import time
-import uuid
 from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
 
 from api.config import API_VERSION
+from api.request_ids import normalize_request_id
 
 access_log = logging.getLogger("unislot.access")
-_SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{8,64}$")
 
 
 def _incoming_request_id(request: Request) -> str:
     candidate = request.headers.get("X-Request-ID", "")
-    return candidate if _SAFE_REQUEST_ID.fullmatch(candidate) else uuid.uuid4().hex
+    return normalize_request_id(candidate)
 
 
 def install_middleware(app: FastAPI) -> None:
