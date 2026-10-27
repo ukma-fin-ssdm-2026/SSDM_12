@@ -1,6 +1,14 @@
 """Шаблон маршруту для журналу доступу."""
 
+_HEX_AND_DASH = set("0123456789abcdef-")
+
 
 def route_template(path: str) -> str:
-    """Повертає шлях для журналу."""
-    return path
+    """Замінює 36-символьні hex-сегменти шляху на {id}."""
+    segments = []
+    for segment in path.split("/"):
+        if len(segment) == 36 and set(segment) <= _HEX_AND_DASH:
+            segments.append("{id}")
+        else:
+            segments.append(segment)
+    return "/".join(segments)
