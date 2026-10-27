@@ -1,0 +1,15 @@
+{
+  "technical_artifacts_ready": true,
+  "errors": [],
+  "test_cases": 236,
+  "isolated_unit_cases": 162,
+  "video_link_files_present": {
+    "denys_patselia": false,
+    "akseniia_kozulina": false,
+    "pavlo_dziubak": false,
+    "nykyta_babakov": false
+  },
+  "individual_tdd": "pending: prepared files do not prove individual RED/GREEN/REFACTOR history",
+  "attendance": "unverified; no attendance evidence manufactured",
+  "submission_ready": false
+}
