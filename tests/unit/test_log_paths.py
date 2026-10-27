@@ -20,3 +20,8 @@ def test_identifier_in_the_middle_of_a_path():
 def test_uppercase_identifier_is_masked():
     path = "/api/v1/bookings/3FA85F64-5717-4562-B3FC-2C963F66AFA6"
     assert route_template(path) == "/api/v1/bookings/{id}"
+
+
+def test_thirty_six_character_non_identifier_is_preserved():
+    path = "/api/v1/resources/3fa85f6457174562b3fc2c963f66afa6----"
+    assert route_template(path) == path
