@@ -1,9 +1,9 @@
-........................................................................ [ 30%]
-........................................................................ [ 61%]
-........................................................................ [ 91%]
-....................                                                     [100%]
+........................................................................ [ 29%]
+........................................................................ [ 59%]
+........................................................................ [ 89%]
+..........................                                               [100%]
 ================================ tests coverage ================================
-_______________ coverage: platform darwin, python 3.13.0-final-0 _______________
+_______________ coverage: platform darwin, python 3.14.5-final-0 _______________
 
 Name                                     Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------
@@ -12,9 +12,10 @@ src/api/clock.py                             4      0      0      0   100%
 src/api/config.py                           23      0      2      0   100%
 src/api/enums.py                            11      0      0      0   100%
 src/api/errors.py                          154      2     16      1    98%   469-470
+src/api/log_paths.py                         9      0      0      0   100%
 src/api/main.py                             56      6     20      2    84%   66, 101-104, 130
 src/api/mcp_server.py                       13     13      2      0     0%   16-43
-src/api/middleware.py                       25      0      2      0   100%
+src/api/middleware.py                       26      0      2      0   100%
 src/api/openapi_export.py                   63      1     14      1    97%   135
 src/api/pagination.py                       44      0      6      0   100%
 src/api/policy.py                           10      0      0      0   100%
@@ -54,9 +55,9 @@ src/unislot/platform/__init__.py             0      0      0      0   100%
 src/unislot/platform/errors.py               8      0      0      0   100%
 src/unislot/search/__init__.py               0      0      0      0   100%
 ------------------------------------------------------------------------------------
-TOTAL                                     1251     24    196      6    98%
+TOTAL                                     1261     24    196      6    98%
 Coverage HTML written to dir docs/testing/lab06/htmlcov
 Coverage XML written to file coverage.xml
 Coverage JSON written to file docs/testing/lab06/coverage.json
-Required test coverage of 90% reached. Total coverage: 97.51%
-236 passed in 3.41s
+Required test coverage of 90% reached. Total coverage: 97.53%
+242 passed in 1.09s

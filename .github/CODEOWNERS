@@ -105,7 +105,6 @@
 /src/api/schemas/resources.py              @DziubakPavlo @asyakozulina
 /src/api/middleware.py                     @NykytaBabakov @asyakozulina
 /docs/testing/external/spectrum/           @NykytaBabakov @dysett
-/docs/testing/debug-challenge/bug-01-pagination.patch @NykytaBabakov @dysett
 /docs/testing/lab06/artifact-check.json     @NykytaBabakov @dysett
 /README.md                                 @NykytaBabakov @asyakozulina
 # Lab6 TDD: шаблон маршруту в журналі доступу (THR-09, CWE-532).
