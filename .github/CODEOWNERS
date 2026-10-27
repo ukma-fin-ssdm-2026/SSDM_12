@@ -108,3 +108,7 @@
 /docs/testing/debug-challenge/bug-01-pagination.patch @NykytaBabakov @dysett
 /docs/testing/lab06/artifact-check.json     @NykytaBabakov @dysett
 /README.md                                 @NykytaBabakov @asyakozulina
+# Lab6 TDD: шаблон маршруту в журналі доступу (THR-09, CWE-532).
+/src/api/log_paths.py                      @NykytaBabakov @asyakozulina
+/tests/unit/test_log_paths.py              @NykytaBabakov @asyakozulina
+/tests/api/test_access_log.py              @NykytaBabakov @asyakozulina
