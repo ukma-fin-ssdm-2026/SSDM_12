@@ -6,7 +6,8 @@
 - `API-Version`: версія контракту у кожній відповіді (версіонування в коді).
 - `Cache-Control: no-store` для `/api/`: відповіді містять персональні дані, а кешу
   немає, доки вимір PERF-001 не покаже потреби (DD-12).
-- Журнал — один рядок JSON на запит: метод, шлях, статус, тривалість, користувач.
+- Журнал — один рядок JSON на запит: метод, шаблон маршруту, статус, тривалість,
+  користувач. Ідентифікатори зі шляху замінено на `{id}` (THR-09, CWE-532).
   Тіла запитів, токени й рядок запиту не журналюються (THR-02, THR-09).
 """
 
@@ -20,6 +21,7 @@ from collections.abc import Awaitable, Callable
 from fastapi import FastAPI, Request, Response
 
 from api.config import API_VERSION
+from api.log_paths import route_template
 from api.request_ids import normalize_request_id
 
 access_log = logging.getLogger("unislot.access")
@@ -52,7 +54,7 @@ def install_middleware(app: FastAPI) -> None:
                     "event": "request",
                     "request_id": request_id,
                     "method": request.method,
-                    "path": request.url.path,
+                    "path": route_template(request.url.path),
                     "status": response.status_code,
                     "duration_ms": round((time.perf_counter() - started) * 1000, 1),
                     "user_id": getattr(request.state, "user_id", None),
