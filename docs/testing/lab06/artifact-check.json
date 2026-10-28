@@ -7,7 +7,7 @@
     "denys_patselia": false,
     "akseniia_kozulina": false,
     "pavlo_dziubak": false,
-    "nykyta_babakov": false
+    "nykyta_babakov": true
   },
   "individual_tdd": "pending: prepared files do not prove individual RED/GREEN/REFACTOR history",
   "attendance": "unverified; no attendance evidence manufactured",
