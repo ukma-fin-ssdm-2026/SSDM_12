@@ -182,7 +182,7 @@ pre-commit run --all-files    # перевірити весь репозитор
 | Документ | Що всередині |
 |---|---|
 | [`docs/testing/testing-strategy.md`](docs/testing/testing-strategy.md) | Стратегія тестування UniSlot: поточний стан і межі висновку, наступні рівні після появи PostgreSQL і UI, спеціальні перевірки, супровід у CI |
-| [`docs/testing/coverage-report.md`](docs/testing/coverage-report.md) | Звіт про покриття власного коду: 236 тестів, 162 ізольовані unit-випадки у 12 файлах, рядки 98.08%, гілки 93.88%, сукупно 97.51% при порозі 90% |
+| [`docs/testing/coverage-report.md`](docs/testing/coverage-report.md) | Звіт про покриття власного коду: 242 тести, 167 ізольованих unit-випадків у 13 файлах, рядки 98.10%, гілки 93.88%, сукупно 97.53% при порозі 90% |
 | [`docs/testing/debugging-log.md`](docs/testing/debugging-log.md) | Журнал налагодження UniSlot: реальний дефект структури курсора (D-01) і навмисна помилка межі скасування (D-02) — від симптому до регресійного тесту |
 | [`docs/testing/lab06/mutation-report.md`](docs/testing/lab06/mutation-report.md) | Мутаційне тестування `resource_rules.py`: 34/38 → 38/38 убитих мутантів і знайдений дефект `is` проти `==` на StrEnum |
 | [`docs/testing/lab06/htmlcov/index.html`](docs/testing/lab06/htmlcov/index.html) | HTML-звіт покриття з порядковою деталізацією; поруч `coverage.json`, `junit.xml` і `run.json` із SHA-256 коду та тестів |
