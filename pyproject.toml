@@ -6,7 +6,11 @@
 # src/ — корінь імпорту пакета `api` (той самий, що й `uvicorn --app-dir src`).
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-ra"
+# --strict-markers: мітка з одруківкою (req → reg) — помилка збору, а не тихе попередження.
+addopts = "-ra --strict-markers"
+markers = [
+    "req(*ids): ID вимог із docs/requirements/rtm.md, які перевіряє тест (Лаб 7); звіряє scripts/check_traceability.py",
+]
 
 [tool.ruff]
 # Стандарт кодування — PEP 8 через `ruff format` (сумісний із Black) і PEP 257 для

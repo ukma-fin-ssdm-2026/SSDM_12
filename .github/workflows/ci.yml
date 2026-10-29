@@ -35,6 +35,17 @@ jobs:
       - name: Check requirements consistency (Lab 2)
         run: python scripts/check_requirements.py
 
+      # Lab 7 bonus: every test carries @pytest.mark.req with an ID from docs/requirements/rtm.md,
+      # and every FR, NFR and derived requirement has a test or a recorded exemption (rtm.md,
+      # section 7). Standard library only, so it runs before dependencies and fails fast.
+      - name: Check requirement-test traceability (Lab 7)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          python scripts/check_traceability.py
+          if ($LASTEXITCODE -ne 0) { throw 'Traceability gap: fix the markers, the test or rtm.md' }
+
+
       # Версії закріплено: інакше згенерована специфікація залежала б від машини.
       # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
       # (PYSEC-2026-196, -2875, -2876, -3721). Усі виправлені у 26.2 — звідси нижня межа.
