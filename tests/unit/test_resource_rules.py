@@ -5,6 +5,8 @@ import pytest
 from api.enums import ResourceType
 from api.resource_rules import capacity_valid
 
+pytestmark = pytest.mark.req("FR-060", "QA-06", "TC-044", "TP-07")
+
 
 def test_room_requires_capacity():
     assert capacity_valid(ResourceType.ROOM, 20)

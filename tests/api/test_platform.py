@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, ConfigDict
 
@@ -11,12 +12,14 @@ from api.main import create_app
 STUDENT = {"Authorization": "Bearer demo-student"}
 
 
+@pytest.mark.req("QA-07")
 def test_health_is_public(client: TestClient) -> None:
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json() == {"status": "ok", "version": API_VERSION}
 
 
+@pytest.mark.req("FR-007")
 def test_me_returns_current_user_and_roles(client: TestClient) -> None:
     r = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer demo-admin"})
     assert r.status_code == 200
@@ -24,6 +27,7 @@ def test_me_returns_current_user_and_roles(client: TestClient) -> None:
     assert r.json()["full_name"] == "Марія Ткаченко"
 
 
+@pytest.mark.req("SEC-002", "QA-07", "QA-09")
 def test_missing_token_gives_401_problem(client: TestClient) -> None:
     r = client.get("/api/v1/auth/me")
     assert r.status_code == 401
@@ -35,11 +39,13 @@ def test_missing_token_gives_401_problem(client: TestClient) -> None:
     assert body["request_id"] == r.headers["X-Request-ID"]
 
 
+@pytest.mark.req("SEC-002", "QA-07")
 def test_unknown_token_gives_401(client: TestClient) -> None:
     r = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer not-a-demo-token"})
     assert r.status_code == 401
 
 
+@pytest.mark.req("SEC-002")
 def test_demo_auth_can_be_switched_off(monkeypatch, client: TestClient) -> None:
     monkeypatch.setenv("UNISLOT_DEMO_AUTH", "0")
     get_settings.cache_clear()
@@ -49,6 +55,7 @@ def test_demo_auth_can_be_switched_off(monkeypatch, client: TestClient) -> None:
         get_settings.cache_clear()
 
 
+@pytest.mark.req("SEC-002")
 def test_demo_auth_is_off_unless_enabled(monkeypatch, client: TestClient) -> None:
     """V-01 (docs/code-quality/static-analysis.md): безпечне значення за замовчуванням.
 
@@ -65,6 +72,7 @@ def test_demo_auth_is_off_unless_enabled(monkeypatch, client: TestClient) -> Non
         get_settings.cache_clear()
 
 
+@pytest.mark.req("QA-09")
 def test_request_id_is_echoed_or_replaced(client: TestClient) -> None:
     assert (
         client.get("/health", headers={"X-Request-ID": "trace-12345678"}).headers["X-Request-ID"]
@@ -74,12 +82,14 @@ def test_request_id_is_echoed_or_replaced(client: TestClient) -> None:
     assert replaced.headers["X-Request-ID"] != "bad id\nwith newline"
 
 
+@pytest.mark.req("QA-10", "SEC-004")
 def test_version_and_cache_headers(client: TestClient) -> None:
     r = client.get("/api/v1/auth/me", headers=STUDENT)
     assert r.headers["API-Version"] == API_VERSION
     assert r.headers["Cache-Control"] == "no-store"
 
 
+@pytest.mark.req("QA-09")
 def test_unknown_route_and_method_use_problem_json(client: TestClient) -> None:
     missing = client.get("/api/v1/nothing-here", headers=STUDENT)
     assert missing.status_code == 404 and missing.json()["code"] == "NOT_FOUND"
@@ -96,6 +106,7 @@ class _Login(BaseModel):
     email: str
 
 
+@pytest.mark.req("QA-06", "QA-08")
 def test_validation_error_does_not_echo_input() -> None:
     """CWE-209: значення з тіла запиту не повертаються у відповіді (див. review-report.md).
 
@@ -116,6 +127,7 @@ def test_validation_error_does_not_echo_input() -> None:
     assert fields == {"body.email", "body.password"}
 
 
+@pytest.mark.req("QA-08")
 def test_unhandled_error_hides_details() -> None:
     app = create_app()
 

@@ -6,6 +6,8 @@ import pytest
 
 from api.slot_rules import kyiv_day_bounds
 
+pytestmark = pytest.mark.req("FR-021")
+
 
 def test_summer_day_bounds_are_utc():
     start, end = kyiv_day_bounds(date(2026, 7, 21))

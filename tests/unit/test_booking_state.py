@@ -10,6 +10,8 @@ from api.enums import BookingState, BookingStatus
 from api.stubs.booking_service import booking_state
 from api.stubs.store import Ids, store
 
+pytestmark = pytest.mark.req("FR-036")
+
 
 @pytest.mark.parametrize(
     ("instant", "expected"),

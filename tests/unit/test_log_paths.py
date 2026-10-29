@@ -1,6 +1,10 @@
 """Шаблон маршруту для журналу доступу: ідентифікатори не потрапляють у лог."""
 
+import pytest
+
 from api.log_paths import route_template
+
+pytestmark = pytest.mark.req("THR-09")
 
 
 def test_path_without_identifiers_is_unchanged():

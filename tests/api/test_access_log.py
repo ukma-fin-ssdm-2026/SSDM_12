@@ -4,6 +4,10 @@ import json
 import logging
 import uuid
 
+import pytest
+
+pytestmark = pytest.mark.req("THR-09")
+
 STUDENT = {"Authorization": "Bearer demo-student"}
 
 
