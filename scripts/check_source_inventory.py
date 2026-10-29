@@ -15,6 +15,11 @@ def changed_source_paths(expected: dict[str, str], actual: dict[str, str]) -> li
     return sorted(changed)
 
 
+def file_sha256(path: Path) -> str:
+    """Обчислює SHA-256 вмісту файлу."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def main() -> int:
     """Перевіряє SHA-256 джерельних файлів за звітом."""
     report_path = REPORT if REPORT.is_file() else REPORT / "run.json"
@@ -25,9 +30,7 @@ def main() -> int:
     for relative_path in expected:
         source_path = ROOT / relative_path
         if source_path.is_file():
-            actual[relative_path] = hashlib.sha256(
-                source_path.read_bytes()
-            ).hexdigest()
+            actual[relative_path] = file_sha256(source_path)
 
     return 1 if changed_source_paths(expected, actual) else 0
 
