@@ -51,6 +51,11 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.isort]
+# Явно: інакше Ruff визначає «свій» пакет за наявністю модуля на диску, і тест-специфікація
+# для ще не створеного модуля (бонус 3 Лаб 7) отримала б інший порядок імпортів.
+known-first-party = ["api", "unislot"]
+
 [tool.bandit]
 # Запуск: bandit -c pyproject.toml -r src scripts
 exclude_dirs = [".venv", "docs/architecture/validation"]
