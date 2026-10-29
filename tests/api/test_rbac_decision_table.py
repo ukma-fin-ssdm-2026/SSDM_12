@@ -28,6 +28,8 @@ TOKENS = {
     "admin": "demo-admin",
 }
 
+# Тіла запитів однакові для дозволених і заборонених правил: якщо запит відхилено,
+# то через роль чи власника, а не через некоректне тіло.
 BODIES = {
     ("POST", "/api/v1/bookings"): {"slot_id": str(Ids.SLOT_DB_D1_1030)},
     ("POST", "/api/v1/bookings/{booking_id}/reschedule"): {"new_slot_id": str(Ids.SLOT_DB_D1_1100)},
@@ -137,6 +139,7 @@ RULES: list[Rule] = [
 
 
 def snapshot() -> tuple:
+    """Стан даних, який заборонене правило не має змінити (друга половина SEC-002)."""
     return (
         sorted((str(b.id), b.status.value, str(b.slot_id)) for b in store.bookings.values()),
         sorted((str(r.id), r.name, r.capacity) for r in store.resources.values()),
@@ -167,6 +170,7 @@ def test_decision_table_ids_are_unique_and_consecutive() -> None:
 
 
 def test_decision_table_covers_every_protected_operation_for_every_role() -> None:
+    """Нова операція API без правил для всіх чотирьох ролей — червоний тест, а не дірка."""
     operations = {
         (method.upper(), path)
         for path, item in app.openapi()["paths"].items()
@@ -183,6 +187,7 @@ def test_decision_table_covers_every_protected_operation_for_every_role() -> Non
 def test_share_of_denied_forbidden_rules_meets_sec002_threshold(
     client: TestClient, record_testsuite_property
 ) -> None:
+    """Поріг SEC-002 як число: частка заборонених правил, що справді отримали 401/403."""
     forbidden = [r for r in RULES if r.forbidden]
     denied = 0
     for rule in forbidden:
