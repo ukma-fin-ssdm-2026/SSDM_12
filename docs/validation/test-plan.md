@@ -259,19 +259,19 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 
 | Операція | Анонім | Студент | Студент, чуже бронювання | Провайдер | Провайдер, чужий ресурс | Адміністратор |
 |---|---|---|---|---|---|---|
-| `GET /auth/me` | DT-01 → 401 | DT-02 → 200 | — | DT-03 → 200 | — | DT-04 → 200 |
-| `POST /bookings` | DT-05 → 401 | DT-06 → 201 | — | DT-07 → 403 `FORBIDDEN_ROLE` | — | DT-08 → 403 `FORBIDDEN_ROLE` |
-| `GET /bookings/{booking_id}` | DT-09 → 401 | DT-10 → 200 | DT-11 → 403 `NOT_OWNER` | DT-12 → 403 `FORBIDDEN_ROLE` | — | DT-13 → 403 `FORBIDDEN_ROLE` |
-| `POST /bookings/{booking_id}/cancel` | DT-14 → 401 | DT-15 → 200 | DT-16 → 403 `NOT_OWNER` | DT-17 → 403 `FORBIDDEN_ROLE` | — | DT-18 → 403 `FORBIDDEN_ROLE` |
-| `POST /bookings/{booking_id}/reschedule` | DT-19 → 401 | DT-20 → 201 | DT-21 → 403 `NOT_OWNER` | DT-22 → 403 `FORBIDDEN_ROLE` | — | DT-23 → 403 `FORBIDDEN_ROLE` |
-| `GET /me/bookings` | DT-24 → 401 | DT-25 → 200 | — | DT-26 → 403 `FORBIDDEN_ROLE` | — | DT-27 → 403 `FORBIDDEN_ROLE` |
-| `GET /resources` | DT-28 → 401 | DT-29 → 200 | — | DT-30 → 200 | — | DT-31 → 200 |
-| `GET /resources/{resource_id}` | DT-32 → 401 | DT-33 → 200 | — | DT-34 → 200 | — | DT-35 → 200 |
-| `POST /admin/resources` | DT-36 → 401 | DT-37 → 403 `FORBIDDEN_ROLE` | — | DT-38 → 403 `FORBIDDEN_ROLE` | — | DT-39 → 201 |
-| `PATCH /admin/resources/{resource_id}` | DT-40 → 401 | DT-41 → 403 `FORBIDDEN_ROLE` | — | DT-42 → 403 `FORBIDDEN_ROLE` | — | DT-43 → 200 |
-| `GET /slots` | DT-44 → 401 | DT-45 → 200 | — | DT-46 → 403 `FORBIDDEN_ROLE` | — | DT-47 → 403 `FORBIDDEN_ROLE` |
-| `GET /slots/{slot_id}` | DT-48 → 401 | DT-49 → 200 | — | DT-50 → 200 | — | DT-51 → 200 |
-| `POST /resources/{resource_id}/slots` | DT-52 → 401 | DT-53 → 403 `FORBIDDEN_ROLE` | — | DT-54 → 201 | DT-55 → 403 `NOT_OWNER` | DT-56 → 403 `FORBIDDEN_ROLE` |
+| `GET /auth/me` | DT-01 → 401 `AUTH_REQUIRED` | DT-02 → 200 | — | DT-03 → 200 | — | DT-04 → 200 |
+| `POST /bookings` | DT-05 → 401 `AUTH_REQUIRED` | DT-06 → 201 | — | DT-07 → 403 `FORBIDDEN_ROLE` | — | DT-08 → 403 `FORBIDDEN_ROLE` |
+| `GET /bookings/{booking_id}` | DT-09 → 401 `AUTH_REQUIRED` | DT-10 → 200 | DT-11 → 403 `NOT_OWNER` | DT-12 → 403 `FORBIDDEN_ROLE` | — | DT-13 → 403 `FORBIDDEN_ROLE` |
+| `POST /bookings/{booking_id}/cancel` | DT-14 → 401 `AUTH_REQUIRED` | DT-15 → 200 | DT-16 → 403 `NOT_OWNER` | DT-17 → 403 `FORBIDDEN_ROLE` | — | DT-18 → 403 `FORBIDDEN_ROLE` |
+| `POST /bookings/{booking_id}/reschedule` | DT-19 → 401 `AUTH_REQUIRED` | DT-20 → 201 | DT-21 → 403 `NOT_OWNER` | DT-22 → 403 `FORBIDDEN_ROLE` | — | DT-23 → 403 `FORBIDDEN_ROLE` |
+| `GET /me/bookings` | DT-24 → 401 `AUTH_REQUIRED` | DT-25 → 200 | — | DT-26 → 403 `FORBIDDEN_ROLE` | — | DT-27 → 403 `FORBIDDEN_ROLE` |
+| `GET /resources` | DT-28 → 401 `AUTH_REQUIRED` | DT-29 → 200 | — | DT-30 → 200 | — | DT-31 → 200 |
+| `GET /resources/{resource_id}` | DT-32 → 401 `AUTH_REQUIRED` | DT-33 → 200 | — | DT-34 → 200 | — | DT-35 → 200 |
+| `POST /admin/resources` | DT-36 → 401 `AUTH_REQUIRED` | DT-37 → 403 `FORBIDDEN_ROLE` | — | DT-38 → 403 `FORBIDDEN_ROLE` | — | DT-39 → 201 |
+| `PATCH /admin/resources/{resource_id}` | DT-40 → 401 `AUTH_REQUIRED` | DT-41 → 403 `FORBIDDEN_ROLE` | — | DT-42 → 403 `FORBIDDEN_ROLE` | — | DT-43 → 200 |
+| `GET /slots` | DT-44 → 401 `AUTH_REQUIRED` | DT-45 → 200 | — | DT-46 → 403 `FORBIDDEN_ROLE` | — | DT-47 → 403 `FORBIDDEN_ROLE` |
+| `GET /slots/{slot_id}` | DT-48 → 401 `AUTH_REQUIRED` | DT-49 → 200 | — | DT-50 → 200 | — | DT-51 → 200 |
+| `POST /resources/{resource_id}/slots` | DT-52 → 401 `AUTH_REQUIRED` | DT-53 → 403 `FORBIDDEN_ROLE` | — | DT-54 → 201 | DT-55 → 403 `NOT_OWNER` | DT-56 → 403 `FORBIDDEN_ROLE` |
 
 Шляхи — без префікса `/api/v1`. «—» — умова не застосовна: роль не має доступу до операції
 взагалі, тож власника не перевіряють.
@@ -281,9 +281,17 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 змінилися. `test_decision_table_covers_every_protected_operation_for_every_role` порівнює
 таблицю з операціями OpenAPI: нова операція без правил для всіх ролей — червоний тест.
 
-**Очікуваний результат:** 56 правил — 21 дозволене, 35 заборонених (13 × 401, 18 × 403 `FORBIDDEN_ROLE`,
-4 × 403 `NOT_OWNER`); поріг SEC-002 — 100% відхилених заборонених операцій.
-Фактичний результат і посилання на зелений CI додати після запуску PR-4.
+**Результат:** 56 правил — 21 дозволене (17 × 200, 4 × 201), 35 заборонених (13 × 401
+`AUTH_REQUIRED`, 18 × 403 `FORBIDDEN_ROLE`, 4 × 403 `NOT_OWNER`). Прогін
+`tests/api/test_rbac_decision_table.py` — **59 passed** (56 правил + 3 перевірки таблиці);
+відхилено 35 з 35 заборонених правил, тобто поріг SEC-002 (100%) виконано — виміряне
+значення пишеться в `junit.xml` (`sec002_forbidden_rules` = 35, `sec002_denied` = 35).
+[Зелений прогін](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40949380186/job/123713125599)
+на коміті `cec5e4f`.
+
+**Як тест падає:** якщо в `search_free_slots` послабити залежність ролі (`Student` → `AnyUser`),
+червоніють DT-46, DT-47 і тест частки SEC-002; якщо додати нову операцію API без правил для
+всіх чотирьох ролей — червоніє `test_decision_table_covers_every_protected_operation_for_every_role`.
 
 **Змішані випадки, які інтуїтивні тести пропускають:** студент і чуже бронювання (DT-11,
 DT-16, DT-21); провайдер і чужий ресурс (DT-55); адміністратор і операції студента (DT-08,
