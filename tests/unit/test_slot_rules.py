@@ -13,6 +13,7 @@ from api.stubs.slot_service import check_search_date, is_free
 from api.stubs.store import Ids, store
 
 
+@pytest.mark.req("FR-020", "TP-04")
 @pytest.mark.parametrize(
     ("offset_days", "allowed"),
     [
@@ -38,6 +39,7 @@ def test_search_date_horizon(offset_days: int, allowed: bool) -> None:
             check_search_date(target, now)
 
 
+@pytest.mark.req("FR-023", "FR-034", "TP-04")
 @pytest.mark.parametrize(
     ("slot_id", "expected"),
     [

@@ -46,6 +46,7 @@ def other_student() -> CurrentUser:
     )
 
 
+@pytest.mark.req("FR-023", "FR-030", "FR-034", "TP-04")
 @pytest.mark.parametrize(
     ("delta", "available"),
     [(timedelta(0), False), (timedelta(microseconds=1), True), (HORIZON, True)],
@@ -57,17 +58,20 @@ def test_availability_boundaries(now, delta, available):
     assert service.is_free(slot, now) is available
 
 
+@pytest.mark.req("FR-020", "FR-023", "TP-04")
 def test_one_microsecond_outside_horizon_is_unavailable(now):
     slot = copy.deepcopy(store.slots[Ids.SLOT_DB_D1_1030])
     slot.starts_at = now + HORIZON + timedelta(microseconds=1)
     assert not service.is_free(slot, now)
 
 
+@pytest.mark.req("FR-014", "FR-023")
 @pytest.mark.parametrize("slot_id", [Ids.SLOT_DB_D1_1000, Ids.SLOT_317_D2_1500])
 def test_occupied_and_blocked_slots_are_not_free(slot_id, now):
     assert not service.is_free(store.slots[slot_id], now)
 
 
+@pytest.mark.req("FR-023")
 def test_availability_short_circuits_after_taken_slot(monkeypatch, now):
     slot = store.slots[Ids.SLOT_DB_D1_1030]
     blocked = Mock(side_effect=AssertionError("unnecessary block lookup"))
@@ -77,6 +81,7 @@ def test_availability_short_circuits_after_taken_slot(monkeypatch, now):
     blocked.assert_not_called()
 
 
+@pytest.mark.req("FR-021")
 def test_search_date_uses_kyiv_day_not_utc_day():
     late_utc = datetime(2026, 10, 19, 22, tzinfo=UTC)
     local_day = late_utc.astimezone(KYIV).date()
@@ -86,6 +91,7 @@ def test_search_date_uses_kyiv_day_not_utc_day():
     assert error.value.code is ErrorCode.DATE_OUT_OF_HORIZON
 
 
+@pytest.mark.req("FR-020", "FR-021")
 def test_search_date_accepts_last_day_across_dst(now):
     service.check_search_date((now + HORIZON).astimezone(KYIV).date(), now)
     with pytest.raises(ApiProblem):
@@ -105,6 +111,7 @@ def search(now, **changes):
     return service.search_free(**(args | changes))
 
 
+@pytest.mark.req("FR-022")
 def test_capacity_filter_excludes_consultations(now):
     rows, _ = search(now, min_capacity=20)
     assert rows
@@ -112,6 +119,7 @@ def test_capacity_filter_excludes_consultations(now):
     assert all(store.resources[s.resource_id].capacity >= 20 for s in rows)
 
 
+@pytest.mark.req("FR-020", "QA-11")
 def test_cursor_pages_do_not_repeat_when_slot_becomes_occupied(now, other_student):
     from api.stubs import booking_service
 
@@ -123,6 +131,7 @@ def test_cursor_pages_do_not_repeat_when_slot_becomes_occupied(now, other_studen
     assert all((s.starts_at, str(s.id)) > (first[0].starts_at, str(first[0].id)) for s in second)
 
 
+@pytest.mark.req("FR-020")
 def test_tied_times_use_uuid_as_tiebreaker(now):
     first = copy.deepcopy(store.slots[Ids.SLOT_DB_D1_1030])
     second = copy.deepcopy(first)
@@ -135,6 +144,7 @@ def test_tied_times_use_uuid_as_tiebreaker(now):
     assert end is None
 
 
+@pytest.mark.req("FR-010", "FR-011")
 def test_create_converts_timezone_and_accepts_adjacent_slot(provider, now):
     previous = store.slots[Ids.SLOT_DB_D1_1100]
     data = SlotCreate(starts_at=previous.ends_at.astimezone(KYIV), duration_minutes=30)
@@ -144,6 +154,7 @@ def test_create_converts_timezone_and_accepts_adjacent_slot(provider, now):
     assert created.ends_at - created.starts_at == timedelta(minutes=30)
 
 
+@pytest.mark.req("FR-010", "FR-011")
 @pytest.mark.parametrize("resource_id", [Ids.RES_ROOM_1_225, uuid.UUID(int=0)])
 def test_failed_creation_has_no_side_effects(provider, now, resource_id):
     before = copy.deepcopy(store.slots)

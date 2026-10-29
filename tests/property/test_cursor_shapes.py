@@ -10,6 +10,8 @@ from hypothesis import strategies as st
 from api.errors import ApiProblem, ErrorCode
 from api.pagination import decode_cursor
 
+pytestmark = pytest.mark.req("QA-06")
+
 
 @settings(max_examples=100, derandomize=True)
 @given(item_id=st.one_of(st.none(), st.integers(), st.lists(st.integers(), max_size=4)))

@@ -6,6 +6,8 @@ import pytest
 
 from api.request_ids import normalize_request_id
 
+pytestmark = pytest.mark.req("QA-09")
+
 
 def test_valid_identifier_is_preserved():
     assert normalize_request_id("client-id_01") == "client-id_01"
