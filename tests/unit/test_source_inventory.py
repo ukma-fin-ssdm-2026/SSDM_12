@@ -42,3 +42,46 @@ def test_deleted_source_file_is_reported():
     }
     actual = {"src/api/old.py": "hash1"}
     assert checker.changed_source_paths(expected, actual) == ["src/api/removed.py"]
+
+
+def test_main_succeeds_when_source_hashes_match(tmp_path, monkeypatch):
+    import hashlib
+    import json
+
+    source = tmp_path / "src" / "example.py"
+    source.parent.mkdir()
+    source.write_text("original", encoding="utf-8")
+
+    report = tmp_path / "run.json"
+    report.write_text(json.dumps({
+        "files_sha256": {
+            "src/example.py": hashlib.sha256(source.read_bytes()).hexdigest()
+        }
+    }), encoding="utf-8")
+
+    monkeypatch.setattr(checker, "ROOT", tmp_path)
+    monkeypatch.setattr(checker, "REPORT", report)
+
+    assert checker.main() == 0
+
+
+def test_main_fails_when_source_hash_changes(tmp_path, monkeypatch):
+    import hashlib
+    import json
+
+    source = tmp_path / "src" / "example.py"
+    source.parent.mkdir()
+    source.write_text("original", encoding="utf-8")
+
+    original_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+    source.write_text("modified", encoding="utf-8")
+
+    report = tmp_path / "run.json"
+    report.write_text(json.dumps({
+        "files_sha256": {"src/example.py": original_hash}
+    }), encoding="utf-8")
+
+    monkeypatch.setattr(checker, "ROOT", tmp_path)
+    monkeypatch.setattr(checker, "REPORT", report)
+
+    assert checker.main() == 1
