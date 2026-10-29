@@ -22,6 +22,7 @@ from api.security import CurrentUser
 from api.stubs.store import BookingRec, SlotRec, store
 from unislot.booking.domain import rules
 from unislot.booking.domain.model import BookingPolicy, Interval
+from unislot.notifications.domain.reminders import reminder_due_at
 
 _STATE_ORDER = {
     BookingState.ACTIVE: 0,
@@ -118,7 +119,10 @@ def _new_booking(student: CurrentUser, slot: SlotRec, now: datetime) -> BookingR
         ),
         created_at=now,
     )
+    due_at = reminder_due_at(slot.starts_at, now)
     store.bookings[booking.id] = booking
+    if due_at is not None:
+        store.reminders[booking.id] = due_at
     return booking
 
 
@@ -177,6 +181,7 @@ def cancel(student: CurrentUser, booking_id: uuid.UUID, now: datetime) -> Bookin
         booking.cancelled_at = now
         booking.cancelled_by = student.id
         booking.cancellation_kind = CancellationKind.STUDENT
+        store.reminders.pop(booking.id, None)
         return booking
 
 
@@ -206,6 +211,7 @@ def reschedule(
         old.cancelled_by = student.id
         old.cancellation_kind = CancellationKind.RESCHEDULED
         old.rescheduled_to_id = new.id
+        store.reminders.pop(old.id, None)
         return new
 
 

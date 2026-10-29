@@ -164,6 +164,7 @@ class StubStore:
     slots: dict[uuid.UUID, SlotRec] = field(default_factory=dict)
     blocks: dict[uuid.UUID, TimeBlockRec] = field(default_factory=dict)
     bookings: dict[uuid.UUID, BookingRec] = field(default_factory=dict)
+    reminders: dict[uuid.UUID, datetime] = field(default_factory=dict)  # FR-051, моменти в UTC
     policy: PolicyRec | None = None
     audit: list[dict[str, Any]] = field(default_factory=list)  # FR-066, лише для заглушки
     idempotency: dict[tuple[uuid.UUID, str], dict[str, Any]] = field(default_factory=dict)
@@ -180,6 +181,7 @@ class StubStore:
             self.slots.clear()
             self.blocks.clear()
             self.bookings.clear()
+            self.reminders.clear()
             self.audit.clear()
             self.idempotency.clear()
             self._fill_users()
