@@ -1,5 +1,7 @@
 """Самостійна перевірка актуальності інвентарю джерел Лаб6."""
 
+import hashlib
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,8 +16,20 @@ def changed_source_paths(expected: dict[str, str], actual: dict[str, str]) -> li
 
 
 def main() -> int:
-    """Запускає перевірку інвентарю; початкова заглушка для TDD."""
-    return 0
+    """Перевіряє SHA-256 джерельних файлів за звітом."""
+    report_path = REPORT if REPORT.is_file() else REPORT / "run.json"
+    data = json.loads(report_path.read_text(encoding="utf-8"))
+    expected = data["files_sha256"]
+
+    actual = {}
+    for relative_path in expected:
+        source_path = ROOT / relative_path
+        if source_path.is_file():
+            actual[relative_path] = hashlib.sha256(
+                source_path.read_bytes()
+            ).hexdigest()
+
+    return 1 if changed_source_paths(expected, actual) else 0
 
 
 if __name__ == "__main__":
