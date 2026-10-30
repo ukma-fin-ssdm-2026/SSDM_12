@@ -374,7 +374,7 @@ git log --oneline --first-parent --no-merges 06c2a44..aa3ba4e -- tests
 |---|---|
 | Вимога й поріг | SEC-004, `requirements.md` §5.4: **0** ендпоінтів, через які студент отримує персональні дані іншого студента |
 | Що вважаємо витоком | ім'я, e-mail або ID іншого студента у відповіді чи заголовках; його бронювання як JSON-об'єкт |
-| Виміряне значення | **0** з **8** операцій читання — локально (macOS 26, Python 3.14.5) і в CI ([прогін](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40962975680/job/123760233264)); `junit.xml`: `sec004_read_operations` = 8, `sec004_leaking_operations` = 0 |
+| Виміряне значення | **0** з **8** операцій читання — локально (macOS 26, Python 3.14.5) і в CI ([прогін](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40967445218/job/123775417097)); `junit.xml`: `sec004_read_operations` = 8, `sec004_leaking_operations` = 0 |
 | Команда | `python -m pytest tests/api/test_privacy_sweep.py -rA` |
 | Як тест падає | вимкнена перевірка власника в `get_owned()` → «витік у 1 з 8 операцій: `/api/v1/bookings/{booking_id}`», і той `GET` віддає 200 замість 403 |
 
