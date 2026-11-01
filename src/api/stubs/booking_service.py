@@ -19,7 +19,9 @@ from api.policy import HORIZON
 from api.schemas.bookings import BookingOut, BookingSlot
 from api.schemas.common import PersonSummary, ResourceSummary
 from api.security import CurrentUser
+from api.stubs import notification_service
 from api.stubs.store import BookingRec, SlotRec, store
+from api.stubs.template_service import extend_horizon
 from unislot.booking.domain import rules
 from unislot.booking.domain.model import BookingPolicy, Interval
 from unislot.notifications.domain.reminders import reminder_due_at
@@ -74,6 +76,8 @@ def to_out(booking: BookingRec, now: datetime) -> BookingOut:
 
 def _check_slot_bookable(slot: SlotRec, now: datetime) -> None:
     """Збирає стан слота зі сховища й передає доменному правилу (A-006, A-001, FR-014)."""
+    if not slot.is_active:
+        raise ApiProblem(ErrorCode.SLOT_WITHDRAWN)
     rules.ensure_slot_bookable(
         _interval(slot),
         now,
@@ -123,6 +127,7 @@ def _new_booking(student: CurrentUser, slot: SlotRec, now: datetime) -> BookingR
     store.bookings[booking.id] = booking
     if due_at is not None:
         store.reminders[booking.id] = due_at
+    notification_service.booking_created(booking, now)
     return booking
 
 
@@ -141,6 +146,7 @@ def book(
                 if seen["slot_id"] != slot_id:
                     raise ApiProblem(ErrorCode.IDEMPOTENCY_KEY_REUSED)
                 return store.bookings[seen["booking_id"]], True
+        extend_horizon(now)
         slot = store.slots.get(slot_id)
         if slot is None:
             raise ApiProblem(ErrorCode.SLOT_NOT_FOUND)
@@ -181,7 +187,7 @@ def cancel(student: CurrentUser, booking_id: uuid.UUID, now: datetime) -> Bookin
         booking.cancelled_at = now
         booking.cancelled_by = student.id
         booking.cancellation_kind = CancellationKind.STUDENT
-        store.reminders.pop(booking.id, None)
+        notification_service.booking_cancelled(booking, now)
         return booking
 
 
@@ -200,6 +206,7 @@ def reschedule(
                 kind="same_slot",
                 message="Оберіть інший слот",
             )
+        extend_horizon(now)
         new_slot = store.slots.get(new_slot_id)
         if new_slot is None:
             raise ApiProblem(ErrorCode.SLOT_NOT_FOUND)
@@ -211,7 +218,7 @@ def reschedule(
         old.cancelled_by = student.id
         old.cancellation_kind = CancellationKind.RESCHEDULED
         old.rescheduled_to_id = new.id
-        store.reminders.pop(old.id, None)
+        notification_service.booking_cancelled(old, now)
         return new
 
 

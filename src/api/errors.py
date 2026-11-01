@@ -40,7 +40,12 @@ MAX_FIELD_ERRORS = 20  # не віддаємо необмежений списо
 
 
 class ErrorCode(StrEnum):
-    """Машинні коди помилок. Значення не перейменовуються: це частина контракту."""
+    """Стабільні машинні коди відмов API."""
+
+    EMAIL_ALREADY_REGISTERED = "EMAIL_ALREADY_REGISTERED"
+    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
+    LOGIN_THROTTLED = "LOGIN_THROTTLED"
+    CSRF_FAILED = "CSRF_FAILED"
 
     VALIDATION_FAILED = "VALIDATION_FAILED"
     BAD_REQUEST = "BAD_REQUEST"
@@ -52,6 +57,12 @@ class ErrorCode(StrEnum):
     RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"
     SLOT_NOT_FOUND = "SLOT_NOT_FOUND"
     BOOKING_NOT_FOUND = "BOOKING_NOT_FOUND"
+    USER_NOT_FOUND = "USER_NOT_FOUND"
+    BLOCK_NOT_FOUND = "BLOCK_NOT_FOUND"
+    TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND"
+    SLOT_WITHDRAWN = "SLOT_WITHDRAWN"
+    LAST_ADMIN = "LAST_ADMIN"
+    PROVIDER_HAS_RESOURCES = "PROVIDER_HAS_RESOURCES"
     SLOT_ALREADY_BOOKED = "SLOT_ALREADY_BOOKED"
     SLOT_STARTED = "SLOT_STARTED"
     SLOT_OUT_OF_HORIZON = "SLOT_OUT_OF_HORIZON"
@@ -81,6 +92,76 @@ class ErrorSpec:
 
 
 CATALOG: dict[ErrorCode, ErrorSpec] = {
+    ErrorCode.EMAIL_ALREADY_REGISTERED: ErrorSpec(
+        409,
+        "Адреса вже зареєстрована",
+        "Увійдіть або використайте іншу адресу.",
+        "Обліковий запис із цією адресою вже існує (порівняння без регістру).",
+        "FR-003",
+    ),
+    ErrorCode.INVALID_CREDENTIALS: ErrorSpec(
+        401,
+        "Не вдалося увійти",
+        "Перевірте адресу та пароль.",
+        "Неправильна адреса або пароль.",
+        "FR-005",
+    ),
+    ErrorCode.LOGIN_THROTTLED: ErrorSpec(
+        429,
+        "Забагато спроб входу",
+        "Зачекайте час, указаний у Retry-After.",
+        "Тимчасово обмежено спроби входу. Спробуйте пізніше.",
+        "FR-006",
+    ),
+    ErrorCode.CSRF_FAILED: ErrorSpec(
+        403,
+        "Не пройдено перевірку запиту",
+        "Оновіть сторінку та передайте чинний X-CSRF-Token.",
+        "Джерело запиту або CSRF-токен не пройшли перевірку.",
+        "SEC-002",
+    ),
+    ErrorCode.TEMPLATE_NOT_FOUND: ErrorSpec(
+        404,
+        "Шаблон не знайдено",
+        "Перевірте ресурс та ідентифікатор шаблону.",
+        "На власному ресурсі немає шаблону з цим UUID.",
+        "FR-012",
+    ),
+    ErrorCode.SLOT_WITHDRAWN: ErrorSpec(
+        409,
+        "Слот відкликано зміною розкладу",
+        "Оберіть інший слот із поточного пошуку.",
+        "Незаброньований слот перестав належати чинному шаблону; історія збережена.",
+        "FR-012",
+    ),
+    ErrorCode.USER_NOT_FOUND: ErrorSpec(
+        404,
+        "Користувача не знайдено",
+        "Перевірте ідентифікатор користувача.",
+        "Адміністратор змінює ролі облікового запису, якого немає.",
+        "FR-062",
+    ),
+    ErrorCode.BLOCK_NOT_FOUND: ErrorSpec(
+        404,
+        "Блокування не знайдено",
+        "Перевірте ресурс та ідентифікатор блокування.",
+        "На власному ресурсі немає блокування з указаним ідентифікатором.",
+        "FR-013",
+    ),
+    ErrorCode.LAST_ADMIN: ErrorSpec(
+        409,
+        "Це останній адміністратор",
+        "Спершу призначте іншого адміністратора.",
+        "Спроба зняти роль admin з останнього користувача з цією роллю.",
+        "FR-063",
+    ),
+    ErrorCode.PROVIDER_HAS_RESOURCES: ErrorSpec(
+        409,
+        "Провайдер має призначені ресурси",
+        "Спершу перепризначте його ресурси.",
+        "Відкликання ролі provider порушило б інваріант INV-15; рішення AQ-02.",
+        "FR-062, INV-15",
+    ),
     ErrorCode.VALIDATION_FAILED: ErrorSpec(
         422,
         "Некоректні дані запиту",
@@ -246,8 +327,8 @@ CATALOG: dict[ErrorCode, ErrorSpec] = {
         503,
         "Тимчасовий конфлікт, спробуйте ще раз",
         "Повторіть запит через кілька секунд (див. заголовок Retry-After).",
-        "Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п. 6). "
-        "У заглушках Лаб 4 не виникає, але є частиною контракту.",
+        "Транзакцію не завершено через недоступність БД, конфлікт блокувань або "
+        "відмову обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.",
         "REL-001",
     ),
     ErrorCode.INTERNAL_ERROR: ErrorSpec(
@@ -507,6 +588,12 @@ _EXAMPLE_DETAILS: dict[ErrorCode, dict[str, Any]] = {
     },
 }
 _STATUS_HEADERS: dict[int, dict[str, Any]] = {
+    429: {
+        "Retry-After": {
+            "description": "Залишок тимчасового обмеження входу в секундах.",
+            "schema": {"type": "integer"},
+        }
+    },
     401: {
         "WWW-Authenticate": {
             "description": "Схема автентифікації: Bearer.",

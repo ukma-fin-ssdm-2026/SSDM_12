@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
-from api.enums import ResourceType
+from api.enums import ResourceType, Role
 from api.errors import ApiProblem, ErrorCode
 from api.pagination import decode_cursor, encode_cursor
 from api.policy import HORIZON, KYIV
@@ -14,6 +14,7 @@ from api.schemas.slots import SlotCreate, SlotDetail, SlotOut
 from api.security import CurrentUser
 from api.slot_rules import kyiv_day_bounds
 from api.stubs.store import ResourceRec, SlotRec, store
+from api.stubs.template_service import extend_horizon
 
 
 def _minutes(slot: SlotRec) -> int:
@@ -38,14 +39,17 @@ def to_out(slot: SlotRec) -> SlotOut:
 
 def to_detail(slot: SlotRec, now: datetime) -> SlotDetail:
     """Схема одного слота з ознакою `available` на момент `now`."""
-    return SlotDetail(**to_out(slot).model_dump(), available=is_free(slot, now))
+    with store.lock:
+        extend_horizon(now)
+        return SlotDetail(**to_out(slot).model_dump(), available=is_free(slot, now))
 
 
 def is_free(slot: SlotRec, now: datetime) -> bool:
     """Вільний слот (FR-020, FR-023): у межах горизонту, ще не почався,
     не зайнятий і не заблокований."""
     return (
-        now < slot.starts_at <= now + HORIZON
+        slot.is_active
+        and now < slot.starts_at <= now + HORIZON
         and store.confirmed_booking_for_slot(slot.id) is None
         and not store.is_blocked(slot)
     )
@@ -123,22 +127,24 @@ def search_free(
     bounds = kyiv_day_bounds(day) if day is not None else None
     after = decode_cursor(cursor) if cursor else None
     found = []
-    for slot in store.slots.values():
-        resource = store.resources[slot.resource_id]
-        if not is_free(slot, now):
-            continue
-        if not _matches_filters(
-            slot,
-            resource,
-            provider_id=provider_id,
-            resource_type=resource_type,
-            bounds=bounds,
-            min_capacity=min_capacity,
-        ):
-            continue
-        if not _is_after_cursor(slot, after):
-            continue
-        found.append(slot)
+    with store.lock:
+        extend_horizon(now)
+        for slot in store.slots.values():
+            resource = store.resources[slot.resource_id]
+            if not is_free(slot, now):
+                continue
+            if not _matches_filters(
+                slot,
+                resource,
+                provider_id=provider_id,
+                resource_type=resource_type,
+                bounds=bounds,
+                min_capacity=min_capacity,
+            ):
+                continue
+            if not _is_after_cursor(slot, after):
+                continue
+            found.append(slot)
     found.sort(key=lambda s: (s.starts_at, str(s.id)))
     return _cut_page(found, limit)
 
@@ -156,6 +162,9 @@ def create_slot(
 ) -> SlotRec:
     """Разовий слот (FR-010, FR-011): лише на власному ресурсі, у майбутньому, без перетинів."""
     with store.lock:
+        user = store.users.get(actor.id)
+        if user is None or Role.PROVIDER not in user.roles:
+            raise ApiProblem(ErrorCode.FORBIDDEN_ROLE)
         resource = store.resources.get(resource_id)
         if resource is None:
             raise ApiProblem(ErrorCode.RESOURCE_NOT_FOUND)
@@ -169,7 +178,10 @@ def create_slot(
             (
                 s
                 for s in store.slots.values()
-                if s.resource_id == resource_id and s.starts_at < ends_at and starts_at < s.ends_at
+                if s.is_active
+                and s.resource_id == resource_id
+                and s.starts_at < ends_at
+                and starts_at < s.ends_at
             ),
             None,
         )

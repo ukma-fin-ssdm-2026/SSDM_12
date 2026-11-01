@@ -1,28 +1,28 @@
-"""Автентифікація й авторизація в API (Лаб 4: заглушка автентифікації).
+"""Cookie-сесії DD-06 та deny-by-default авторизація.
 
-Цільова схема — сесія з непрозорим токеном у cookie HttpOnly (DD-06). Swagger UI не
-вміє надсилати cookie з діалогу «Authorize», а Керівник якості перевіряє валідацію
-кожної кінцевої точки саме через Swagger UI. Тому в Лаб 4 автентифікація — демо-токени
-в заголовку `Authorization: Bearer demo-<роль>`. Уся логіка в одному місці:
-перехід на сесії змінить цей модуль, а специфікація оновиться сама.
-
-Авторизація вже справжня: deny-by-default через `require_roles` на кожному
-захищеному маршруті (FR-007, THR-04); власника об'єкта перевіряють сервіси (THR-03).
+HttpOnly-токен перевіряється за хешем у сховищі, ролі читаються на кожен запит.
+POST/PUT/PATCH/DELETE з cookie вимагають прив'язаного X-CSRF-Token й точного Origin.
+Тимчасовий demoBearer DD-18 працює лише за явного UNISLOT_DEMO_AUTH=1.
 """
 
 from __future__ import annotations
 
+import hmac
 import uuid
 from collections.abc import Callable
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.exc import DBAPIError
 
+from api import clock
 from api.config import get_settings
 from api.enums import Role
 from api.errors import ApiProblem, ErrorCode
+from api.services import auth_service
 from api.stubs.store import store
 
 _WWW_AUTHENTICATE = {"WWW-Authenticate": 'Bearer realm="unislot"'}
@@ -33,9 +33,52 @@ demo_bearer = HTTPBearer(
     description=(
         "**Лаб 4 — автентифікація-заглушка.** Передайте один із демо-токенів: "
         "`demo-student`, `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`. "
-        "Цільова схема — сесія в cookie HttpOnly (DD-06), з'явиться разом із модулем Auth."
+        "Основна схема — sessionCookie після /auth/login; demoBearer лише для локального демо."
     ),
 )
+session_cookie = APIKeyCookie(
+    name=auth_service.SESSION_COOKIE,
+    auto_error=False,
+    scheme_name="sessionCookie",
+    description="Cookie-сесія з /auth/login (DD-06).",
+)
+
+
+def check_origin(request: Request) -> None:
+    """Приймає лише власний Origin або явно дозволений UI; не довіряє subdomain."""
+    origin = request.headers.get("origin")
+    allowed = {str(request.base_url).rstrip("/"), *get_settings().cors_origins}
+    if (origin is not None and origin not in allowed) or (
+        origin is None and request.headers.get("sec-fetch-site") == "cross-site"
+    ):
+        raise ApiProblem(ErrorCode.CSRF_FAILED)
+
+
+def check_public_auth_request(request: Request) -> None:
+    """Login CSRF: точний Origin і JSON-only; HTML-форма не є запитом входу."""
+    check_origin(request)
+    if request.headers.get("content-type", "").split(";", 1)[0].strip() != "application/json":
+        raise ApiProblem(ErrorCode.CSRF_FAILED)
+
+
+def _session_identity(request: Request, token: str):
+    with nullcontext() if store.persistent else store.lock:
+        resolved = (
+            store.resolve_session(token, clock.utc_now())
+            if store.persistent
+            else auth_service.resolve_session(token, clock.utc_now())
+        )
+        if resolved is None:
+            raise ApiProblem(ErrorCode.AUTH_REQUIRED, headers=_WWW_AUTHENTICATE)
+        user, session = resolved
+        if request.method not in {"GET", "HEAD", "OPTIONS"}:
+            check_origin(request)
+            csrf = request.headers.get("x-csrf-token", "")
+            if len(csrf) != 43 or not hmac.compare_digest(
+                auth_service.token_digest(csrf), session.csrf_hash
+            ):
+                raise ApiProblem(ErrorCode.CSRF_FAILED)
+        return user
 
 
 @dataclass(frozen=True)
@@ -51,21 +94,18 @@ class CurrentUser:
 def get_current_user(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(demo_bearer)],
+    token: Annotated[str | None, Depends(session_cookie)],
 ) -> CurrentUser:
     """Повертає користувача за токеном або відповідає 401 (AUTH_REQUIRED)."""
-    if credentials is None:
-        raise ApiProblem(
-            ErrorCode.AUTH_REQUIRED,
-            "Запит без заголовка Authorization: Bearer.",
-            headers=_WWW_AUTHENTICATE,
-        )
-    if not get_settings().demo_auth_enabled:
-        raise ApiProblem(
-            ErrorCode.AUTH_REQUIRED,
-            "Демо-автентифікацію вимкнено на цьому сервері.",
-            headers=_WWW_AUTHENTICATE,
-        )
-    user = store.user_by_token(credentials.credentials)
+    try:
+        if token is not None:
+            user = _session_identity(request, token)
+        elif credentials is not None and get_settings().demo_auth_enabled:
+            user = store.user_by_token(credentials.credentials)
+        else:
+            raise ApiProblem(ErrorCode.AUTH_REQUIRED, headers=_WWW_AUTHENTICATE)
+    except DBAPIError:
+        raise ApiProblem(ErrorCode.TRANSIENT_CONFLICT, headers={"Retry-After": "1"}) from None
     if user is None:
         raise ApiProblem(ErrorCode.AUTH_REQUIRED, "Невідомий токен.", headers=_WWW_AUTHENTICATE)
     request.state.user_id = str(user.id)  # для журналу запитів (middleware)

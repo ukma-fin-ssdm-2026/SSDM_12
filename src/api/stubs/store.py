@@ -22,6 +22,9 @@ from typing import Any
 from api import clock
 from api.enums import BookingStatus, CancellationKind, ResourceType, Role
 from api.policy import DEFAULT_BOOKING_LIMIT, DEFAULT_CANCEL_WINDOW, KYIV
+from unislot.auth.domain.sessions import Credential, LoginAttempt, Session
+from unislot.availability.domain.templates import WeeklyPattern
+from unislot.notifications.domain.model import Notification
 
 
 def fixture_id(name: str) -> uuid.UUID:
@@ -93,6 +96,9 @@ class UserRec:
     full_name: str
     email: str
     roles: frozenset[Role]
+    is_active: bool = True
+    # Resolve through the module each time so tests can replace clock.utc_now.
+    created_at: datetime = field(default_factory=lambda: clock.utc_now())  # noqa: PLW0108
 
 
 @dataclass
@@ -114,6 +120,17 @@ class SlotRec:
     resource_id: uuid.UUID
     starts_at: datetime
     ends_at: datetime
+    template_id: uuid.UUID | None = None
+    is_active: bool = True  # Відкликаний слот з історією бронювань зберігаємо, але не продаємо.
+
+
+@dataclass
+class TemplateRec:
+    """Шаблон доступності власного ресурсу; час у pattern — за Києвом."""
+
+    id: uuid.UUID
+    resource_id: uuid.UUID
+    pattern: WeeklyPattern
 
 
 @dataclass
@@ -162,12 +179,20 @@ class StubStore:
     users: dict[uuid.UUID, UserRec] = field(default_factory=dict)
     resources: dict[uuid.UUID, ResourceRec] = field(default_factory=dict)
     slots: dict[uuid.UUID, SlotRec] = field(default_factory=dict)
+    templates: dict[uuid.UUID, TemplateRec] = field(default_factory=dict)
     blocks: dict[uuid.UUID, TimeBlockRec] = field(default_factory=dict)
     bookings: dict[uuid.UUID, BookingRec] = field(default_factory=dict)
     reminders: dict[uuid.UUID, datetime] = field(default_factory=dict)  # FR-051, моменти в UTC
     policy: PolicyRec | None = None
+    policies: dict[uuid.UUID, PolicyRec] = field(default_factory=dict)
     audit: list[dict[str, Any]] = field(default_factory=list)  # FR-066, лише для заглушки
     idempotency: dict[tuple[uuid.UUID, str], dict[str, Any]] = field(default_factory=dict)
+    notifications: dict[uuid.UUID, Notification] = field(default_factory=dict)
+    deliveries: dict[uuid.UUID, dict[str, Any]] = field(default_factory=dict)
+    persistent: bool = False
+    credentials: dict[uuid.UUID, Credential] = field(default_factory=dict)
+    sessions: dict[str, Session] = field(default_factory=dict)
+    login_attempts: dict[str, LoginAttempt] = field(default_factory=dict)
 
     # --- Наповнення ------------------------------------------------------------------
 
@@ -179,15 +204,23 @@ class StubStore:
             self.users.clear()
             self.resources.clear()
             self.slots.clear()
+            self.templates.clear()
             self.blocks.clear()
             self.bookings.clear()
             self.reminders.clear()
             self.audit.clear()
             self.idempotency.clear()
+            self.policies.clear()
+            self.notifications.clear()
+            self.deliveries.clear()
+            self.credentials.clear()
+            self.sessions.clear()
+            self.login_attempts.clear()
             self._fill_users()
             self._fill_resources()
             self._fill_slots(now, today)
             self.policy = PolicyRec(Ids.POLICY_V1, DEFAULT_BOOKING_LIMIT, DEFAULT_CANCEL_WINDOW)
+            self.policies[self.policy.id] = self.policy
             self._fill_bookings(now, self.policy)
 
     def _fill_users(self) -> None:
@@ -198,7 +231,9 @@ class StubStore:
             (Ids.PROVIDER_2, "Олег Бондар", "oleh.bondar@unislot.example", {Role.PROVIDER}),
             (Ids.ADMIN, "Марія Ткаченко", "mariia.tkachenko@unislot.example", {Role.ADMIN}),
         ):
-            self.users[uid] = UserRec(uid, name, email, frozenset(roles))
+            # Historical fixtures have no real owner or known password. Only explicit
+            # demoBearer mode may impersonate them; password sessions cannot.
+            self.users[uid] = UserRec(uid, name, email, frozenset(roles), is_active=False)
 
     def _fill_resources(self) -> None:
         for rec in (
@@ -309,5 +344,32 @@ class StubStore:
         )
 
 
-store = StubStore()
+class StoreProxy:
+    """Зберігає імпорти сервісів стабільними, обираючи адаптер під час запуску."""
+
+    def __init__(self) -> None:
+        """У тестах і без DATABASE_URL працює явний демо-адаптер."""
+        object.__setattr__(self, "_backend", StubStore())
+
+    def __getattr__(self, name: str) -> Any:
+        """Читає атрибут поточного адаптера."""
+        return getattr(self._backend, name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Записує атрибут у той самий адаптер, що використовує транзакція."""
+        setattr(self._backend, name, value)
+
+    def set_backend(self, backend: StubStore) -> StubStore:
+        """Повертає попередній адаптер для ізольованого lifespan/тесту."""
+        previous = self._backend
+        object.__setattr__(self, "_backend", backend)
+        return previous
+
+    def user_by_token(self, token: str) -> UserRec | None:
+        """Ролі читаються зі сховища на кожну автентифікацію."""
+        with self._backend.lock:
+            return self._backend.user_by_token(token)
+
+
+store = StoreProxy()
 store.reset()
