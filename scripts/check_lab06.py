@@ -15,6 +15,20 @@ from defusedxml import ElementTree
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "docs/testing/lab06"
 PEOPLE = ("denys_patselia", "akseniia_kozulina", "pavlo_dziubak", "nykyta_babakov")
+EXPECTED_DEBUG_STAGES = (("red", 1), ("green", 0))
+
+
+def debug_stages_valid(stages: object) -> bool:
+    """Перевіряє назви й цілочисельні коди двох стадій налагодження."""
+    if not isinstance(stages, list) or len(stages) != len(EXPECTED_DEBUG_STAGES):
+        return False
+    return all(
+        isinstance(stage, dict)
+        and stage.get("stage") == name
+        and type(stage.get("exit_code")) is int
+        and stage["exit_code"] == exit_code
+        for stage, (name, exit_code) in zip(stages, EXPECTED_DEBUG_STAGES, strict=True)
+    )
 
 
 def main() -> int:
@@ -43,7 +57,7 @@ def main() -> int:
             if actual.hexdigest() != expected:
                 errors.append(f"report stale after source change: {name}")
         debug = json.loads((REPORT / "evidence/debug-results.json").read_text(encoding="utf-8"))
-        if [r["exit_code"] for r in debug["stages"]] != [1, 0]:
+        if not debug_stages_valid(debug.get("stages")):
             errors.append("debug challenge must show a failing then passing test")
         if not debug["working_source_unchanged"]:
             errors.append("debug challenge did not restore working source")
