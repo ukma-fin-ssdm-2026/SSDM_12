@@ -96,7 +96,7 @@ _SLOT_STATE_CONFLICTS = (
         ),
     },
 )
-@transactional(direct=True)
+@transactional(direct=True, retry_deadlock=True)
 def create_booking(
     payload: Annotated[
         BookingCreate,

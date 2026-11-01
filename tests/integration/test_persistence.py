@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import os
+import secrets
 import subprocess
 import sys
 import uuid
@@ -13,6 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, insert, select
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import TimeoutError as PoolTimeout
 
 from api.enums import Role
 from api.infrastructure import tables as t
@@ -259,19 +261,28 @@ def test_audit_failure_rolls_back_admin_change(database, client):
         assert store.resources[Ids.RES_DB_CONSULT].name == original
 
 
+@pytest.mark.parametrize("cookie", [False, True])
+@pytest.mark.parametrize("failure", ["driver", "pool"])
 def test_database_connect_failure_is_a_sanitized_api_response_and_lock_recovers(
-    database, client, monkeypatch
+    database, client, monkeypatch, cookie, failure
 ):
     connect = database.backend.engine.connect
 
     def unavailable():
+        if failure == "pool":
+            raise PoolTimeout("test connection failure")
         raise DBAPIError(None, None, RuntimeError("test connection failure"))
 
     monkeypatch.setattr(database.backend.engine, "connect", unavailable)
+    if cookie:
+        client.cookies.set("unislot_session", secrets.token_urlsafe(32))
     response = client.get("/api/v1/auth/me", headers=STUDENT)
     assert response.status_code == 503, response.text
     assert "test connection failure" not in response.text
+    assert response.json()["code"] == "TRANSIENT_CONFLICT"
+    assert response.headers["Retry-After"] == "1"
     monkeypatch.setattr(database.backend.engine, "connect", connect)
+    client.cookies.clear()
     assert client.get("/api/v1/auth/me", headers=STUDENT).status_code == 200
 
 

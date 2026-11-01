@@ -1,6 +1,8 @@
 """Адресні SQL-проєкції сесії й пошуку без глобального знімка або кешу ролей."""
 
-from sqlalchemy import exists, func, select, tuple_
+from functools import lru_cache
+
+from sqlalchemy import DateTime, bindparam, exists, func, select, tuple_
 
 from api.enums import Role
 from api.infrastructure import tables as t
@@ -14,14 +16,13 @@ from api.stubs.store import UserRec
 from unislot.auth.domain.sessions import Session
 
 
-def session_identity(engine, token, now):
-    """Один SELECT, лише незавершена сесія активного користувача та поточні ролі."""
-    if not auth_service._TOKEN.fullmatch(token):
-        return None
+@lru_cache(maxsize=1)
+def _session_query():
+    """Кешується лише SQL-вираз: значення сесії та ролей щоразу читаються з БД."""
     joined = t.sessions.join(t.users, t.users.c.id == t.sessions.c.user_id).outerjoin(
         t.roles, t.roles.c.user_id == t.users.c.id
     )
-    statement = (
+    return (
         select(
             t.sessions,
             t.users.c.full_name,
@@ -31,14 +32,28 @@ def session_identity(engine, token, now):
         )
         .select_from(joined)
         .where(
-            t.sessions.c.token_hash == bytes.fromhex(auth_service.token_digest(token)),
-            t.sessions.c.expires_at > now,
+            t.sessions.c.token_hash == bindparam("token_hash"),
+            t.sessions.c.expires_at > bindparam("now", type_=DateTime(timezone=True)),
             t.users.c.is_active,
         )
         .group_by(t.sessions.c.id, t.users.c.id)
     )
-    with engine.connect() as conn:
-        row = conn.execute(statement).mappings().one_or_none()
+
+
+def session_identity(engine, token, now):
+    """Один SELECT, лише незавершена сесія активного користувача та поточні ролі."""
+    if not auth_service._TOKEN.fullmatch(token):
+        return None
+    # A single read keeps its statement snapshot without a separate BEGIN/ROLLBACK.
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        row = (
+            conn.execute(
+                _session_query(),
+                {"token_hash": bytes.fromhex(auth_service.token_digest(token)), "now": now},
+            )
+            .mappings()
+            .one_or_none()
+        )
     if row is None:
         return None
     user = UserRec(
@@ -106,7 +121,7 @@ def search_slots(engine, *, now, provider_id, resource_type, day, min_capacity, 
     if cursor:
         start, ident = decode_cursor(cursor)
         query = query.where(tuple_(t.slots.c.starts_at, t.slots.c.id) > tuple_(start, ident))
-    with engine.connect() as conn:
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
         rows = (
             conn.execute(query.order_by(t.slots.c.starts_at, t.slots.c.id).limit(limit + 1))
             .mappings()

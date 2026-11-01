@@ -28,6 +28,7 @@ from sqlalchemy import create_engine, func, insert, select  # noqa: E402
 
 from api.infrastructure import tables as t  # noqa: E402
 from api.infrastructure.passwords import UNUSABLE_HASH  # noqa: E402
+from api.infrastructure.postgres import POOL_SIZE  # noqa: E402
 from api.services.auth_service import token_digest  # noqa: E402
 from scripts.manage_db import migrate  # noqa: E402
 from scripts.postgres_dev import LocalCluster  # noqa: E402
@@ -165,7 +166,7 @@ def measure(client: httpx.Client, jobs: list[dict], concurrency: int) -> dict:
     }
 
 
-def run(output: Path, search_requests: int) -> dict:
+def run(output: Path, search_requests: int, api_workers: int = 1) -> dict:
     """Створює власний кластер, запускає API, зупиняє й видаляє лише власні дані."""
     output.mkdir(parents=True, exist_ok=True)
     directory = ROOT / "pgdata" / ("load-" + uuid.uuid4().hex)
@@ -208,6 +209,8 @@ def run(output: Path, search_requests: int) -> dict:
                     "--port",
                     str(port),
                     "--no-access-log",
+                    "--workers",
+                    str(api_workers),
                 ],
                 cwd=ROOT,
                 env=env,
@@ -248,6 +251,11 @@ def run(output: Path, search_requests: int) -> dict:
                     "slots": 5000,
                     "users": 200,
                     "booking_warmups": 10,
+                    "client": "httpx2 sync; synchronized thread waves; full response body",
+                    "percentile": "nearest rank",
+                    "api_worker_threads": 40,
+                    "api_processes": api_workers,
+                    "database_pool_per_process": POOL_SIZE,
                 }
                 scenarios = [
                     (
@@ -287,6 +295,23 @@ def run(output: Path, search_requests: int) -> dict:
                         100,
                         None,
                     ),
+                    (
+                        "different_slots_idempotent",
+                        [
+                            {
+                                "method": "POST",
+                                "url": "/api/v1/bookings",
+                                "headers": {
+                                    **headers(i + 98),
+                                    "Idempotency-Key": f"load-idempotency-{i}",
+                                },
+                                "json": {"slot_id": str(data["slots"][300 + i])},
+                            }
+                            for i in range(100)
+                        ],
+                        100,
+                        600,
+                    ),
                 ]
                 for name, jobs, count, target in scenarios:
                     if name == "different_slots":
@@ -305,7 +330,7 @@ def run(output: Path, search_requests: int) -> dict:
                         {"200": search_requests}
                         if name == "search"
                         else {"201": 100}
-                        if name == "different_slots"
+                        if name in {"different_slots", "different_slots_idempotent"}
                         else {"201": 1, "409": 99}
                     )
                     measured["passed"] = (
@@ -333,9 +358,24 @@ def run(output: Path, search_requests: int) -> dict:
                             )
                         )
                     result["same_slot"]["passed"] &= result["same_slot"]["confirmed_rows"] == 1
+                    with engine.connect() as conn:
+                        result["persisted"] = {
+                            "bookings": conn.scalar(select(func.count()).select_from(t.bookings)),
+                            "notifications": conn.scalar(
+                                select(func.count()).select_from(t.notifications)
+                            ),
+                            "idempotency_keys": conn.scalar(
+                                select(func.count()).select_from(t.idempotency)
+                            ),
+                        }
                 finally:
                     engine.dispose()
                 result["passed"] = all(result[name]["passed"] for name, *_ in scenarios)
+                result["passed"] &= result["persisted"] == {
+                    "bookings": 211,
+                    "notifications": 633,
+                    "idempotency_keys": 100,
+                }
                 (output / "results.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
                 return result
     finally:
@@ -365,10 +405,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--search-requests", type=int, default=2000)
+    parser.add_argument("--api-workers", type=int, choices=(1, 2), default=1)
     args = parser.parse_args()
     if args.search_requests < 50 or args.search_requests % 50:
         parser.error("search-requests must be a positive multiple of 50")
-    return 0 if run(args.output, args.search_requests)["passed"] else 1
+    return 0 if run(args.output, args.search_requests, args.api_workers)["passed"] else 1
 
 
 if __name__ == "__main__":

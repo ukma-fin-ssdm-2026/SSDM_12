@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hmac
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Annotated
@@ -17,6 +17,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import TimeoutError as PoolTimeout
 
 from api import clock
 from api.config import get_settings
@@ -89,6 +90,7 @@ class CurrentUser:
     full_name: str
     email: str
     roles: frozenset[Role]
+    is_demo: bool = False
 
 
 def get_current_user(
@@ -97,27 +99,29 @@ def get_current_user(
     token: Annotated[str | None, Depends(session_cookie)],
 ) -> CurrentUser:
     """Повертає користувача за токеном або відповідає 401 (AUTH_REQUIRED)."""
+    is_demo = False
     try:
         if token is not None:
             user = _session_identity(request, token)
         elif credentials is not None and get_settings().demo_auth_enabled:
             user = store.user_by_token(credentials.credentials)
+            is_demo = True
         else:
             raise ApiProblem(ErrorCode.AUTH_REQUIRED, headers=_WWW_AUTHENTICATE)
-    except DBAPIError:
+    except (DBAPIError, PoolTimeout):
         raise ApiProblem(ErrorCode.TRANSIENT_CONFLICT, headers={"Retry-After": "1"}) from None
     if user is None:
         raise ApiProblem(ErrorCode.AUTH_REQUIRED, "Невідомий токен.", headers=_WWW_AUTHENTICATE)
     request.state.user_id = str(user.id)  # для журналу запитів (middleware)
-    return CurrentUser(user.id, user.full_name, user.email, user.roles)
+    return CurrentUser(user.id, user.full_name, user.email, user.roles, is_demo=is_demo)
 
 
-def require_roles(*roles: Role) -> Callable[[CurrentUser], CurrentUser]:
+def require_roles(*roles: Role) -> Callable[[CurrentUser], Awaitable[CurrentUser]]:
     """Залежність маршруту: пропускає лише користувачів з однією з ролей (deny-by-default)."""
     allowed = frozenset(roles)
     names = ", ".join(sorted(r.value for r in allowed))
 
-    def dependency(user: Annotated[CurrentUser, Depends(get_current_user)]) -> CurrentUser:
+    async def dependency(user: Annotated[CurrentUser, Depends(get_current_user)]) -> CurrentUser:
         if not user.roles & allowed:
             raise ApiProblem(ErrorCode.FORBIDDEN_ROLE, f"Операція доступна ролям: {names}.")
         return user

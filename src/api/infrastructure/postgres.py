@@ -19,6 +19,7 @@ from api.infrastructure.security import check_runtime
 from api.stubs.store import StubStore
 
 LOCK_KEY = 7120001
+POOL_SIZE = 32
 
 
 class DatabaseLock:
@@ -98,6 +99,11 @@ class PostgresStore(StubStore):
             url,
             hide_parameters=True,
             pool_pre_ping=True,
+            isolation_level="READ COMMITTED",
+            skip_autocommit_rollback=True,
+            pool_size=POOL_SIZE,
+            max_overflow=0,
+            pool_timeout=5,
             connect_args={
                 "connect_timeout": 5,
                 "options": "-c timezone=UTC -c lock_timeout=5000 -c statement_timeout=15000",
