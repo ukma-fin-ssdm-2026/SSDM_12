@@ -19,7 +19,12 @@ PEOPLE = ("denys_patselia", "akseniia_kozulina", "pavlo_dziubak", "nykyta_babako
 
 def debug_stages_valid(stages: object) -> bool:
     """Перевіряє послідовність стадій налагодження."""
-    return False
+    return (
+        isinstance(stages, list)
+        and len(stages) == 2
+        and all(isinstance(stage, dict) for stage in stages)
+        and [stage.get("exit_code") for stage in stages] == [1, 0]
+    )
 
 
 def main() -> int:
