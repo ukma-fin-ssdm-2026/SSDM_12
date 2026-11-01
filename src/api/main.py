@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import mimetypes
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -135,6 +136,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Під час старту записує специфікацію в docs/api/ (цикл Code-First)."""
     settings = get_settings()
     backend = previous = None
+    previous_interval = sys.getswitchinterval()
+    if sys.platform == "win32":
+        sys.setswitchinterval(settings.thread_switch_interval_ms / 1000)
     try:
         if settings.database_url:
             from api.infrastructure.postgres import PostgresStore
@@ -146,6 +150,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 logger.info("OpenAPI згенеровано з коду → %s", path)
         yield
     finally:
+        if sys.platform == "win32":
+            sys.setswitchinterval(previous_interval)
         if backend is not None:
             store.set_backend(previous)
             backend.close()

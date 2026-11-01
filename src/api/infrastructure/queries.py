@@ -2,14 +2,13 @@
 
 from functools import lru_cache
 
-from sqlalchemy import DateTime, bindparam, exists, func, select, tuple_
+from sqlalchemy import DateTime, Integer, bindparam, exists, func, select, tuple_
 
 from api.enums import Role
 from api.infrastructure import tables as t
-from api.pagination import CursorPagination, decode_cursor, encode_cursor
+from api.pagination import decode_cursor, encode_cursor
 from api.policy import HORIZON
-from api.schemas.common import PersonSummary, ResourceSummary
-from api.schemas.slots import SlotList, SlotOut
+from api.schemas.slots import SlotList
 from api.services import auth_service
 from api.slot_rules import kyiv_day_bounds
 from api.stubs.store import UserRec
@@ -74,8 +73,9 @@ def session_identity(engine, token, now):
     return user, session
 
 
-def search_slots(engine, *, now, provider_id, resource_type, day, min_capacity, limit, cursor):
-    """Фільтри та LIMIT у PostgreSQL; тільки публічні поля ресурсу й провайдера."""
+@lru_cache(maxsize=32)
+def _search_query(filters: frozenset[str]):
+    """Only 32 query shapes; all timestamps, filters and cursors are bind parameters."""
     query = (
         select(
             t.slots.c.id,
@@ -93,8 +93,8 @@ def search_slots(engine, *, now, provider_id, resource_type, day, min_capacity, 
         )
         .where(
             t.slots.c.is_active,
-            t.slots.c.starts_at > now,
-            t.slots.c.starts_at <= now + HORIZON,
+            t.slots.c.starts_at > bindparam("now", type_=DateTime(timezone=True)),
+            t.slots.c.starts_at <= bindparam("horizon", type_=DateTime(timezone=True)),
             ~exists(
                 select(t.bookings.c.id).where(
                     t.bookings.c.slot_id == t.slots.c.id, t.bookings.c.status == "confirmed"
@@ -109,42 +109,78 @@ def search_slots(engine, *, now, provider_id, resource_type, day, min_capacity, 
             ),
         )
     )
-    if provider_id is not None:
-        query = query.where(t.resources.c.provider_id == provider_id)
-    if resource_type is not None:
-        query = query.where(t.resources.c.type == resource_type.value)
-    if day is not None:
-        start, end = kyiv_day_bounds(day)
-        query = query.where(t.slots.c.starts_at >= start, t.slots.c.starts_at < end)
-    if min_capacity is not None:
-        query = query.where(t.resources.c.type == "room", t.resources.c.capacity >= min_capacity)
-    if cursor:
-        start, ident = decode_cursor(cursor)
-        query = query.where(tuple_(t.slots.c.starts_at, t.slots.c.id) > tuple_(start, ident))
-    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-        rows = (
-            conn.execute(query.order_by(t.slots.c.starts_at, t.slots.c.id).limit(limit + 1))
-            .mappings()
-            .all()
+    if "provider_id" in filters:
+        query = query.where(
+            t.resources.c.provider_id == bindparam("provider_id", type_=t.users.c.id.type)
         )
-    more, rows = len(rows) > limit, rows[:limit]
-    return SlotList(
-        items=[
-            SlotOut(
-                id=r["id"],
-                starts_at=r["starts_at"],
-                ends_at=r["ends_at"],
-                duration_minutes=int((r["ends_at"] - r["starts_at"]).total_seconds() // 60),
-                resource=ResourceSummary(
-                    id=r["resource_id"], name=r["name"], type=r["type"], capacity=r["capacity"]
-                ),
-                provider=PersonSummary(id=r["provider_id"], full_name=r["full_name"]),
+    if "resource_type" in filters:
+        query = query.where(t.resources.c.type == bindparam("resource_type"))
+    if "day_start" in filters:
+        query = query.where(
+            t.slots.c.starts_at >= bindparam("day_start", type_=DateTime(timezone=True)),
+            t.slots.c.starts_at < bindparam("day_end", type_=DateTime(timezone=True)),
+        )
+    if "min_capacity" in filters:
+        query = query.where(
+            t.resources.c.type == "room", t.resources.c.capacity >= bindparam("min_capacity")
+        )
+    if "cursor_id" in filters:
+        query = query.where(
+            tuple_(t.slots.c.starts_at, t.slots.c.id)
+            > tuple_(
+                bindparam("cursor_start", type_=DateTime(timezone=True)),
+                bindparam("cursor_id", type_=t.slots.c.id.type),
             )
-            for r in rows
-        ],
-        pagination=CursorPagination(
-            limit=limit,
-            has_more=more,
-            next_cursor=encode_cursor(rows[-1]["starts_at"], rows[-1]["id"]) if more else None,
-        ),
+        )
+    return query.order_by(t.slots.c.starts_at, t.slots.c.id).limit(
+        bindparam("page_size", type_=Integer)
+    )
+
+
+def search_slots(engine, *, now, provider_id, resource_type, day, min_capacity, limit, cursor):
+    """Фільтри та LIMIT у PostgreSQL; тільки публічні поля ресурсу й провайдера."""
+    parameters = {"now": now, "horizon": now + HORIZON, "page_size": limit + 1}
+    if provider_id is not None:
+        parameters["provider_id"] = provider_id
+    if resource_type is not None:
+        parameters["resource_type"] = resource_type.value
+    if day is not None:
+        parameters["day_start"], parameters["day_end"] = kyiv_day_bounds(day)
+    if min_capacity is not None:
+        parameters["min_capacity"] = min_capacity
+    if cursor:
+        parameters["cursor_start"], parameters["cursor_id"] = decode_cursor(cursor)
+    filters = frozenset(parameters).intersection(
+        {"provider_id", "resource_type", "day_start", "min_capacity", "cursor_id"}
+    )
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        rows = conn.execute(_search_query(filters), parameters).mappings().all()
+    more, rows = len(rows) > limit, rows[:limit]
+    # One recursive core validation instead of 3 Python model constructors per slot.
+    return SlotList.model_validate(
+        {
+            "items": [
+                {
+                    "id": r["id"],
+                    "starts_at": r["starts_at"],
+                    "ends_at": r["ends_at"],
+                    "duration_minutes": int((r["ends_at"] - r["starts_at"]).total_seconds() // 60),
+                    "resource": {
+                        "id": r["resource_id"],
+                        "name": r["name"],
+                        "type": r["type"],
+                        "capacity": r["capacity"],
+                    },
+                    "provider": {"id": r["provider_id"], "full_name": r["full_name"]},
+                }
+                for r in rows
+            ],
+            "pagination": {
+                "limit": limit,
+                "has_more": more,
+                "next_cursor": encode_cursor(rows[-1]["starts_at"], rows[-1]["id"])
+                if more
+                else None,
+            },
+        }
     )

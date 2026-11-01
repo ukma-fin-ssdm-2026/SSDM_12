@@ -1,0 +1,352 @@
+{
+  "date": "2026-11-01",
+  "runtime": {
+    "api_processes": 2,
+    "database_pool_per_process": 32,
+    "windows_thread_switch_interval_ms": 1,
+    "demo_auth": false,
+    "database_revision": "0005"
+  },
+  "command": "python -X utf8 scripts/load_midterm.py --search-requests 2000 --api-workers 2 --output ../local-load-results",
+  "runs": [
+    {
+      "created_at": "2026-11-01T11:18:20.640715+00:00",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "python": "3.13.13",
+      "database": "PostgreSQL 16 (native isolated cluster)",
+      "deployment": "native Windows; Docker condition not verified",
+      "slots": 5000,
+      "users": 200,
+      "booking_warmups": 10,
+      "client": "httpx2 sync; synchronized thread waves; full response body",
+      "percentile": "nearest rank",
+      "api_worker_threads": 40,
+      "api_processes": 2,
+      "database_pool_per_process": 32,
+      "search": {
+        "requests": 2000,
+        "concurrency": 50,
+        "wall_seconds": 10.145,
+        "p50_ms": 216.136,
+        "p95_ms": 274.718,
+        "max_ms": 529.965,
+        "statuses": {
+          "200": 2000
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 400,
+        "passed": true
+      },
+      "different_slots": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.521,
+        "p50_ms": 358.652,
+        "p95_ms": 405.386,
+        "max_ms": 457.612,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "same_slot": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.369,
+        "p50_ms": 238.187,
+        "p95_ms": 321.941,
+        "max_ms": 327.522,
+        "statuses": {
+          "409": 99,
+          "201": 1
+        },
+        "codes": {
+          "SLOT_ALREADY_BOOKED": 99
+        },
+        "invalid_bodies": 0,
+        "target_p95_ms": null,
+        "passed": true,
+        "confirmed_rows": 1
+      },
+      "different_slots_idempotent": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.41,
+        "p50_ms": 315.113,
+        "p95_ms": 367.581,
+        "max_ms": 378.05,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "persisted": {
+        "bookings": 211,
+        "notifications": 633,
+        "idempotency_keys": 100
+      },
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "created_at": "2026-11-01T11:18:42.970387+00:00",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "python": "3.13.13",
+      "database": "PostgreSQL 16 (native isolated cluster)",
+      "deployment": "native Windows; Docker condition not verified",
+      "slots": 5000,
+      "users": 200,
+      "booking_warmups": 10,
+      "client": "httpx2 sync; synchronized thread waves; full response body",
+      "percentile": "nearest rank",
+      "api_worker_threads": 40,
+      "api_processes": 2,
+      "database_pool_per_process": 32,
+      "search": {
+        "requests": 2000,
+        "concurrency": 50,
+        "wall_seconds": 10.753,
+        "p50_ms": 227.487,
+        "p95_ms": 285.234,
+        "max_ms": 533.154,
+        "statuses": {
+          "200": 2000
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 400,
+        "passed": true
+      },
+      "different_slots": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.551,
+        "p50_ms": 396.869,
+        "p95_ms": 487.696,
+        "max_ms": 505.62,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "same_slot": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.383,
+        "p50_ms": 256.402,
+        "p95_ms": 336.186,
+        "max_ms": 349.456,
+        "statuses": {
+          "409": 99,
+          "201": 1
+        },
+        "codes": {
+          "SLOT_ALREADY_BOOKED": 99
+        },
+        "invalid_bodies": 0,
+        "target_p95_ms": null,
+        "passed": true,
+        "confirmed_rows": 1
+      },
+      "different_slots_idempotent": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.429,
+        "p50_ms": 317.433,
+        "p95_ms": 388.557,
+        "max_ms": 398.368,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "persisted": {
+        "bookings": 211,
+        "notifications": 633,
+        "idempotency_keys": 100
+      },
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "created_at": "2026-11-01T11:19:06.667262+00:00",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "python": "3.13.13",
+      "database": "PostgreSQL 16 (native isolated cluster)",
+      "deployment": "native Windows; Docker condition not verified",
+      "slots": 5000,
+      "users": 200,
+      "booking_warmups": 10,
+      "client": "httpx2 sync; synchronized thread waves; full response body",
+      "percentile": "nearest rank",
+      "api_worker_threads": 40,
+      "api_processes": 2,
+      "database_pool_per_process": 32,
+      "search": {
+        "requests": 2000,
+        "concurrency": 50,
+        "wall_seconds": 11.743,
+        "p50_ms": 246.113,
+        "p95_ms": 337.012,
+        "max_ms": 562.137,
+        "statuses": {
+          "200": 2000
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 400,
+        "passed": true
+      },
+      "different_slots": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.489,
+        "p50_ms": 362.733,
+        "p95_ms": 434.388,
+        "max_ms": 450.463,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "same_slot": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.396,
+        "p50_ms": 268.354,
+        "p95_ms": 349.005,
+        "max_ms": 364.212,
+        "statuses": {
+          "201": 1,
+          "409": 99
+        },
+        "codes": {
+          "SLOT_ALREADY_BOOKED": 99
+        },
+        "invalid_bodies": 0,
+        "target_p95_ms": null,
+        "passed": true,
+        "confirmed_rows": 1
+      },
+      "different_slots_idempotent": {
+        "requests": 100,
+        "concurrency": 100,
+        "wall_seconds": 0.448,
+        "p50_ms": 341.525,
+        "p95_ms": 403.618,
+        "max_ms": 416.253,
+        "statuses": {
+          "201": 100
+        },
+        "codes": {},
+        "invalid_bodies": 0,
+        "target_p95_ms": 600,
+        "passed": true
+      },
+      "persisted": {
+        "bookings": 211,
+        "notifications": 633,
+        "idempotency_keys": 100
+      },
+      "passed": true,
+      "exit_code": 0
+    }
+  ],
+  "qualification": "Three consecutive native Windows runs; Docker condition and another machine not verified.",
+  "local_checks": [
+    {
+      "check": "pytest",
+      "exit_code": 0,
+      "duration_seconds": 167.31
+    },
+    {
+      "check": "ruff",
+      "exit_code": 0,
+      "duration_seconds": 0.481
+    },
+    {
+      "check": "format",
+      "exit_code": 0,
+      "duration_seconds": 0.323
+    },
+    {
+      "check": "bandit",
+      "exit_code": 0,
+      "duration_seconds": 1.852
+    },
+    {
+      "check": "requirements",
+      "exit_code": 0,
+      "duration_seconds": 0.133
+    },
+    {
+      "check": "traceability",
+      "exit_code": 0,
+      "duration_seconds": 0.289
+    },
+    {
+      "check": "architecture",
+      "exit_code": 0,
+      "duration_seconds": 1.679
+    },
+    {
+      "check": "imports",
+      "exit_code": 0,
+      "duration_seconds": 0.654
+    },
+    {
+      "check": "openapi",
+      "exit_code": 0,
+      "duration_seconds": 2.546
+    },
+    {
+      "check": "pip-check",
+      "exit_code": 0,
+      "duration_seconds": 1.24
+    },
+    {
+      "check": "pip-audit",
+      "exit_code": 0,
+      "duration_seconds": 6.636
+    },
+    {
+      "check": "whitespace",
+      "exit_code": 0,
+      "duration_seconds": 0.144
+    },
+    {
+      "check": "secrets",
+      "exit_code": 0,
+      "duration_seconds": 31.615
+    }
+  ],
+  "pytest": {
+    "passed": 684,
+    "exit_code": 0,
+    "branch_coverage_percent": 98.29418344519016,
+    "coverage_threshold_percent": 90
+  },
+  "local_upgrade": {
+    "before_revision": "0004",
+    "after_revision": "0005",
+    "row_counts_preserved": true,
+    "runtime_startup_check": true,
+    "running_state_preserved": true
+  }
+}

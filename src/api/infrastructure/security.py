@@ -37,6 +37,9 @@ def grant_runtime(conn: Connection, role: str) -> None:
     conn.exec_driver_sql(f"GRANT SELECT, INSERT ON audit_log, notification_delivery TO {name}")
     conn.exec_driver_sql(f"GRANT USAGE, SELECT ON SEQUENCE audit_log_seq_seq TO {name}")
     conn.exec_driver_sql("REVOKE ALL ON audit_log FROM PUBLIC")
+    function = "public.booking_context(uuid,uuid,timestamptz,boolean,text)"
+    if conn.exec_driver_sql("SELECT to_regprocedure(%s)", (function,)).scalar_one():
+        conn.exec_driver_sql(f"GRANT EXECUTE ON FUNCTION {function} TO {name}")
 
 
 def check_runtime(conn: Connection) -> None:
@@ -50,3 +53,11 @@ def check_runtime(conn: Connection) -> None:
     """).scalar_one()
     if unsafe:
         raise ValueError("API requires a restricted runtime role, not a database owner")
+    current = conn.exec_driver_sql("""
+        SELECT NOT prosecdef AND provolatile = 'v'
+               AND has_function_privilege(current_user, oid, 'EXECUTE')
+        FROM pg_proc WHERE oid = to_regprocedure(
+            'public.booking_context(uuid,uuid,timestamptz,boolean,text)')
+    """).scalar_one_or_none()
+    if current is not True:
+        raise ValueError("database schema requires migration 0005 and its runtime grant")

@@ -388,6 +388,11 @@ FR-015/068 та фактичні межі PERF описані [в окремом
 Подальше [уточнення SQL-конкурентності](../implementation/sql-concurrency-hardening.md)
 описує FOR NO KEY UPDATE, свіжий snapshot ключа ідемпотентності, спільний
 INSERT/outbox і обмежений повтор після deadlock. Контракт API не змінено.
+Наступна [локальна оптимізація](../implementation/performance-completion.md)
+переносить read/lock context у VOLATILE SECURITY INVOKER функцію PostgreSQL.
+Її окремі внутрішні команди зберігають свіжі snapshot; доменні рішення
+лишаються у Python, запис броні/outbox/ключа — у тій самій транзакції.
+Профіль із двома API-процесами перевірено трьома навантажувальними прогонами.
 
 | Що перевіряємо | Чим | Коли |
 |---|---|---|

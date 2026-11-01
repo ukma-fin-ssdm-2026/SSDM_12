@@ -70,6 +70,41 @@ def test_sql_search_matches_memory_filters_and_cursor(database, client, query):
         assert {r["id"] for r in second["items"]}.isdisjoint({r["id"] for r in expected["items"]})
 
 
+def test_cached_search_shape_keeps_filter_values_and_current_rows_fresh(database, client):
+    parameters = [
+        {"provider_id": str(Ids.PROVIDER)},
+        {"provider_id": str(Ids.PROVIDER_2)},
+        {"resource_type": "room"},
+        {"resource_type": "consultation"},
+        {"min_capacity": 10},
+        {"min_capacity": 30},
+        {"date": "2026-10-20"},
+        {"date": "2026-10-22"},
+        {"limit": 1},
+        {"limit": 3},
+    ]
+    memory = StubStore()
+    memory.reset(clock.utc_now())
+    previous = store.set_backend(memory)
+    try:
+        expected = [
+            client.get("/api/v1/slots", headers=STUDENT, params=p).json() for p in parameters
+        ]
+    finally:
+        store.set_backend(previous)
+    for params, body in zip(parameters, expected, strict=True):
+        assert client.get("/api/v1/slots", headers=STUDENT, params=params).json() == body
+    first = client.get("/api/v1/slots", headers=STUDENT, params={"limit": 1}).json()["items"][0][
+        "id"
+    ]
+    with database.owner.begin() as conn:
+        conn.execute(
+            update(t.slots).where(t.slots.c.id == uuid.UUID(first)).values(is_active=False)
+        )
+    fresh = client.get("/api/v1/slots", headers=STUDENT, params={"limit": 1}).json()
+    assert fresh["items"][0]["id"] != first
+
+
 def test_invalid_cursor_and_expired_search_date_remain_422(database, client):
     for params in [{"cursor": "broken"}, {"date": "2026-10-18"}]:
         assert client.get("/api/v1/slots", headers=STUDENT, params=params).status_code in (409, 422)

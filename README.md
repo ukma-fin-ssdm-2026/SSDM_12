@@ -73,6 +73,8 @@ Worker; запуск і межі — у [`звіті PostgreSQL/outbox`](docs/im
 виміряні межі навантаження — у [`наступному локальному етапі`](docs/implementation/load-worker-calendar-audit.md).
 SQL-оптимізації, обмежені повтори й перевірки прав усередині транзакції — у
 [`продовженні 01.11`](docs/implementation/sql-concurrency-hardening.md).
+Завершальні навантажувальні прогони й профіль із двома процесами API — у
+[`звіті продуктивності`](docs/implementation/performance-completion.md).
 
 | Що | Де |
 |---|---|
@@ -91,6 +93,9 @@ SQL-оптимізації, обмежені повтори й перевірк�
 Для постійного режиму та повного набору інтеграційних тестів також потрібні
 PostgreSQL 16 binaries (initdb/pg_ctl); [окремий локальний запуск](docs/implementation/postgres-outbox.md#локальний-запуск)
 не змінює системний сервіс PostgreSQL.
+Для вже створеної постійної БД потрібна міграція 0005. Профіль, на якому
+перевірено часові цілі: два процеси API, demoBearer вимкнений;
+повні команди й результати — у [звіті](docs/implementation/performance-completion.md#профіль-запуску).
 
 macOS або Linux:
 

@@ -5,12 +5,12 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 from functools import lru_cache
 
-from sqlalchemy import DateTime, bindparam, exists, func, select, true, union_all
+from sqlalchemy import Boolean, DateTime, Text, bindparam, column, func, select, union_all
+from sqlalchemy.dialects.postgresql import JSONB
 
 from api.enums import BookingStatus, ResourceType
 from api.errors import ApiProblem, ErrorCode
 from api.infrastructure import tables as t
-from api.infrastructure.postgres import LOCK_KEY
 from api.policy import HORIZON
 from api.schemas.bookings import BookingOut, BookingSlot
 from api.schemas.common import PersonSummary, ResourceSummary
@@ -21,94 +21,39 @@ from unislot.booking.domain.model import BookingPolicy, Interval
 from unislot.notifications.domain.reminders import reminder_due_at
 
 
-def _details_query():
-    query = (
-        select(
-            t.slots,
-            t.resources.c.name,
-            t.resources.c.type,
-            t.resources.c.capacity,
-            t.resources.c.provider_id,
-            t.users.c.full_name,
-            t.policies.c.id.label("policy_id"),
-            t.policies.c.booking_limit,
-            t.policies.c.cancel_window_minutes,
-            exists(
-                select(t.blocks.c.id).where(
-                    t.blocks.c.resource_id == t.slots.c.resource_id,
-                    t.blocks.c.starts_at < t.slots.c.ends_at,
-                    t.blocks.c.ends_at > t.slots.c.starts_at,
-                )
-            ).label("blocked"),
-        )
-        .select_from(
-            t.slots.join(t.resources)
-            .join(t.users, t.users.c.id == t.resources.c.provider_id)
-            .join(t.current_policy, true())
-            .join(t.policies, t.policies.c.id == t.current_policy.c.policy_id)
-        )
-        .where(t.slots.c.id == bindparam("slot_id"))
-    )
-    return query
+@lru_cache(maxsize=1)
+def _read_query():
+    context = func.public.booking_context(
+        bindparam("student_id", type_=t.users.c.id.type),
+        bindparam("slot_id", type_=t.slots.c.id.type),
+        bindparam("now", type_=DateTime(timezone=True)),
+        bindparam("demo", type_=Boolean),
+        bindparam("key", type_=Text),
+    ).table_valued(column("authorized", Boolean), column("details", JSONB), column("state", JSONB))
+    return select(context)
 
 
-@lru_cache(maxsize=2)
-def _actor_query(demo: bool):
-    return (
-        select(t.users.c.id.label("actor_id"))
-        .select_from(t.users.join(t.roles))
-        .where(
-            t.users.c.id == bindparam("student_id"),
-            t.roles.c.role == "student",
-            true() if demo else t.users.c.is_active,
-        )
-        .with_for_update(of=t.users, key_share=True)
-    )
-
-
-@lru_cache(maxsize=2)
-def _context_query(demo: bool):
-    """One round trip; materialized actor precedes the target slot row lock."""
-    actor = _actor_query(demo).cte("actor").prefix_with("MATERIALIZED")
-    details = _details_query().join(actor, true()).with_for_update(of=t.slots, key_share=True)
-    details = details.cte("details").prefix_with("MATERIALIZED")
-    # Outer join preserves the distinction between revoked role and absent slot.
-    return select(details).select_from(actor.outerjoin(details, true()))
-
-
-@lru_cache(maxsize=2)
-def _state_query(remember: bool):
-    intervals = (
-        select(func.json_agg(func.json_build_array(t.slots.c.starts_at, t.slots.c.ends_at)))
-        .join(t.bookings, t.bookings.c.slot_id == t.slots.c.id)
-        .where(
-            t.bookings.c.student_id == bindparam("student_id"),
-            t.bookings.c.status == "confirmed",
-            t.slots.c.ends_at > bindparam("now", type_=DateTime(timezone=True)),
-        )
-        .scalar_subquery()
-    )
-    query = select(
-        exists(
-            select(t.bookings.c.id).where(
-                t.bookings.c.slot_id == bindparam("slot_id"), t.bookings.c.status == "confirmed"
-            )
-        ).label("taken"),
-        intervals.label("open_rows"),
-    )
-    if remember:
-        previous = (
-            select(*(c.label("previous_" + c.name) for c in t.bookings.c))
-            .join(t.idempotency, t.idempotency.c.booking_id == t.bookings.c.id)
-            .where(
-                t.idempotency.c.student_id == bindparam("student_id"),
-                t.idempotency.c.key == bindparam("key", type_=t.idempotency.c.key.type),
-            )
-            .subquery()
-        )
-        anchor = select(true()).subquery()
-        query = query.add_columns(previous).select_from(anchor.outerjoin(previous, true()))
-    return query
+def _decode_record(value):
+    if value is None:
+        return None
+    row = dict(value)
+    for name in (
+        "id",
+        "slot_id",
+        "student_id",
+        "resource_id",
+        "provider_id",
+        "policy_id",
+        "template_id",
+        "cancelled_by",
+        "rescheduled_to_id",
+    ):
+        if row.get(name) is not None:
+            row[name] = uuid.UUID(row[name])
+    for name in ("starts_at", "ends_at", "created_at", "cancel_deadline_at", "cancelled_at"):
+        if row.get(name) is not None:
+            row[name] = datetime.fromisoformat(row[name])
+    return row
 
 
 @lru_cache(maxsize=4)
@@ -179,24 +124,31 @@ def create_booking(engine, student, slot_id, now, key=None):
     Одна транзакція містить бронь, ідемпотентність і outbox; помилка відкочує все.
     """
     with engine.begin() as conn:
-        # This must be a separate statement: after a gate wait READ COMMITTED
-        # needs a new snapshot of roles, policy and blocks changed by the admin.
-        conn.exec_driver_sql("SELECT pg_advisory_xact_lock_shared(%s)", (LOCK_KEY,))
-        parameters = {"student_id": student.id, "slot_id": slot_id, "now": now, "key": key}
-        row = conn.execute(_context_query(student.is_demo), parameters).mappings().one_or_none()
-        if row is None:
+        # VOLATILE PL/pgSQL uses separate snapshots after gate and row-lock waits.
+        read = (
+            conn.execute(
+                _read_query(),
+                {
+                    "student_id": student.id,
+                    "slot_id": slot_id,
+                    "now": now,
+                    "demo": student.is_demo,
+                    "key": key,
+                },
+            )
+            .mappings()
+            .one()
+        )
+        if not read["authorized"]:
             raise ApiProblem(ErrorCode.FORBIDDEN_ROLE)
-        if row["id"] is None and key is None:
-            raise ApiProblem(ErrorCode.SLOT_NOT_FOUND)
-        # A separate statement after lock waits sees both the winner and its key.
-        state = conn.execute(_state_query(key is not None), parameters).mappings().one()
-        if key is not None and state["previous_id"] is not None:
-            if state["previous_slot_id"] != slot_id:
+        row, state = _decode_record(read["details"]), read["state"]
+        if state["previous"] is not None:
+            old = _decode_record(state["previous"])
+            if old["slot_id"] != slot_id:
                 raise ApiProblem(ErrorCode.IDEMPOTENCY_KEY_REUSED)
-            old = {c.name: state["previous_" + c.name] for c in t.bookings.c}
             booking = BookingRec(**{**old, "status": BookingStatus(old["status"])})
             return _response(booking, row, now), True
-        if row["id"] is None:
+        if row is None:
             raise ApiProblem(ErrorCode.SLOT_NOT_FOUND)
         if not row["is_active"]:
             raise ApiProblem(ErrorCode.SLOT_WITHDRAWN)

@@ -51,6 +51,7 @@ class Settings:
     session_ttl_seconds: int = 28800
     login_max_failures: int = 5
     login_cooldown_seconds: int = 300
+    thread_switch_interval_ms: int = 1
 
     def __post_init__(self) -> None:
         """Додатні конфігуровані межі не можна вимкнути випадковим нулем."""
@@ -58,6 +59,8 @@ class Settings:
             raise ValueError("auth configuration values must be positive")
         if "*" in self.cors_origins:
             raise ValueError("cookie CORS requires explicit origins")
+        if not 1 <= self.thread_switch_interval_ms <= 20:
+            raise ValueError("thread switch interval must be between 1 and 20 milliseconds")
 
 
 @lru_cache
@@ -75,4 +78,5 @@ def get_settings() -> Settings:
         session_ttl_seconds=int(os.environ.get("UNISLOT_SESSION_TTL_SECONDS", "28800")),
         login_max_failures=int(os.environ.get("UNISLOT_LOGIN_MAX_FAILURES", "5")),
         login_cooldown_seconds=int(os.environ.get("UNISLOT_LOGIN_COOLDOWN_SECONDS", "300")),
+        thread_switch_interval_ms=int(os.environ.get("UNISLOT_THREAD_SWITCH_INTERVAL_MS", "1")),
     )
