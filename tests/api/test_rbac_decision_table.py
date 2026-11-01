@@ -44,6 +44,22 @@ BODIES = {
         "starts_at": "2027-02-15T10:00:00+02:00",
         "duration_minutes": 30,
     },
+    ("PUT", "/api/v1/admin/policies/current"): {
+        "booking_limit": 3,
+        "cancel_window_minutes": 120,
+    },
+    ("POST", "/api/v1/resources/{resource_id}/blocks"): {
+        "starts_at": "2027-02-15T10:00:00+02:00",
+        "ends_at": "2027-02-15T11:00:00+02:00",
+        "reason": "Подія",
+    },
+    ("PUT", "/api/v1/resources/{resource_id}/templates/{template_id}"): {
+        "weekday": 3,
+        "start_local": "14:00",
+        "end_local": "16:00",
+        "slot_minutes": 30,
+        "valid_from": "2026-10-19",
+    },
 }
 
 
@@ -70,12 +86,25 @@ class Rule:
 
     def path(self) -> str:
         booking = Ids.BOOKING_OTHER if self.foreign else Ids.BOOKING_ACTIVE
-        if self.template.endswith("/slots") and "{resource_id}" in self.template:
-            resource = Ids.RES_NET_CONSULT if self.foreign else Ids.RES_DB_CONSULT
+        if "{resource_id}" in self.template and (
+            self.template.endswith("/slots")
+            or "/blocks" in self.template
+            or "/templates/" in self.template
+            or self.template.endswith("/templates")
+            or self.template.endswith("/calendar")
+        ):
+            own = Ids.RES_ROOM_3_317 if "{block_id}" in self.template else Ids.RES_DB_CONSULT
+            resource = Ids.RES_NET_CONSULT if self.foreign else own
         else:
             resource = Ids.RES_ROOM_1_225
         return self.template.format(
-            booking_id=booking, resource_id=resource, slot_id=Ids.SLOT_DB_D1_1030
+            booking_id=booking,
+            resource_id=resource,
+            slot_id=Ids.SLOT_DB_D1_1030,
+            user_id=Ids.STUDENT,
+            role="provider",
+            block_id=Ids.BLOCK_317_D2,
+            template_id="8eba871c-b5c9-4092-8d90-669f5e6f9744",
         )
 
 
@@ -138,6 +167,66 @@ RULES: list[Rule] = [
 ]
 
 
+RULES += [
+    *block("PUT", "/api/v1/admin/users/{user_id}/roles/{role}", admin_only(200), 57),
+    *block("DELETE", "/api/v1/admin/users/{user_id}/roles/{role}", admin_only(200), 61),
+    *block("GET", "/api/v1/admin/policies/current", admin_only(200), 65),
+    *block("PUT", "/api/v1/admin/policies/current", admin_only(200), 69),
+    *block(
+        "POST",
+        "/api/v1/resources/{resource_id}/blocks",
+        [
+            ANON,
+            ("student", 403, ROLE),
+            ("provider", 201, None),
+            ("provider:foreign", 403, OWNER),
+            ("admin", 403, ROLE),
+        ],
+        73,
+    ),
+    *block(
+        "DELETE",
+        "/api/v1/resources/{resource_id}/blocks/{block_id}",
+        [
+            ANON,
+            ("student", 403, ROLE),
+            ("provider", 204, None),
+            ("provider:foreign", 403, OWNER),
+            ("admin", 403, ROLE),
+        ],
+        78,
+    ),
+]
+
+
+RULES += [
+    *block(
+        "PUT",
+        "/api/v1/resources/{resource_id}/templates/{template_id}",
+        [
+            ANON,
+            ("student", 403, ROLE),
+            ("provider", 201, None),
+            ("provider:foreign", 403, OWNER),
+            ("admin", 403, ROLE),
+        ],
+        83,
+    ),
+    *block(
+        "GET",
+        "/api/v1/resources/{resource_id}/templates/{template_id}",
+        [
+            ANON,
+            ("student", 403, ROLE),
+            ("provider", 404, None),
+            ("provider:foreign", 403, OWNER),
+            ("admin", 403, ROLE),
+        ],
+        88,
+    ),
+]
+
+
 def snapshot() -> tuple:
     """Стан даних, який заборонене правило не має змінити (друга половина SEC-002)."""
     return (
@@ -145,7 +234,46 @@ def snapshot() -> tuple:
         sorted((str(r.id), r.name, r.capacity) for r in store.resources.values()),
         sorted(str(s) for s in store.slots),
         len(store.audit),
+        sorted((str(u.id), sorted(u.roles)) for u in store.users.values()),
+        store.policy.id if store.policy else None,
+        sorted(str(b) for b in store.blocks),
+        dict(store.reminders),
+        sorted((str(s.id), s.is_active, str(s.template_id)) for s in store.slots.values()),
+        sorted((str(t.id), repr(t.pattern)) for t in store.templates.values()),
+        sorted(str(n) for n in store.notifications),
+        sorted(str(n) for n in store.deliveries),
     )
+
+
+RULES += block("GET", "/api/v1/me/notifications", EVERYONE, 93)
+RULES += block(
+    "POST",
+    "/api/v1/auth/logout",
+    [
+        ("anon", 401, "AUTH_REQUIRED"),
+        ("student", 204, None),
+        ("provider", 204, None),
+        ("admin", 204, None),
+    ],
+    97,
+)
+
+
+RULES += block("GET", "/api/v1/admin/users", admin_only(200), 101)
+for index, suffix in enumerate(("slots", "templates", "blocks", "calendar")):
+    RULES += block(
+        "GET",
+        "/api/v1/resources/{resource_id}/" + suffix,
+        [
+            ANON,
+            ("student", 403, ROLE),
+            ("provider", 200, None),
+            ("provider:foreign", 403, OWNER),
+            ("admin", 403, ROLE),
+        ],
+        105 + index * 5,
+    )
+RULES += block("GET", "/api/v1/admin/audit", admin_only(200), 125)
 
 
 def send(client: TestClient, rule: Rule):
@@ -175,7 +303,8 @@ def test_decision_table_covers_every_protected_operation_for_every_role() -> Non
         (method.upper(), path)
         for path, item in app.openapi()["paths"].items()
         for method in item
-        if method in {"get", "post", "put", "patch", "delete"} and path != "/health"
+        if method in {"get", "post", "put", "patch", "delete"}
+        and path not in {"/health", "/api/v1/auth/register", "/api/v1/auth/login"}
     }
     roles: dict[tuple[str, str], set[str]] = {}
     for rule in RULES:

@@ -32,6 +32,13 @@ OTHER = {"Authorization": "Bearer demo-student-2"}
 # Кожна операція читання → запит із ID об'єктів, пов'язаних з іншим студентом
 # (demo-student-2 має бронювання BOOKING_OTHER на слот SLOT_DB_D1_1000).
 READS = {
+    "/api/v1/admin/audit": "/api/v1/admin/audit",
+    "/api/v1/resources/{resource_id}/calendar": f"/api/v1/resources/{Ids.RES_DB_CONSULT}/calendar",
+    "/api/v1/admin/users": "/api/v1/admin/users",
+    "/api/v1/resources/{resource_id}/slots": f"/api/v1/resources/{Ids.RES_DB_CONSULT}/slots",
+    "/api/v1/resources/{resource_id}/templates": f"/api/v1/resources/{Ids.RES_DB_CONSULT}/templates",
+    "/api/v1/resources/{resource_id}/blocks": f"/api/v1/resources/{Ids.RES_DB_CONSULT}/blocks",
+    "/api/v1/me/notifications": "/api/v1/me/notifications",
     "/health": "/health",
     "/api/v1/auth/me": "/api/v1/auth/me",
     "/api/v1/resources": f"/api/v1/resources?provider_id={Ids.PROVIDER}",
@@ -40,6 +47,8 @@ READS = {
     "/api/v1/slots/{slot_id}": f"/api/v1/slots/{Ids.SLOT_DB_D1_1000}",
     "/api/v1/bookings/{booking_id}": f"/api/v1/bookings/{Ids.BOOKING_OTHER}",
     "/api/v1/me/bookings": "/api/v1/me/bookings?limit=100",
+    "/api/v1/admin/policies/current": "/api/v1/admin/policies/current",
+    "/api/v1/resources/{resource_id}/templates/{template_id}": f"/api/v1/resources/{Ids.RES_DB_CONSULT}/templates/8eba871c-b5c9-4092-8d90-669f5e6f9744",
 }
 
 

@@ -19,7 +19,7 @@ from api.openapi_export import render_spec_yaml
 
 pytestmark = pytest.mark.req("QA-10")
 
-PUBLIC_OPERATIONS = {"get_health"}  # єдиний виняток із deny-by-default
+PUBLIC_OPERATIONS = {"get_health", "register_user", "login_user"}
 METHODS = {"get", "post", "put", "patch", "delete"}
 
 
@@ -85,7 +85,7 @@ def test_protected_operations_declare_auth_and_401(spec: dict[str, Any]) -> None
         if op["operationId"] in PUBLIC_OPERATIONS:
             continue
         where = f"{method.upper()} {path}"
-        assert op.get("security") == [{"demoBearer": []}], f"{where}: немає вимоги автентифікації"
+        assert op.get("security") == [{"demoBearer": []}, {"sessionCookie": []}], where
         assert "401" in op["responses"], f"{where}: не задокументовано 401"
 
 
