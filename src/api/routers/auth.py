@@ -77,7 +77,7 @@ def register_user(
                     "value": {
                         "full_name": "Тестовий студент",
                         "email": "student@example.com",
-                        "password": "",
+                        "password": "",  # nosec B105 -- empty OpenAPI placeholder, not a credential
                     },
                 }
             }
@@ -119,7 +119,7 @@ def login_user(
                     "summary": "Раніше зареєстрований студент; введіть свій пароль",
                     "value": {
                         "email": "student@example.com",
-                        "password": "",
+                        "password": "",  # nosec B105 -- empty OpenAPI placeholder, not a credential
                     },
                 }
             }
