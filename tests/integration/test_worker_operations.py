@@ -177,14 +177,14 @@ def test_worker_cli_refreshes_horizon_on_startup(database, tmp_path):
 
 
 def test_notification_cli_lists_and_retries_without_credentials_in_output(
-    database, client, monkeypatch, tmp_path
+    database, client, monkeypatch
 ):
     prepare_failed(database, client, monkeypatch)
-    envfile = tmp_path / "runtime.env"
-    envfile.write_text("UNISLOT_DATABASE_URL=" + database.app_url + "\n", encoding="utf-8")
-    command = [sys.executable, "scripts/manage_notifications.py", "--env-file", str(envfile)]
-    listing = subprocess.run(  # noqa: S603 -- fixed local CLI and isolated test env file
+    env = {**os.environ, "UNISLOT_DATABASE_URL": database.app_url}
+    command = [sys.executable, "scripts/manage_notifications.py"]
+    listing = subprocess.run(  # noqa: S603 -- fixed local CLI and isolated test database
         [*command, "failed", "--limit", "1"],
+        env=env,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -195,6 +195,7 @@ def test_notification_cli_lists_and_retries_without_credentials_in_output(
     nid = json.loads(listing.stdout)["items"][0]["id"]
     retry = subprocess.run(  # noqa: S603 -- ID returned by the same isolated test CLI
         [*command, "retry", nid, "--actor-id", str(Ids.ADMIN), "--reason", "Gateway restored"],
+        env=env,
         capture_output=True,
         text=True,
         encoding="utf-8",

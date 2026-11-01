@@ -137,11 +137,11 @@ paths:
               $ref: '#/components/schemas/RegisterIn'
             examples:
               student:
-                summary: Новий студент; пароль — навчальний приклад
+                summary: Новий студент; введіть власний пароль
                 value:
                   full_name: Тестовий студент
                   email: student@example.com
-                  password: demo phrase for registration
+                  password: ''
         required: true
       responses:
         '201':
@@ -253,10 +253,10 @@ paths:
               $ref: '#/components/schemas/LoginIn'
             examples:
               student:
-                summary: Раніше зареєстрований студент
+                summary: Раніше зареєстрований студент; введіть свій пароль
                 value:
                   email: student@example.com
-                  password: demo phrase for registration
+                  password: ''
         required: true
       responses:
         '200':

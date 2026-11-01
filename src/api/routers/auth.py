@@ -73,11 +73,11 @@ def register_user(
         Body(
             openapi_examples={
                 "student": {
-                    "summary": "Новий студент; пароль — навчальний приклад",
+                    "summary": "Новий студент; введіть власний пароль",
                     "value": {
                         "full_name": "Тестовий студент",
                         "email": "student@example.com",
-                        "password": "demo phrase for registration",  # nosec B105 -- OpenAPI example only  # pragma: allowlist secret -- isolated example/test input
+                        "password": "",
                     },
                 }
             }
@@ -116,10 +116,10 @@ def login_user(
         Body(
             openapi_examples={
                 "student": {
-                    "summary": "Раніше зареєстрований студент",
+                    "summary": "Раніше зареєстрований студент; введіть свій пароль",
                     "value": {
                         "email": "student@example.com",
-                        "password": "demo phrase for registration",  # nosec B105 -- OpenAPI example only  # pragma: allowlist secret -- isolated example/test input
+                        "password": "",
                     },
                 }
             }

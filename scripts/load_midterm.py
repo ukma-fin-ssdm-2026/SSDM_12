@@ -166,8 +166,24 @@ def measure(client: httpx.Client, jobs: list[dict], concurrency: int) -> dict:
     }
 
 
+def validated_output(output: Path) -> Path:
+    """Дозволяє результати лише у виділеному каталозі поряд із репозиторієм."""
+    directory = ROOT.parent / "local-load-results"
+    results_root = directory.resolve()
+    if directory.is_symlink() or results_root != directory:
+        raise ValueError("local-load-results must not be a symbolic link or junction")
+    output = output.resolve()
+    if not output.is_relative_to(results_root):
+        raise ValueError("output must be inside the local-load-results directory")
+    return output
+
+
 def run(output: Path, search_requests: int, api_workers: int = 1) -> dict:
     """Створює власний кластер, запускає API, зупиняє й видаляє лише власні дані."""
+    output = validated_output(output)
+    if type(api_workers) is not int or api_workers not in (1, 2):
+        raise ValueError("api_workers must be 1 or 2")
+    worker_arg = {1: "1", 2: "2"}[api_workers]
     output.mkdir(parents=True, exist_ok=True)
     directory = ROOT / "pgdata" / ("load-" + uuid.uuid4().hex)
     cluster = LocalCluster(directory)
@@ -210,7 +226,7 @@ def run(output: Path, search_requests: int, api_workers: int = 1) -> dict:
                     str(port),
                     "--no-access-log",
                     "--workers",
-                    str(api_workers),
+                    worker_arg,
                 ],
                 cwd=ROOT,
                 env=env,

@@ -176,6 +176,7 @@ ID не змінено: це ті самі QA-xx і THR-xx, що й у джер�
 | QA-10 | [`quality-attributes.md`](../api/quality-attributes.md) | 100% операцій мають опис, тег і `operationId`; розходжень коду й `openapi-generated.yaml` — 0 | — (у Лаб 2 не записана) | — |
 | QA-11 | [`quality-attributes.md`](../api/quality-attributes.md) | жодна відповідь-список не містить понад 100 елементів; `limit` > 100 дає 422 | PERF-001 | — |
 | QA-12 | [`quality-attributes.md`](../api/quality-attributes.md) | межі 1–20 мс для Windows-пресету; відновлення інтервалу CPython після shutdown/помилки startup, без змін на інших ОС | підтримує відтворення PERF-001/002, не замінює вимір p95 | — |
+| QA-13 | [`quality-attributes.md`](../api/quality-attributes.md) | CLI відхиляють шляхи за межами визначених каталогів і неприпустимі аргументи процесу | локальна безпека допоміжних команд | — |
 | THR-09 | [`threat-model.md`](../architecture/threat-model.md) | журнал доступу не містить ідентифікаторів зі шляху запиту (CWE-532) | C-002, C-003 | — |
 | R-005 | [`requirements.md`](requirements.md) §7.1 | ID у цій матриці й мітки в тестах звіряються автоматично на кожен PR | — (пом'якшення ризику, а не вимога продукту) | — |
 

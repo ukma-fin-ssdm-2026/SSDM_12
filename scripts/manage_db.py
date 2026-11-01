@@ -14,7 +14,10 @@ sys.path[:0] = [str(ROOT), str(ROOT / "src")]
 
 def load_environment(path: Path | None) -> None:
     if path:
-        for line in path.read_text(encoding="utf-8").splitlines():
+        resolved = path.resolve(strict=True)
+        if not resolved.is_relative_to(ROOT) or not resolved.is_file():
+            raise ValueError("environment file must be a regular file inside the project")
+        for line in resolved.read_text(encoding="utf-8").splitlines():
             if line.strip() and not line.lstrip().startswith("#"):
                 key, value = line.split("=", 1)
                 if key.startswith("UNISLOT_"):

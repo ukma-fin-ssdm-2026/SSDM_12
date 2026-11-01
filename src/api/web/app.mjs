@@ -219,7 +219,7 @@ function navigate() {
   const main = E("div", { class: "page" }); host.replaceChildren(main);
   document.title = `${routes.find(([key]) => key === route)[1]} · UniSlot`;
   const pages = { search: showSearch, bookings: showBookings, availability: showAvailability, resources: showResources, users: showUsers, policy: showPolicy, notifications: showNotifications, calendar: showCalendar, audit: showAudit };
-  run(() => pages[route](main));
+  void run(() => pages[route](main));
   if (state.flash) { showNotice(state.flash); state.flash = null; }
 }
 window.addEventListener("hashchange", navigate);
@@ -290,7 +290,7 @@ async function showBookings(main) {
   heading(main, "Мої бронювання", "Майбутні зустрічі, минулі записи та зручне керування вашим часом.");
   const filters = select("state", [["", "Усі бронювання"], ...Object.entries(bookingStates)], state.bookingFilter);
   const list = E("div", { class: "data-list" });
-  filters.addEventListener("change", () => { state.bookingFilter = filters.value; run(() => load(0)); });
+  filters.addEventListener("change", () => { state.bookingFilter = filters.value; void run(() => load(0)); });
   main.append(E("div", { class: "provider-toolbar" }, field("Показати", filters)), list); footer(main);
   async function load(offset = 0) {
     const current = ++request;
@@ -327,11 +327,11 @@ async function showAvailability(main) {
   if (!own.length) { main.append(empty("Вам ще не призначено ресурсів", "Адміністратор має створити ресурс або призначити вас його провайдером.")); footer(main); return; }
   if (!own.some(r => r.id === state.resourceId)) state.resourceId = own[0].id;
   const resource = select("resource", own.map(r => [r.id, r.name]), state.resourceId);
-  resource.addEventListener("change", () => { state.resourceId = resource.value; run(() => load()); });
+  resource.addEventListener("change", () => { state.resourceId = resource.value; void run(() => load()); });
   const tabArea = E("div", { class: "tabs", role: "group", "aria-label": "Дані доступності" });
   const list = E("div");
   for (const [key, name] of [["slots", "Опубліковані слоти"], ["templates", "Тижневі шаблони"], ["blocks", "Блокування"]]) {
-    tabArea.append(button(name, () => { state.providerTab = key; run(() => load()); }, "", { "data-tab": key }));
+    tabArea.append(button(name, () => { state.providerTab = key; void run(() => load()); }, "", { "data-tab": key }));
   }
   const create = button("+ Створити слот", () => edit(), "");
   main.append(E("div", { class: "provider-toolbar split" }, field("Ваш ресурс", resource), create), tabArea, list); footer(main);
@@ -591,4 +591,4 @@ async function boot() {
     if (!(error instanceof ApiError && error.status === 401)) showError(error);
   }
 }
-boot();
+void boot().catch(showError);
