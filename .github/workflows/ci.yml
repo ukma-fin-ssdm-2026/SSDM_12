@@ -33,7 +33,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 or newer is required' }
 
       - name: Set up Node.js for client tests and PlantUML
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
