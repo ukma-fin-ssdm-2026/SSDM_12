@@ -10,11 +10,12 @@ info:
     Специфікацію **згенеровано з коду** (FastAPI, підхід Code-First) — вручну її не редагують.
     Проєктні рішення — `docs/api/api-design.md`, атрибути якості — `docs/api/quality-attributes.md`.
 
-    **Лаб 4: заглушки.** Відповіді будуються з демо-даних у пам'яті; правила бронювання
-    перевіряються, але дані не зберігаються між перезапусками сервера.
+    **Сховище.** Без `UNISLOT_DATABASE_URL` працює демо-адаптер у пам'яті. З цією
+    змінною API використовує мігровану PostgreSQL: дані та outbox зберігаються після
+    перезапуску. Окремий Worker доставляє повідомлення в локальну скриньку (C-002).
 
-    **Автентифікація (заглушка).** Натисніть «Authorize» і введіть демо-токен:
-    `demo-student`, `demo-student-2`, `demo-provider`, `demo-provider-2` або `demo-admin`.
+    **Автентифікація.** POST `/auth/register` і `/auth/login` створюють обліковий запис і cookie-сесію.
+    Для змін із cookie потрібен X-CSRF-Token; demoBearer доступний лише за `UNISLOT_DEMO_AUTH=1`.
 
     **Помилки.** Усі відмови — `application/problem+json` (RFC 9457) з полями `code`,
     `action` і `request_id`; поле `type` веде в каталог помилок.
@@ -90,8 +91,417 @@ paths:
                     action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
                       demo-student.'
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
       security:
       - demoBearer: []
+      - sessionCookie: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - auth
+      summary: Зареєструвати обліковий запис студента
+      description: |-
+        Створює лише student незалежно від переданих role/roles. Адреса порівнюється
+        без регістру; пароль хешується Argon2id без обрізання. Володіння поштою не
+        підтверджується за C-002. Для входу після реєстрації викличте /auth/login.
+      operationId: register_user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterIn'
+            examples:
+              student:
+                summary: Новий студент; введіть власний пароль
+                value:
+                  full_name: Тестовий студент
+                  email: student@example.com
+                  password: ''
+        required: true
+      responses:
+        '201':
+          description: Новий користувач із єдиною роллю student.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeOut'
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `EMAIL_ALREADY_REGISTERED` — Адреса вже зареєстрована
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                EMAIL_ALREADY_REGISTERED:
+                  summary: Адреса вже зареєстрована
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#email-already-registered
+                    title: Адреса вже зареєстрована
+                    status: 409
+                    detail: Обліковий запис із цією адресою вже існує (порівняння без регістру).
+                    code: EMAIL_ALREADY_REGISTERED
+                    action: Увійдіть або використайте іншу адресу.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth
+      summary: Увійти з адресою та паролем
+      description: |-
+        Видає нову cookie-сесію, попередню поточну сесію відкликає. Однакова помилка
+        для відсутньої адреси й неправильного пароля. Обмеження спроб зберігається в БД;
+        параметри локальні до рішення OQ-001. Запити входу приймаються лише як JSON.
+      operationId: login_user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginIn'
+            examples:
+              student:
+                summary: Раніше зареєстрований студент; введіть свій пароль
+                value:
+                  email: student@example.com
+                  password: ''
+        required: true
+      responses:
+        '200':
+          description: Користувач, CSRF-токен та HttpOnly cookie-сесія.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `INVALID_CREDENTIALS` — Не вдалося увійти
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                INVALID_CREDENTIALS:
+                  summary: Не вдалося увійти
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#invalid-credentials
+                    title: Не вдалося увійти
+                    status: 401
+                    detail: Неправильна адреса або пароль.
+                    code: INVALID_CREDENTIALS
+                    action: Перевірте адресу та пароль.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '429':
+          description: |-
+            Можливі причини:
+
+            - `LOGIN_THROTTLED` — Забагато спроб входу
+          headers:
+            Retry-After:
+              description: Залишок тимчасового обмеження входу в секундах.
+              schema:
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                LOGIN_THROTTLED:
+                  summary: Забагато спроб входу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#login-throttled
+                    title: Забагато спроб входу
+                    status: 429
+                    detail: Тимчасово обмежено спроби входу. Спробуйте пізніше.
+                    code: LOGIN_THROTTLED
+                    action: Зачекайте час, указаний у Retry-After.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - auth
+      summary: Вийти з поточної сесії
+      description: |-
+        Відкликає серверну сесію та видаляє cookie. Для cookie-автентифікації потрібен
+        X-CSRF-Token; чужі активні сесії цього користувача залишаються чинними.
+      operationId: logout_user
+      responses:
+        '204':
+          description: Сесію відкликано, обидві cookie видалено.
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
   /api/v1/resources:
     get:
       tags:
@@ -104,6 +514,7 @@ paths:
       operationId: list_resources
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: type
         in: query
@@ -205,6 +616,32 @@ paths:
                       type: less_than_equal
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/resources/{resource_id}:
     get:
       tags:
@@ -214,6 +651,7 @@ paths:
       operationId: get_resource
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: resource_id
         in: path
@@ -308,6 +746,32 @@ paths:
                       type: uuid_parsing
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/admin/resources:
     post:
       tags:
@@ -388,6 +852,10 @@ paths:
             Можливі причини:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               schema:
@@ -402,6 +870,16 @@ paths:
                     detail: Роль користувача не дозволяє операцію (deny-by-default).
                     code: FORBIDDEN_ROLE
                     action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
         '422':
           description: |-
@@ -439,8 +917,45 @@ paths:
                     code: PROVIDER_NOT_ELIGIBLE
                     action: Призначте користувача з роллю «провайдер».
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
       security:
       - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
   /api/v1/admin/resources/{resource_id}:
     patch:
       tags:
@@ -453,6 +968,7 @@ paths:
       operationId: update_resource
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: resource_id
         in: path
@@ -470,6 +986,15 @@ paths:
           consultation:
             summary: Консультація з баз даних (без місткості)
             value: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
       requestBody:
         required: true
         content:
@@ -526,6 +1051,10 @@ paths:
             Можливі причини:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               examples:
@@ -538,6 +1067,16 @@ paths:
                     detail: Роль користувача не дозволяє операцію (deny-by-default).
                     code: FORBIDDEN_ROLE
                     action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -598,6 +1137,32 @@ paths:
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/slots:
     get:
       tags:
@@ -611,6 +1176,7 @@ paths:
       operationId: search_free_slots
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: provider_id
         in: query
@@ -775,6 +1341,32 @@ paths:
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/slots/{slot_id}:
     get:
       tags:
@@ -786,6 +1378,7 @@ paths:
       operationId: get_slot
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: slot_id
         in: path
@@ -880,6 +1473,32 @@ paths:
                       type: uuid_parsing
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/resources/{resource_id}/slots:
     post:
       tags:
@@ -892,6 +1511,7 @@ paths:
       operationId: create_slot
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: resource_id
         in: path
@@ -909,6 +1529,15 @@ paths:
           foreign:
             summary: Ресурс іншого провайдера (demo-provider-2) → 403
             value: decb8af8-560b-47e3-bedd-89e5c4fabf95
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
       requestBody:
         required: true
         content:
@@ -975,6 +1604,10 @@ paths:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
             - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               examples:
@@ -998,6 +1631,16 @@ paths:
                       Відповідь не містить даних об'єкта (THR-03).
                     code: NOT_OWNER
                     action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -1077,6 +1720,206 @@ paths:
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+    get:
+      tags:
+      - workspace
+      summary: Переглянути власні опубліковані слоти
+      description: |-
+        Лише власний ресурс; показує активні слоти, які ще не закінчилися, зокрема
+        заброньовані та заблоковані. Історичні відкликані слоти не пропонуються повторно.
+      operationId: list_managed_slots
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Слоти та причини доступності без даних студентів.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagedSlotList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/bookings:
     post:
       tags:
@@ -1093,6 +1936,7 @@ paths:
       operationId: create_booking
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: Idempotency-Key
         in: header
@@ -1107,6 +1951,15 @@ paths:
           title: Idempotency-Key
         description: Необов'язковий ключ ідемпотентності (8–64 символи). Повтор із тим самим ключем повертає
           перше бронювання замість створення нового.
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
       requestBody:
         required: true
         content:
@@ -1180,6 +2033,10 @@ paths:
             Можливі причини:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               examples:
@@ -1192,6 +2049,16 @@ paths:
                     detail: Роль користувача не дозволяє операцію (deny-by-default).
                     code: FORBIDDEN_ROLE
                     action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -1219,6 +2086,7 @@ paths:
           description: |-
             Можливі причини:
 
+            - `SLOT_WITHDRAWN` — Слот відкликано зміною розкладу
             - `SLOT_ALREADY_BOOKED` — Слот уже зайнятий
             - `SLOT_STARTED` — Слот уже почався
             - `SLOT_OUT_OF_HORIZON` — Слот поза горизонтом бронювання
@@ -1228,6 +2096,16 @@ paths:
           content:
             application/problem+json:
               examples:
+                SLOT_WITHDRAWN:
+                  summary: Слот відкликано зміною розкладу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-withdrawn
+                    title: Слот відкликано зміною розкладу
+                    status: 409
+                    detail: Незаброньований слот перестав належати чинному шаблону; історія збережена.
+                    code: SLOT_WITHDRAWN
+                    action: Оберіть інший слот із поточного пошуку.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
                 SLOT_ALREADY_BOOKED:
                   summary: Слот уже зайнятий
                   value:
@@ -1341,8 +2219,8 @@ paths:
                     type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
                     title: Тимчасовий конфлікт, спробуйте ще раз
                     status: 503
-                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
-                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
                     code: TRANSIENT_CONFLICT
                     action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
@@ -1364,6 +2242,7 @@ paths:
       operationId: get_booking
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: booking_id
         in: path
@@ -1493,6 +2372,32 @@ paths:
                       type: uuid_parsing
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
   /api/v1/bookings/{booking_id}/cancel:
     post:
       tags:
@@ -1507,6 +2412,7 @@ paths:
       operationId: cancel_booking
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: booking_id
         in: path
@@ -1527,6 +2433,15 @@ paths:
           foreign:
             summary: Бронювання іншого студента (demo-student-2)
             value: e53719cf-dcd8-4c2f-824b-7ae4e53a1bac
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
       responses:
         '200':
           description: Скасоване бронювання (state = cancelled).
@@ -1566,6 +2481,10 @@ paths:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
             - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               examples:
@@ -1589,6 +2508,16 @@ paths:
                       Відповідь не містить даних об'єкта (THR-03).
                     code: NOT_OWNER
                     action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -1694,8 +2623,8 @@ paths:
                     type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
                     title: Тимчасовий конфлікт, спробуйте ще раз
                     status: 503
-                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
-                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
                     code: TRANSIENT_CONFLICT
                     action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
@@ -1719,6 +2648,7 @@ paths:
       operationId: reschedule_booking
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: booking_id
         in: path
@@ -1739,6 +2669,15 @@ paths:
           foreign:
             summary: Бронювання іншого студента (demo-student-2)
             value: e53719cf-dcd8-4c2f-824b-7ae4e53a1bac
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
       requestBody:
         required: true
         content:
@@ -1798,6 +2737,10 @@ paths:
 
             - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
             - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
           content:
             application/problem+json:
               examples:
@@ -1821,6 +2764,16 @@ paths:
                       Відповідь не містить даних об'єкта (THR-03).
                     code: NOT_OWNER
                     action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
               schema:
                 $ref: '#/components/schemas/Problem'
@@ -1861,6 +2814,7 @@ paths:
 
             - `BOOKING_ALREADY_CANCELLED` — Бронювання вже скасовано
             - `CANCELLATION_DEADLINE_PASSED` — Граничний час скасування минув
+            - `SLOT_WITHDRAWN` — Слот відкликано зміною розкладу
             - `SLOT_ALREADY_BOOKED` — Слот уже зайнятий
             - `SLOT_STARTED` — Слот уже почався
             - `SLOT_OUT_OF_HORIZON` — Слот поза горизонтом бронювання
@@ -1891,6 +2845,16 @@ paths:
                       провайдера.
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
                     cancel_deadline_at: '2026-10-20T08:00:00Z'
+                SLOT_WITHDRAWN:
+                  summary: Слот відкликано зміною розкладу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-withdrawn
+                    title: Слот відкликано зміною розкладу
+                    status: 409
+                    detail: Незаброньований слот перестав належати чинному шаблону; історія збережена.
+                    code: SLOT_WITHDRAWN
+                    action: Оберіть інший слот із поточного пошуку.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
                 SLOT_ALREADY_BOOKED:
                   summary: Слот уже зайнятий
                   value:
@@ -1981,8 +2945,8 @@ paths:
                     type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
                     title: Тимчасовий конфлікт, спробуйте ще раз
                     status: 503
-                    detail: Взаємне блокування транзакцій не зникло після одного повтору (ADR-002, п.
-                      6). У заглушках Лаб 4 не виникає, але є частиною контракту.
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
                     code: TRANSIENT_CONFLICT
                     action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
                     request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
@@ -2004,6 +2968,7 @@ paths:
       operationId: list_my_bookings
       security:
       - demoBearer: []
+      - sessionCookie: []
       parameters:
       - name: state
         in: query
@@ -2114,8 +3079,2573 @@ paths:
                       type: enum
               schema:
                 $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/admin/users/{user_id}/roles/{role}:
+    put:
+      tags:
+      - admin
+      summary: Призначити керовану роль
+      description: |-
+        Додає роль provider чи admin до наявних ролей (FR-062). Повторне призначення
+        не дублює роль або аудит. Нові права видимі з наступного запиту користувача.
+      operationId: grant_user_role
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор користувача, чиї ролі змінюються.
+          title: User Id
+        description: Ідентифікатор користувача, чиї ролі змінюються.
+      - name: role
+        in: path
+        required: true
+        schema:
+          enum:
+          - provider
+          - admin
+          type: string
+          description: 'Керована роль: provider або admin.'
+          title: Role
+        description: 'Керована роль: provider або admin.'
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+      responses:
+        '200':
+          description: Чинні ролі користувача.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRolesOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `USER_NOT_FOUND` — Користувача не знайдено
+          content:
+            application/problem+json:
+              examples:
+                USER_NOT_FOUND:
+                  summary: Користувача не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#user-not-found
+                    title: Користувача не знайдено
+                    status: 404
+                    detail: Адміністратор змінює ролі облікового запису, якого немає.
+                    code: USER_NOT_FOUND
+                    action: Перевірте ідентифікатор користувача.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+    delete:
+      tags:
+      - admin
+      summary: Відкликати керовану роль
+      description: |-
+        Знімає роль, зберігаючи інші (FR-062). Останнього адміністратора захищає FR-063;
+        роль провайдера не відкликається, доки за ним закріплено ресурс (INV-15, AQ-02).
+      operationId: revoke_user_role
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор користувача, чиї ролі змінюються.
+          title: User Id
+        description: Ідентифікатор користувача, чиї ролі змінюються.
+      - name: role
+        in: path
+        required: true
+        schema:
+          enum:
+          - provider
+          - admin
+          type: string
+          description: 'Керована роль: provider або admin.'
+          title: Role
+        description: 'Керована роль: provider або admin.'
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+      responses:
+        '200':
+          description: Ролі після відкликання.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRolesOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `USER_NOT_FOUND` — Користувача не знайдено
+          content:
+            application/problem+json:
+              examples:
+                USER_NOT_FOUND:
+                  summary: Користувача не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#user-not-found
+                    title: Користувача не знайдено
+                    status: 404
+                    detail: Адміністратор змінює ролі облікового запису, якого немає.
+                    code: USER_NOT_FOUND
+                    action: Перевірте ідентифікатор користувача.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `LAST_ADMIN` — Це останній адміністратор
+            - `PROVIDER_HAS_RESOURCES` — Провайдер має призначені ресурси
+          content:
+            application/problem+json:
+              examples:
+                LAST_ADMIN:
+                  summary: Це останній адміністратор
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#last-admin
+                    title: Це останній адміністратор
+                    status: 409
+                    detail: Спроба зняти роль admin з останнього користувача з цією роллю.
+                    code: LAST_ADMIN
+                    action: Спершу призначте іншого адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                PROVIDER_HAS_RESOURCES:
+                  summary: Провайдер має призначені ресурси
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#provider-has-resources
+                    title: Провайдер має призначені ресурси
+                    status: 409
+                    detail: Відкликання ролі provider порушило б інваріант INV-15; рішення AQ-02.
+                    code: PROVIDER_HAS_RESOURCES
+                    action: Спершу перепризначте його ресурси.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/admin/policies/current:
+    get:
+      tags:
+      - admin
+      summary: Переглянути поточну політику
+      description: |-
+        Повертає чинну версію політики з її UUID. Читання доступне лише адміністратору;
+        значення використовуються під час створення нових бронювань (FR-064, FR-065).
+      operationId: get_current_policy
+      responses:
+        '200':
+          description: Поточні значення A-002 і A-003.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+    put:
+      tags:
+      - admin
+      summary: Змінити політику бронювання
+      description: |-
+        Змінює обидва значення політики й додає аудит (FR-064). Новий UUID та значення
+        застосовуються лише до наступних бронювань; старі дедлайни не перераховуються (FR-065).
+      operationId: replace_current_policy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyUpdate'
+            examples:
+              standard:
+                summary: Ліміт 3, вікно 2 години
+                value:
+                  booking_limit: 3
+                  cancel_window_minutes: 120
+              changed:
+                summary: Ліміт 5, вікно 3 години
+                value:
+                  booking_limit: 5
+                  cancel_window_minutes: 180
+        required: true
+      responses:
+        '200':
+          description: Чинна версія після заміни.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+  /api/v1/resources/{resource_id}/blocks:
+    post:
+      tags:
+      - availability
+      summary: Заблокувати час ресурсу
+      description: |-
+        Створює блокування власного ресурсу. Майбутні бронювання, що перетинаються з ним,
+        скасовуються з причиною провайдера, їхні нагадування видаляються. Якщо бронювання
+        вже почалося, увесь запит відхиляється без змін (FR-045).
+      operationId: block_resource_time
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeBlockCreate'
+            examples:
+              meeting:
+                summary: Засідання кафедри
+                value:
+                  starts_at: '2027-02-15T10:00:00+02:00'
+                  ends_at: '2027-02-15T12:00:00+02:00'
+                  reason: Засідання кафедри
+      responses:
+        '201':
+          description: Блокування та кількість скасувань.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeBlockOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |-
+            Можливі причини:
+
+            - `SLOT_STARTED` — Слот уже почався
+          content:
+            application/problem+json:
+              examples:
+                SLOT_STARTED:
+                  summary: Слот уже почався
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-started
+                    title: Слот уже почався
+                    status: 409
+                    detail: Запис на слот або зміна бронювання після початку слота.
+                    code: SLOT_STARTED
+                    action: Оберіть слот, який ще не почався.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+    get:
+      tags:
+      - workspace
+      summary: Переглянути блокування власного ресурсу
+      description: |-
+        Повертає причини та межі власних блокувань без ID скасованих бронювань.
+        Кількість скасувань повторно не вгадується: вона відома лише під час створення.
+      operationId: list_resource_blocks
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Збережені блокування для перегляду та зняття.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeBlockList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/resources/{resource_id}/blocks/{block_id}:
+    delete:
+      tags:
+      - availability
+      summary: Зняти блокування ресурсу
+      description: |-
+        Знімає блокування лише з власного ресурсу. Слоти знову доступні, якщо немає інших
+        блокувань; раніше скасовані бронювання автоматично не відновлюються (US-009).
+      operationId: unblock_resource_time
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: block_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Ідентифікатор блокування цього ресурсу.
+          title: Block Id
+        description: Ідентифікатор блокування цього ресурсу.
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+      responses:
+        '204':
+          description: Блокування видалено.
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+            - `BLOCK_NOT_FOUND` — Блокування не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                BLOCK_NOT_FOUND:
+                  summary: Блокування не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#block-not-found
+                    title: Блокування не знайдено
+                    status: 404
+                    detail: На власному ресурсі немає блокування з указаним ідентифікатором.
+                    code: BLOCK_NOT_FOUND
+                    action: Перевірте ресурс та ідентифікатор блокування.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/resources/{resource_id}/templates/{template_id}:
+    put:
+      tags:
+      - availability
+      summary: Задати тижневий шаблон
+      description: |-
+        Створює (201) або змінює (200) шаблон власного ресурсу й розгортає його на A-001.
+        Заброньовані слоти зберігаються; незаброньовані майбутні слоти оновлюються.
+        Конфліктні кандидати не створюються й перелічені у conflicts, інші створюються.
+      operationId: put_availability_template
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: template_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid4
+          description: UUIDv4 шаблону; для створення згенеруйте новий.
+          title: Template Id
+        description: UUIDv4 шаблону; для створення згенеруйте новий.
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        description: Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для
+          явно ввімкненого demoBearer не потрібний.
+        schema:
+          type: string
+          minLength: 43
+          maxLength: 43
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplatePut'
+            examples:
+              wednesday:
+                summary: Щосереди 14–16 за Києвом, по 30 хв
+                value:
+                  weekday: 3
+                  start_local: '14:00'
+                  end_local: '16:00'
+                  slot_minutes: 30
+                  valid_from: '2026-10-19'
+      responses:
+        '200':
+          description: Шаблон та звіт генерації горизонту.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateOut'
+        '201':
+          description: Шаблон створено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+
+            Можливі причини:
+
+            - `CSRF_FAILED` — Не пройдено перевірку запиту
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                CSRF_FAILED:
+                  summary: Не пройдено перевірку запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#csrf-failed
+                    title: Не пройдено перевірку запиту
+                    status: 403
+                    detail: Джерело запиту або CSRF-токен не пройшли перевірку.
+                    code: CSRF_FAILED
+                    action: Оновіть сторінку та передайте чинний X-CSRF-Token.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+            - `TEMPLATE_NOT_FOUND` — Шаблон не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                TEMPLATE_NOT_FOUND:
+                  summary: Шаблон не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#template-not-found
+                    title: Шаблон не знайдено
+                    status: 404
+                    detail: На власному ресурсі немає шаблону з цим UUID.
+                    code: TEMPLATE_NOT_FOUND
+                    action: Перевірте ресурс та ідентифікатор шаблону.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+    get:
+      tags:
+      - availability
+      summary: Переглянути тижневий шаблон
+      description: |-
+        Повертає шаблон власного ресурсу й актуалізує його матеріалізовані слоти на
+        поточний горизонт. Повторний виклик не дублює слоти; контакти студентів не повертаються.
+      operationId: get_availability_template
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: template_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid4
+          description: UUIDv4 шаблону; для створення згенеруйте новий.
+          title: Template Id
+        description: UUIDv4 шаблону; для створення згенеруйте новий.
+      responses:
+        '200':
+          description: Шаблон і поточні конфлікти.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateOut'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+            - `TEMPLATE_NOT_FOUND` — Шаблон не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                TEMPLATE_NOT_FOUND:
+                  summary: Шаблон не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#template-not-found
+                    title: Шаблон не знайдено
+                    status: 404
+                    detail: На власному ресурсі немає шаблону з цим UUID.
+                    code: TEMPLATE_NOT_FOUND
+                    action: Перевірте ресурс та ідентифікатор шаблону.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/me/notifications:
+    get:
+      tags:
+      - notifications
+      summary: Переглянути власні сповіщення
+      description: |-
+        Повертає лише доставлені Worker повідомлення поточному адресату. Скринька —
+        контрольована заглушка замість e-mail за C-002; перегляд чужої черги не дозволено.
+      operationId: list_my_notifications
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Сторінка особистої скриньки.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/admin/users:
+    get:
+      tags:
+      - workspace
+      summary: Знайти користувачів для адміністрування
+      description: |-
+        Пошук для призначення провайдера та ролей. Тільки адміністратор бачить чужі
+        адреси; ні хеші паролів, ні сесії, ні лічильники входу не серіалізуються.
+      operationId: list_admin_users
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 254
+          - type: 'null'
+          description: Частина імені або адреси без регістру.
+          title: Q
+        description: Частина імені або адреси без регістру.
+      - name: role
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/Role'
+          - type: 'null'
+          description: Лише користувачі з указаною роллю.
+          title: Role
+        description: Лише користувачі з указаною роллю.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Сторінка користувачів без секретів автентифікації.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/resources/{resource_id}/templates:
+    get:
+      tags:
+      - workspace
+      summary: Переглянути шаблони власного ресурсу
+      description: |-
+        Дає змогу повторно відкрити й змінити шаблон після перезапуску браузера.
+        Матеріалізує горизонт як чинний GET одного шаблону; чужі шаблони недоступні.
+      operationId: list_resource_templates
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Шаблони з поточними конфліктами генерації.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/resources/{resource_id}/calendar:
+    get:
+      tags:
+      - workspace
+      summary: Переглянути календар і завантаження власного ресурсу
+      description: Власник бачить минулі й майбутні слоти та навантаження; чужі ресурси — 403.
+      operationId: resource_calendar
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          description: Власний ресурс поточного провайдера.
+          title: Resource Id
+        description: Власний ресурс поточного провайдера.
+      - name: date_from
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: Перша дата за Києвом; стандартно сьогодні.
+          title: Date From
+        description: Перша дата за Києвом; стандартно сьогодні.
+      - name: date_to
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: Остання дата включно; максимум 31 день.
+          title: Date To
+        description: Остання дата включно; максимум 31 день.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Слоти й підсумок за київським діапазоном дат без даних студентів.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+            - `NOT_OWNER` — Об'єкт належить іншому користувачу
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+                NOT_OWNER:
+                  summary: Об'єкт належить іншому користувачу
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#not-owner
+                    title: Об'єкт належить іншому користувачу
+                    status: 403
+                    detail: Студент звертається до чужого бронювання або провайдер — до чужого ресурсу.
+                      Відповідь не містить даних об'єкта (THR-03).
+                    code: NOT_OWNER
+                    action: Відкрийте власний об'єкт; доступ до чужих даних заборонено.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: |-
+            Можливі причини:
+
+            - `RESOURCE_NOT_FOUND` — Ресурс не знайдено
+          content:
+            application/problem+json:
+              examples:
+                RESOURCE_NOT_FOUND:
+                  summary: Ресурс не знайдено
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#resource-not-found
+                    title: Ресурс не знайдено
+                    status: 404
+                    detail: Ресурсу (консультації чи аудиторії) з таким ідентифікатором немає.
+                    code: RESOURCE_NOT_FOUND
+                    action: Оберіть ресурс із каталогу GET /api/v1/resources.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
+  /api/v1/admin/audit:
+    get:
+      tags:
+      - workspace
+      summary: Переглянути журнал адміністративних змін із фільтрами
+      description: 'FR-068: лише читання; паролі й токени не повертаються навіть із помилкового payload.'
+      operationId: audit_log
+      security:
+      - demoBearer: []
+      - sessionCookie: []
+      parameters:
+      - name: actor_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          description: Лише дії вказаного автора.
+          title: Actor Id
+        description: Лише дії вказаного автора.
+      - name: action
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          description: Точна назва, наприклад resource.update.
+          title: Action
+        description: Точна назва, наприклад resource.update.
+      - name: date_from
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: Початкова київська дата; стандартно сьогодні.
+          title: Date From
+        description: Початкова київська дата; стандартно сьогодні.
+      - name: date_to
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: Кінцева дата включно, максимум 31 день.
+          title: Date To
+        description: Кінцева дата включно, максимум 31 день.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Скільки елементів повернути (1–100).
+          default: 20
+          title: Limit
+        description: Скільки елементів повернути (1–100).
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 10000
+          minimum: 0
+          description: Скільки елементів пропустити від початку списку.
+          default: 0
+          title: Offset
+        description: Скільки елементів пропустити від початку списку.
+      responses:
+        '200':
+          description: Незмінні події, від нових до старих; доступні лише адміністратору.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditList'
+        '401':
+          description: |-
+            Можливі причини:
+
+            - `AUTH_REQUIRED` — Потрібна автентифікація
+          content:
+            application/problem+json:
+              examples:
+                AUTH_REQUIRED:
+                  summary: Потрібна автентифікація
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#auth-required
+                    title: Потрібна автентифікація
+                    status: 401
+                    detail: Запит без токена, з невідомим токеном або з вимкненою демо-автентифікацією.
+                    code: AUTH_REQUIRED
+                    action: 'Увійдіть у систему. У Лаб 4 — передайте демо-токен: Authorization: Bearer
+                      demo-student.'
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            WWW-Authenticate:
+              description: 'Схема автентифікації: Bearer.'
+              schema:
+                type: string
+        '403':
+          description: |-
+            Можливі причини:
+
+            - `FORBIDDEN_ROLE` — Недостатньо прав для цієї операції
+          content:
+            application/problem+json:
+              examples:
+                FORBIDDEN_ROLE:
+                  summary: Недостатньо прав для цієї операції
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#forbidden-role
+                    title: Недостатньо прав для цієї операції
+                    status: 403
+                    detail: Роль користувача не дозволяє операцію (deny-by-default).
+                    code: FORBIDDEN_ROLE
+                    action: Скористайтеся обліковим записом із потрібною роллю або зверніться до адміністратора.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: |-
+            Можливі причини:
+
+            - `VALIDATION_FAILED` — Некоректні дані запиту
+          content:
+            application/problem+json:
+              examples:
+                VALIDATION_FAILED:
+                  summary: Некоректні дані запиту
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#validation-failed
+                    title: Некоректні дані запиту
+                    status: 422
+                    detail: 'Запит не пройшов валідацію: перевірте поля, перелічені в errors.'
+                    code: VALIDATION_FAILED
+                    action: Виправте поля, перелічені в errors, і повторіть запит.
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: |-
+            Можливі причини:
+
+            - `TRANSIENT_CONFLICT` — Тимчасовий конфлікт, спробуйте ще раз
+          content:
+            application/problem+json:
+              examples:
+                TRANSIENT_CONFLICT:
+                  summary: Тимчасовий конфлікт, спробуйте ще раз
+                  value:
+                    type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#transient-conflict
+                    title: Тимчасовий конфлікт, спробуйте ще раз
+                    status: 503
+                    detail: Транзакцію не завершено через недоступність БД, конфлікт блокувань або відмову
+                      обмеження цілісності. Повтор бронювання виконуйте з тим самим Idempotency-Key.
+                    code: TRANSIENT_CONFLICT
+                    action: Повторіть запит через кілька секунд (див. заголовок Retry-After).
+                    request_id: 4f6c0b9e2d7a4e51a3c8d1f0b2e47a96
+              schema:
+                $ref: '#/components/schemas/Problem'
+          headers:
+            Retry-After:
+              description: Через скільки секунд повторити запит.
+              schema:
+                type: integer
 components:
   schemas:
+    AccountList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AccountOut'
+          type: array
+          title: Items
+          description: Користувачі за ім'ям, потім за ID.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: AccountList
+      description: Сторінка користувачів; не розкриває хешів, сесій чи лічильників входу.
+    AccountOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор користувача.
+          examples:
+          - 3c357b14-bd0d-424b-8924-17eb737a4907
+        full_name:
+          type: string
+          title: Full Name
+          description: Повне ім'я.
+          examples:
+          - Олена Коваль
+        email:
+          type: string
+          title: Email
+          description: Адреса електронної пошти (лише власна).
+          examples:
+          - olena.koval@unislot.example
+        roles:
+          items:
+            $ref: '#/components/schemas/Role'
+          type: array
+          title: Roles
+          description: Ролі користувача; їх може бути кілька (AQ-01). Відсортовано за назвою.
+          examples:
+          - - student
+        is_active:
+          type: boolean
+          title: Is Active
+          description: Чи дозволено парольний вхід до облікового запису.
+      type: object
+      required:
+      - id
+      - full_name
+      - email
+      - roles
+      - is_active
+      title: AccountOut
+      description: Видимий тільки адміністратору запис каталогу користувачів.
+    AuditEntry:
+      properties:
+        id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Id
+          description: Постійний UUID; null лише для старого демо-запису.
+        actor_id:
+          type: string
+          format: uuid
+          title: Actor Id
+          description: ID автора адміністративної дії.
+        actor_name:
+          type: string
+          title: Actor Name
+          description: Ім'я автора, доступне лише адміністратору.
+        action:
+          type: string
+          title: Action
+          description: Машинна назва дії.
+        object_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Object Id
+          description: ID об'єкта зміни.
+        before:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Before
+          description: Значення до зміни без секретів Auth.
+        after:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: After
+          description: Значення після зміни без секретів Auth.
+        at:
+          type: string
+          format: date-time
+          title: At
+          description: Момент події у UTC.
+      type: object
+      required:
+      - id
+      - actor_id
+      - actor_name
+      - action
+      - object_id
+      - before
+      - after
+      - at
+      title: AuditEntry
+      description: Адміністративна подія; читання не дозволяє її змінювати.
+    AuditList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+          type: array
+          title: Items
+          description: Події журналу.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: AuditList
+      description: 'FR-068: відфільтровані записи від нових до старих.'
     BookingCreate:
       properties:
         slot_id:
@@ -2290,6 +5820,89 @@ components:
         Похідний стан бронювання для користувача (`data-model.md` §7, AQ-05).
 
         Обчислюється з `status` і часу слота; у БД не зберігається.
+    CalendarList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/CalendarSlot'
+          type: array
+          title: Items
+          description: Інтервали за початком та ID.
+        summary:
+          $ref: '#/components/schemas/CalendarSummary'
+          description: Навантаження за весь обраний період.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - summary
+      - pagination
+      title: CalendarList
+      description: Сторінка календаря із загальним навантаженням FR-015.
+    CalendarSlot:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: ID слота.
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок у UTC.
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець у UTC, не включно.
+        availability:
+          type: string
+          enum:
+          - available
+          - booked
+          - blocked
+          - started
+          - completed
+          - outside_horizon
+          title: Availability
+          description: Стан інтервалу.
+      type: object
+      required:
+      - id
+      - starts_at
+      - ends_at
+      - availability
+      title: CalendarSlot
+      description: Календар власного ресурсу без імен або ID студентів.
+    CalendarSummary:
+      properties:
+        total_slots:
+          type: integer
+          title: Total Slots
+          description: Усі опубліковані активні слоти діапазону.
+        booked_slots:
+          type: integer
+          title: Booked Slots
+          description: Слоти з confirmed-бронюванням, включно з минулими.
+        blocked_slots:
+          type: integer
+          title: Blocked Slots
+          description: Слоти, що перетинають блокування.
+        available_slots:
+          type: integer
+          title: Available Slots
+          description: Вільні майбутні слоти в горизонті.
+      type: object
+      required:
+      - total_slots
+      - booked_slots
+      - blocked_slots
+      - available_slots
+      title: CalendarSummary
+      description: Підрахунок усіх слотів діапазону до застосування пагінації.
     CancellationKind:
       type: string
       enum:
@@ -2330,6 +5943,10 @@ components:
     ErrorCode:
       type: string
       enum:
+      - EMAIL_ALREADY_REGISTERED
+      - INVALID_CREDENTIALS
+      - LOGIN_THROTTLED
+      - CSRF_FAILED
       - VALIDATION_FAILED
       - BAD_REQUEST
       - AUTH_REQUIRED
@@ -2340,6 +5957,12 @@ components:
       - RESOURCE_NOT_FOUND
       - SLOT_NOT_FOUND
       - BOOKING_NOT_FOUND
+      - USER_NOT_FOUND
+      - BLOCK_NOT_FOUND
+      - TEMPLATE_NOT_FOUND
+      - SLOT_WITHDRAWN
+      - LAST_ADMIN
+      - PROVIDER_HAS_RESOURCES
       - SLOT_ALREADY_BOOKED
       - SLOT_STARTED
       - SLOT_OUT_OF_HORIZON
@@ -2356,7 +5979,7 @@ components:
       - TRANSIENT_CONFLICT
       - INTERNAL_ERROR
       title: ErrorCode
-      description: 'Машинні коди помилок. Значення не перейменовуються: це частина контракту.'
+      description: Стабільні машинні коди відмов API.
     FieldError:
       properties:
         field:
@@ -2403,6 +6026,134 @@ components:
       - version
       title: HealthOut
       description: Стан процесу API.
+    LoginIn:
+      properties:
+        email:
+          type: string
+          maxLength: 254
+          format: email
+          title: Email
+          description: Адреса облікового запису без регістру.
+        password:
+          type: string
+          maxLength: 1024
+          minLength: 1
+          format: password
+          title: Password
+          description: Повний пароль.
+          writeOnly: true
+      additionalProperties: false
+      type: object
+      required:
+      - email
+      - password
+      title: LoginIn
+      description: Вхід із повним паролем; неправильні значення не потрапляють у відповіді.
+    LoginOut:
+      properties:
+        user:
+          $ref: '#/components/schemas/MeOut'
+          description: Поточний користувач із чинними ролями.
+        csrf_token:
+          type: string
+          title: Csrf Token
+          description: Передайте як X-CSRF-Token для POST/PUT/PATCH/DELETE.
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+          description: Абсолютний строк дії сесії на сервері, UTC.
+      type: object
+      required:
+      - user
+      - csrf_token
+      - expires_at
+      title: LoginOut
+      description: Сесійний токен — лише в HttpOnly cookie; CSRF не є токеном входу.
+    ManagedSlot:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор слота (UUID).
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок слота, UTC (A-007).
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець слота, UTC; не належить слоту (півінтервал).
+        duration_minutes:
+          type: integer
+          title: Duration Minutes
+          description: Тривалість у хвилинах (A-005).
+        resource:
+          $ref: '#/components/schemas/ResourceSummary'
+          description: Ресурс, на якому слот.
+        provider:
+          $ref: '#/components/schemas/PersonSummary'
+          description: Провайдер ресурсу.
+        available:
+          type: boolean
+          title: Available
+          description: 'Чи вільний слот для бронювання зараз: не зайнятий, не заблокований, ще не почався
+            й у межах горизонту A-001. Хто забронював слот, не розкривається.'
+        availability:
+          type: string
+          enum:
+          - available
+          - booked
+          - blocked
+          - started
+          - outside_horizon
+          title: Availability
+          description: 'Причина доступності; пріоритет: started, blocked, booked, outside_horizon, available.'
+      type: object
+      required:
+      - id
+      - starts_at
+      - ends_at
+      - duration_minutes
+      - resource
+      - provider
+      - available
+      - availability
+      title: ManagedSlot
+      description: Стан власного слота без особи студента чи ID його бронювання.
+      examples:
+      - available: true
+        duration_minutes: 30
+        ends_at: '2026-10-20T08:00:00Z'
+        id: e3b8b6ab-fc35-4091-90f0-2500b6a546a4
+        provider:
+          full_name: Ірина Шевченко
+          id: 70acfde3-99e4-4c20-93e1-aeaf0af2cfec
+        resource:
+          id: e5a7657b-0de4-4984-92f4-72b74ade3e3a
+          name: Консультація з баз даних
+          type: consultation
+        starts_at: '2026-10-20T07:30:00Z'
+    ManagedSlotList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ManagedSlot'
+          type: array
+          title: Items
+          description: Слоти за початком, потім за ID.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: ManagedSlotList
+      description: Власні активні слоти, які ще не закінчилися; не повний календар FR-015.
     MeOut:
       properties:
         id:
@@ -2440,6 +6191,52 @@ components:
       - roles
       title: MeOut
       description: Поточний користувач і його ролі (FR-007).
+    NotificationList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/NotificationOut'
+          type: array
+          title: Items
+          description: Лише повідомлення поточного адресата.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Параметри сторінки та загальна кількість.
+      type: object
+      required:
+      - items
+      - pagination
+      title: NotificationList
+      description: Сторінка особистої скриньки, нові повідомлення першими.
+    NotificationOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ключ ідемпотентності доставки.
+        kind:
+          type: string
+          title: Kind
+          description: 'Вид: confirmation, reminder, cancelled або подія провайдера.'
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+          description: Дата, час, ресурс і причина події за потреби.
+        delivered_at:
+          type: string
+          format: date-time
+          title: Delivered At
+          description: Момент доставки у заглушку скриньки, UTC.
+      type: object
+      required:
+      - id
+      - kind
+      - payload
+      - delivered_at
+      title: NotificationOut
+      description: Одне повідомлення без доступу до адресатів чи черги інших людей.
     OffsetPagination:
       properties:
         limit:
@@ -2495,6 +6292,56 @@ components:
       - full_name
       title: PersonSummary
       description: 'Ім''я користувача без контактних даних (SEC-004: мінімум персональних даних).'
+    PolicyOut:
+      properties:
+        booking_limit:
+          type: integer
+          maximum: 2147483647.0
+          minimum: 1.0
+          title: Booking Limit
+          description: 'Ліміт активних бронювань: додатне ціле число (A-002).'
+        cancel_window_minutes:
+          type: integer
+          maximum: 2147483647.0
+          minimum: 0.0
+          title: Cancel Window Minutes
+          description: Вікно скасування у хвилинах (A-003), не від'ємне; значення має вміщатися в INTEGER
+            моделі БД. Вікно, що вивело б дедлайн за межі підтримуваних дат, відхиляється.
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор версії політики (DD-04).
+      additionalProperties: false
+      type: object
+      required:
+      - booking_limit
+      - cancel_window_minutes
+      - id
+      title: PolicyOut
+      description: Поточна версія; попередні версії лишаються прив'язаними до старих бронювань.
+    PolicyUpdate:
+      properties:
+        booking_limit:
+          type: integer
+          maximum: 2147483647.0
+          minimum: 1.0
+          title: Booking Limit
+          description: 'Ліміт активних бронювань: додатне ціле число (A-002).'
+        cancel_window_minutes:
+          type: integer
+          maximum: 2147483647.0
+          minimum: 0.0
+          title: Cancel Window Minutes
+          description: Вікно скасування у хвилинах (A-003), не від'ємне; значення має вміщатися в INTEGER
+            моделі БД. Вікно, що вивело б дедлайн за межі підтримуваних дат, відхиляється.
+      additionalProperties: false
+      type: object
+      required:
+      - booking_limit
+      - cancel_window_minutes
+      title: PolicyUpdate
+      description: Повна заміна поточних значень A-002 і A-003 (семантика PUT).
     Problem:
       properties:
         type:
@@ -2579,6 +6426,35 @@ components:
         status: 409
         title: Слот уже зайнятий
         type: https://ukma-fin-ssdm-2026.github.io/SSDM_12/errors.html#slot-already-booked
+    RegisterIn:
+      properties:
+        full_name:
+          type: string
+          maxLength: 160
+          minLength: 1
+          title: Full Name
+          description: Повне ім'я користувача.
+        email:
+          type: string
+          maxLength: 254
+          format: email
+          title: Email
+          description: Адреса без перевірки володіння (C-002).
+        password:
+          type: string
+          maxLength: 1024
+          minLength: 15
+          format: password
+          title: Password
+          description: 15–1024 символи; без обрізання чи зміни пробілів.
+          writeOnly: true
+      type: object
+      required:
+      - full_name
+      - email
+      - password
+      title: RegisterIn
+      description: Роль та інші зайві поля ігноруються за FR-002; пароль не обрізається.
     ResourceCreate:
       properties:
         name:
@@ -2901,18 +6777,335 @@ components:
           name: Консультація з баз даних
           type: consultation
         starts_at: '2026-10-20T07:30:00Z'
+    TemplateConflict:
+      properties:
+        code:
+          type: string
+          title: Code
+          description: slot_overlap, ambiguous_local_time, nonexistent_local_time або dst_duration.
+        day:
+          type: string
+          format: date
+          title: Day
+          description: Дата кандидата за Києвом.
+        start_local:
+          type: string
+          format: time
+          title: Start Local
+          description: Початок кандидата в локальному часі.
+        conflicting_slot_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Conflicting Slot Id
+          description: Слот, що заважає; без даних бронювання.
+      type: object
+      required:
+      - code
+      - day
+      - start_local
+      title: TemplateConflict
+      description: 'Негенерований кандидат: перетин зі слотом або неоднозначний локальний час.'
+    TemplateList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/TemplateOut'
+          type: array
+          title: Items
+          description: Шаблони за днем тижня, локальним часом та ID.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: TemplateList
+      description: Шаблони власного ресурсу з актуальними конфліктами генерації.
+    TemplateOut:
+      properties:
+        weekday:
+          type: integer
+          maximum: 7.0
+          minimum: 1.0
+          title: Weekday
+          description: 'День ISO: понеділок 1, неділя 7.'
+        start_local:
+          type: string
+          format: time
+          title: Start Local
+          description: Початок за Europe/Kyiv, без UTC-зсуву, HH:MM.
+        end_local:
+          type: string
+          format: time
+          title: End Local
+          description: Кінець того самого локального дня, HH:MM.
+        slot_minutes:
+          type: integer
+          multipleOf: 5.0
+          maximum: 120.0
+          minimum: 15.0
+          title: Slot Minutes
+          description: Тривалість слота за A-005.
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+          description: Перша локальна дата дії шаблону, включно.
+        valid_to:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Valid To
+          description: Остання дата дії включно; null — без кінця.
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор шаблону, який задав клієнт.
+        resource_id:
+          type: string
+          format: uuid
+          title: Resource Id
+          description: Ресурс провайдера.
+        created_slots:
+          type: integer
+          title: Created Slots
+          description: Кількість слотів, доданих цим прогоном.
+        withdrawn_slots:
+          type: integer
+          title: Withdrawn Slots
+          description: Кількість майбутніх незаброньованих слотів, відкликаних зміною.
+        retained_booked_slots:
+          type: integer
+          title: Retained Booked Slots
+          description: Кількість збережених майбутніх заброньованих слотів шаблону.
+        conflicts:
+          items:
+            $ref: '#/components/schemas/TemplateConflict'
+          type: array
+          title: Conflicts
+          description: Кандидати, що не створені; інші слоти згенеровано.
+      additionalProperties: false
+      type: object
+      required:
+      - weekday
+      - start_local
+      - end_local
+      - slot_minutes
+      - valid_from
+      - id
+      - resource_id
+      - created_slots
+      - withdrawn_slots
+      - retained_booked_slots
+      - conflicts
+      title: TemplateOut
+      description: Шаблон і звіт генерації поточного горизонту.
+    TemplatePut:
+      properties:
+        weekday:
+          type: integer
+          maximum: 7.0
+          minimum: 1.0
+          title: Weekday
+          description: 'День ISO: понеділок 1, неділя 7.'
+        start_local:
+          type: string
+          format: time
+          title: Start Local
+          description: Початок за Europe/Kyiv, без UTC-зсуву, HH:MM.
+        end_local:
+          type: string
+          format: time
+          title: End Local
+          description: Кінець того самого локального дня, HH:MM.
+        slot_minutes:
+          type: integer
+          multipleOf: 5.0
+          maximum: 120.0
+          minimum: 15.0
+          title: Slot Minutes
+          description: Тривалість слота за A-005.
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+          description: Перша локальна дата дії шаблону, включно.
+        valid_to:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Valid To
+          description: Остання дата дії включно; null — без кінця.
+      additionalProperties: false
+      type: object
+      required:
+      - weekday
+      - start_local
+      - end_local
+      - slot_minutes
+      - valid_from
+      title: TemplatePut
+      description: Один тижневий проміжок, який складається з цілих слотів (US-008).
+    TimeBlockCreate:
+      properties:
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок блокування з часовим поясом.
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець блокування, пізніше за початок.
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+          description: Причина скасування бронювань.
+      additionalProperties: false
+      type: object
+      required:
+      - starts_at
+      - ends_at
+      - reason
+      title: TimeBlockCreate
+      description: Непорожній напіввідкритий проміжок із обов'язковою причиною.
+    TimeBlockList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/TimeBlockRead'
+          type: array
+          title: Items
+          description: Блокування від новіших до старіших.
+        pagination:
+          $ref: '#/components/schemas/OffsetPagination'
+          description: Метадані сторінки.
+      type: object
+      required:
+      - items
+      - pagination
+      title: TimeBlockList
+      description: Сторінка збережених блокувань власного ресурсу.
+    TimeBlockOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор блокування для подальшого зняття.
+        resource_id:
+          type: string
+          format: uuid
+          title: Resource Id
+          description: Ресурс провайдера.
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок у UTC.
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець у UTC; не належить проміжку.
+        reason:
+          type: string
+          title: Reason
+          description: Причина недоступності ресурсу.
+        cancelled_bookings:
+          type: integer
+          title: Cancelled Bookings
+          description: Кількість скасованих бронювань; без їхніх ID.
+      type: object
+      required:
+      - id
+      - resource_id
+      - starts_at
+      - ends_at
+      - reason
+      - cancelled_bookings
+      title: TimeBlockOut
+      description: Блокування без персональних даних студентів у скасованих бронюваннях.
+    TimeBlockRead:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Ідентифікатор блокування.
+        resource_id:
+          type: string
+          format: uuid
+          title: Resource Id
+          description: Власний ресурс провайдера.
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+          description: Початок у UTC.
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+          description: Кінець у UTC, не включно.
+        reason:
+          type: string
+          title: Reason
+          description: Причина недоступності.
+      type: object
+      required:
+      - id
+      - resource_id
+      - starts_at
+      - ends_at
+      - reason
+      title: TimeBlockRead
+      description: Поточний запис блокування; кількість скасувань — тільки результат створення.
+    UserRolesOut:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+          description: Користувач, ролі якого змінено.
+        roles:
+          items:
+            $ref: '#/components/schemas/Role'
+          type: array
+          title: Roles
+          description: Чинні ролі, відсортовані за назвою.
+      type: object
+      required:
+      - user_id
+      - roles
+      title: UserRolesOut
+      description: Результат адміністративної зміни без контактних даних користувача.
   securitySchemes:
     demoBearer:
       type: http
       description: '**Лаб 4 — автентифікація-заглушка.** Передайте один із демо-токенів: `demo-student`,
-        `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`. Цільова схема — сесія в cookie
-        HttpOnly (DD-06), з''явиться разом із модулем Auth.'
+        `demo-student-2`, `demo-provider`, `demo-provider-2`, `demo-admin`. Основна схема — sessionCookie
+        після /auth/login; demoBearer лише для локального демо.'
       scheme: bearer
+    sessionCookie:
+      type: apiKey
+      description: Cookie-сесія з /auth/login (DD-06).
+      in: cookie
+      name: unislot_session
 tags:
 - name: service
   description: 'Службові операції: перевірка, що процес API живий. Не потребує автентифікації.'
 - name: auth
-  description: Хто я і які маю ролі (FR-007). Реєстрація й вхід — разом із модулем Auth.
+  description: Самореєстрація студентів, парольний вхід і cookie-сесії (FR-001…007).
 - name: resources
   description: 'Каталог консультацій і аудиторій (FR-021, FR-060) та керування ними адміністратором (US-011:
     FR-060, FR-061).'
@@ -2921,3 +7114,11 @@ tags:
 - name: bookings
   description: Бронювання слотів студентом (US-001), скасування (US-002), перенесення (US-003) і перегляд
     власних бронювань (US-014).
+- name: admin
+  description: Ролі користувачів і політики бронювання (FR-062…065).
+- name: availability
+  description: Тижневі шаблони й блокування власного ресурсу (US-008/009).
+- name: notifications
+  description: Особиста скринька заглушки доставки (C-002).
+- name: workspace
+  description: Приватні списки даних для провайдера й адміністратора.

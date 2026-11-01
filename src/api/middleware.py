@@ -16,9 +16,10 @@ from __future__ import annotations
 import json
 import logging
 import time
-from collections.abc import Awaitable, Callable
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
+from starlette.datastructures import Headers, MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from api.config import API_VERSION
 from api.log_paths import route_template
@@ -27,39 +28,53 @@ from api.request_ids import normalize_request_id
 access_log = logging.getLogger("unislot.access")
 
 
-def _incoming_request_id(request: Request) -> str:
-    candidate = request.headers.get("X-Request-ID", "")
-    return normalize_request_id(candidate)
+class RequestContextMiddleware:
+    """ASGI-обгортка без зайвих task group і буферизації тіла відповіді."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        """Зберігає тільки наступний ASGI-застосунок, не стан окремого запиту."""
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Додає заголовки й один знеособлений запис після передачі відповіді."""
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request_id = normalize_request_id(Headers(scope=scope).get("x-request-id"))
+        state = scope.setdefault("state", {})
+        state["request_id"] = request_id
+        started, status = time.perf_counter(), 500
+
+        async def send_response(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+                headers = MutableHeaders(scope=message)
+                headers["X-Request-ID"] = request_id
+                headers["API-Version"] = API_VERSION
+                if scope["path"].startswith("/api/"):
+                    headers.setdefault("Cache-Control", "no-store")
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_response)
+        finally:
+            access_log.info(
+                json.dumps(
+                    {
+                        "event": "request",
+                        "request_id": request_id,
+                        "method": scope["method"],
+                        "path": route_template(scope["path"]),
+                        "status": status,
+                        "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+                        "user_id": state.get("user_id"),
+                    },
+                    ensure_ascii=False,
+                )
+            )
 
 
 def install_middleware(app: FastAPI) -> None:
     """Підключає middleware до застосунку."""
-
-    @app.middleware("http")
-    async def request_context(
-        request: Request,
-        call_next: Callable[[Request], Awaitable[Response]],
-    ) -> Response:
-        request_id = _incoming_request_id(request)
-        request.state.request_id = request_id
-        started = time.perf_counter()
-        response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
-        response.headers["API-Version"] = API_VERSION
-        if request.url.path.startswith("/api/"):
-            response.headers.setdefault("Cache-Control", "no-store")
-        access_log.info(
-            json.dumps(
-                {
-                    "event": "request",
-                    "request_id": request_id,
-                    "method": request.method,
-                    "path": route_template(request.url.path),
-                    "status": response.status_code,
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 1),
-                    "user_id": getattr(request.state, "user_id", None),
-                },
-                ensure_ascii=False,
-            )
-        )
-        return response
+    app.add_middleware(RequestContextMiddleware)

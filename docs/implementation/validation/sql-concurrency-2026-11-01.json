@@ -1,0 +1,161 @@
+{
+  "created_at": "2026-11-01T10:15:36.676665+00:00",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.13.13",
+  "database": "PostgreSQL 16 (native isolated cluster)",
+  "deployment": "native Windows; Docker condition not verified",
+  "slots": 5000,
+  "users": 200,
+  "booking_warmups": 10,
+  "client": "httpx2 sync; synchronized thread waves; full response body",
+  "percentile": "nearest rank",
+  "api_worker_threads": 40,
+  "api_processes": 1,
+  "database_pool_per_process": 32,
+  "passed": false,
+  "cases": {
+    "search": {
+      "requests": 2000,
+      "concurrency": 50,
+      "wall_seconds": 14.934,
+      "p50_ms": 340.465,
+      "p95_ms": 398.517,
+      "max_ms": 472.602,
+      "statuses": {
+        "200": 2000
+      },
+      "codes": {},
+      "invalid_bodies": 0,
+      "target_p95_ms": 400,
+      "passed": true
+    },
+    "different_slots": {
+      "requests": 100,
+      "concurrency": 100,
+      "wall_seconds": 0.657,
+      "p50_ms": 372.321,
+      "p95_ms": 591.673,
+      "max_ms": 607.628,
+      "statuses": {
+        "201": 100
+      },
+      "codes": {},
+      "invalid_bodies": 0,
+      "target_p95_ms": 600,
+      "passed": true
+    },
+    "same_slot": {
+      "requests": 100,
+      "concurrency": 100,
+      "wall_seconds": 0.558,
+      "p50_ms": 391.128,
+      "p95_ms": 499.88,
+      "max_ms": 518.252,
+      "statuses": {
+        "409": 99,
+        "201": 1
+      },
+      "codes": {
+        "SLOT_ALREADY_BOOKED": 99
+      },
+      "invalid_bodies": 0,
+      "target_p95_ms": null,
+      "passed": true,
+      "confirmed_rows": 1
+    },
+    "different_slots_idempotent": {
+      "requests": 100,
+      "concurrency": 100,
+      "wall_seconds": 0.702,
+      "p50_ms": 620.489,
+      "p95_ms": 654.096,
+      "max_ms": 666.405,
+      "statuses": {
+        "201": 100
+      },
+      "codes": {},
+      "invalid_bodies": 0,
+      "target_p95_ms": 600,
+      "passed": false
+    },
+    "persisted": {
+      "bookings": 211,
+      "notifications": 633,
+      "idempotency_keys": 100
+    }
+  },
+  "unit_integration": {
+    "passed": 671,
+    "branch_coverage_percent": 98.16,
+    "coverage_threshold_percent": 90
+  },
+  "local_checks": [
+    {
+      "check": "pytest",
+      "exit_code": 0,
+      "duration_seconds": 183.508
+    },
+    {
+      "check": "ruff",
+      "exit_code": 0,
+      "duration_seconds": 0.539
+    },
+    {
+      "check": "format",
+      "exit_code": 0,
+      "duration_seconds": 0.337
+    },
+    {
+      "check": "bandit",
+      "exit_code": 0,
+      "duration_seconds": 2.088
+    },
+    {
+      "check": "requirements",
+      "exit_code": 0,
+      "duration_seconds": 0.139
+    },
+    {
+      "check": "traceability",
+      "exit_code": 0,
+      "duration_seconds": 0.335
+    },
+    {
+      "check": "architecture",
+      "exit_code": 0,
+      "duration_seconds": 1.748
+    },
+    {
+      "check": "imports",
+      "exit_code": 0,
+      "duration_seconds": 0.692
+    },
+    {
+      "check": "openapi",
+      "exit_code": 0,
+      "duration_seconds": 2.881
+    },
+    {
+      "check": "pip-check",
+      "exit_code": 0,
+      "duration_seconds": 1.286
+    },
+    {
+      "check": "pip-audit",
+      "exit_code": 0,
+      "duration_seconds": 6.997
+    },
+    {
+      "check": "whitespace",
+      "exit_code": 0,
+      "duration_seconds": 0.17
+    },
+    {
+      "check": "secrets",
+      "exit_code": 0,
+      "duration_seconds": 33.622
+    }
+  ],
+  "scope": "native Windows; no GitHub CI, other-device run or Docker claim",
+  "source_reference": "git show b47d731"
+}

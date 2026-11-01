@@ -6,6 +6,16 @@
 
 from __future__ import annotations
 
-from api.routers import auth, bookings, health, resources, slots
+from api.routers import (
+    admin,
+    auth,
+    availability,
+    bookings,
+    health,
+    notifications,
+    resources,
+    slots,
+    workspace,
+)
 
-ALL = (health, auth, resources, slots, bookings)
+ALL = (health, auth, resources, slots, bookings, admin, availability, notifications, workspace)

@@ -1,0 +1,1375 @@
+{
+  "date": "2026-11-01",
+  "branch": "feature/midterm-admin-availability",
+  "runtime_source_commit": "ce1c58a51cad",
+  "publication": {
+    "push": false,
+    "new_remote_ci": false,
+    "independent_team_review": false
+  },
+  "pytest": {
+    "passed": 684,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_seconds": 146.66,
+    "coverage_branch_percent": 98.29418344519016,
+    "exit_code": 0
+  },
+  "fr": {
+    "total": 44,
+    "locally_verified": 44,
+    "missing_implementation_found": [],
+    "meaning": "Local implementation under current API contract and C-002; not a teacher grade or main status"
+  },
+  "launch": {
+    "os": "Windows 10 Enterprise 22H2 (10.0.19045)",
+    "python": "3.13.13",
+    "postgresql_major": 16,
+    "api_workers": 2,
+    "worker_separate_process": true,
+    "demo_auth": false,
+    "migration": "0005",
+    "tracked_source_only": true,
+    "new_venv_install_completed": true,
+    "consecutive_successful_flows": 3,
+    "new_database_each_flow": true,
+    "same_fresh_venv_reused_for_repeats": true,
+    "same_physical_computer": true,
+    "other_physical_computer_verified": false,
+    "docker_verified": false,
+    "browser_dom_retested": false,
+    "checks": [
+      "tracked_source_without_env_or_venv",
+      "reused_fresh_venv_from_prior_attempt",
+      "local-init",
+      "repeat-migrate",
+      "explicit_local_demo_disabled",
+      "bootstrap-admin",
+      "real_cookie_login_registration_cannot_elevate_roles",
+      "ui_assets_mime_csp_swagger_demo_denied",
+      "admin_resource_provider_slots_and_negative_rbac",
+      "booking_confirmation_provider_notice_and_key_replay",
+      "failed_reschedule_preserves_original_and_foreign_access_denied",
+      "successful_atomic_reschedule_and_worker_notifications",
+      "calendar_load_and_filtered_audit",
+      "cancellation_frees_slot_and_provider_notified",
+      "two_uvicorn_workers_running",
+      "restart_keeps_cookie_booking_history_and_logout_revokes",
+      "notification-cli",
+      "pip-check",
+      "migration_0005_and_obsolete_reminders_cancelled",
+      "stop-own-cluster"
+    ],
+    "known_incomplete_diagnosis": "One earlier HTTP ReadTimeout after source install; not reproduced in the following three complete flows; cause not established.",
+    "harness_corrections": [
+      "Use /health rather than /api/v1/health",
+      "Verify both server PIDs rather than direct launcher children",
+      "Use audit object_id as in the API contract"
+    ],
+    "temporary_processes_stopped": true,
+    "generated_env_and_pgdata_removed": true,
+    "existing_working_database_untouched": true
+  },
+  "checks": [
+    {
+      "check": "AST equivalent after stripping docstrings",
+      "exit_code": 0,
+      "files": 7
+    },
+    {
+      "check": "new Markdown file links",
+      "exit_code": 0
+    },
+    {
+      "check": "ruff",
+      "exit_code": 0,
+      "duration_seconds": 0.523
+    },
+    {
+      "check": "format",
+      "exit_code": 0,
+      "duration_seconds": 0.369
+    },
+    {
+      "check": "bandit",
+      "exit_code": 0,
+      "duration_seconds": 1.544
+    },
+    {
+      "check": "requirements",
+      "exit_code": 0,
+      "duration_seconds": 0.093
+    },
+    {
+      "check": "traceability",
+      "exit_code": 0,
+      "duration_seconds": 0.213
+    },
+    {
+      "check": "architecture",
+      "exit_code": 0,
+      "duration_seconds": 0.146
+    },
+    {
+      "check": "openapi",
+      "exit_code": 0,
+      "duration_seconds": 2.2
+    },
+    {
+      "check": "whitespace",
+      "exit_code": 0,
+      "duration_seconds": 0.106
+    },
+    {
+      "check": "detect-secrets: all tracked and new deliverables",
+      "exit_code": 0
+    }
+  ],
+  "requirements": [
+    {
+      "id": "FR-001",
+      "title": "Самореєстрація студента",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/services/auth_service.py",
+          "symbol": "register"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_registration_never_accepts_privileges_from_client",
+          "line": 63,
+          "passed_instances": 4
+        },
+        {
+          "path": "tests/integration/test_persisted_auth.py",
+          "function": "test_registration_is_atomic_when_database_rejects_credentials",
+          "line": 104,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Володіння поштою не підтверджується: C-002, а не відсутня реалізація FR-001."
+    },
+    {
+      "id": "FR-002",
+      "title": "Ігнорування переданої ролі",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/services/auth_service.py",
+          "symbol": "register"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_registration_never_accepts_privileges_from_client",
+          "line": 63,
+          "passed_instances": 4
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-003",
+      "title": "Унікальна пошта без регістру",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/services/auth_service.py",
+          "symbol": "register"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_email_uniqueness_ignores_case_and_spaces",
+          "line": 77,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persisted_auth.py",
+          "function": "test_parallel_case_variant_registration_creates_one_account",
+          "line": 135,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-004",
+      "title": "Argon2id та повний пароль",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/passwords.py",
+          "symbol": "hash_password"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_full_password_is_preserved_without_72_byte_truncation",
+          "line": 100,
+          "passed_instances": 4
+        },
+        {
+          "path": "tests/integration/test_persisted_auth.py",
+          "function": "test_password_and_session_survive_reopening_database",
+          "line": 53,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-005",
+      "title": "Однакова помилка входу",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/services/auth_service.py",
+          "symbol": "login"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_login_error_does_not_disclose_account_existence",
+          "line": 115,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-006",
+      "title": "Обмеження невдалих входів",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/services/auth_service.py",
+          "symbol": "login"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_password_auth.py",
+          "function": "test_throttle_applies_equally_to_known_and_unknown_and_does_not_extend",
+          "line": 257,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persisted_auth.py",
+          "function": "test_failed_login_commits_user_counter_and_unknown_account_counter",
+          "line": 82,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Працює 5 спроб / 300 с; командне рішення OQ-001 ще не зафіксоване."
+    },
+    {
+      "id": "FR-007",
+      "title": "Три ролі та відмова у чужих операціях",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/security.py",
+          "symbol": "get_current_user"
+        },
+        {
+          "path": "src/api/security.py",
+          "symbol": "require_roles"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_rbac_decision_table.py",
+          "function": "test_rbac_decision_table",
+          "line": 287,
+          "passed_instances": 128
+        },
+        {
+          "path": "tests/api/test_rbac_decision_table.py",
+          "function": "test_decision_table_covers_every_protected_operation_for_every_role",
+          "line": 300,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persisted_auth.py",
+          "function": "test_role_revocation_and_account_disable_affect_existing_session",
+          "line": 145,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-010",
+      "title": "Разові слоти власного ресурсу",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/slot_service.py",
+          "symbol": "create_slot"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_provider_publishes_slot_on_own_resource",
+          "line": 136,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_duration_and_time_validation",
+          "line": 152,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-011",
+      "title": "Відхилення перетинів слотів",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/slot_service.py",
+          "symbol": "create_slot"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_overlap_rejected_adjacent_allowed",
+          "line": 144,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_slot_exclusion_and_inactive_history",
+          "line": 289,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-012",
+      "title": "Щотижневий шаблон і горизонт",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/template_service.py",
+          "symbol": "save_template"
+        },
+        {
+          "path": "src/api/services/worker_service.py",
+          "symbol": "refresh_horizon"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_availability_templates.py",
+          "function": "test_template_materializes_entire_horizon_and_is_searchable",
+          "line": 48,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_worker_operations.py",
+          "function": "test_horizon_extends_without_a_browser_and_refresh_is_idempotent",
+          "line": 120,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Для автоматичного подовження потрібен запущений Worker; DST-переходи перевірені окремо."
+    },
+    {
+      "id": "FR-013",
+      "title": "Блокування власного часу",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/availability_service.py",
+          "symbol": "create_block"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_availability_blocks.py",
+          "function": "test_overlapping_blocks_keep_time_unavailable_until_both_are_removed",
+          "line": 117,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-014",
+      "title": "Скасування через блокування з причиною",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/availability_service.py",
+          "symbol": "create_block"
+        },
+        {
+          "path": "src/api/stubs/notification_service.py",
+          "symbol": "booking_cancelled"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_availability_blocks.py",
+          "function": "test_block_cancels_all_overlapping_future_bookings",
+          "line": 66,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_provider_block_delivers_reason_to_student_even_if_gateway_is_down",
+          "line": 166,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-015",
+      "title": "Календар і завантаження провайдера",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/routers/workspace.py",
+          "symbol": "resource_calendar"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_calendar_audit.py",
+          "function": "test_calendar_has_whole_range_totals_and_page_without_student_data",
+          "line": 12,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Додано на запит Дениса; історичне OQ-004 потребує командного погодження. Період до 31 дня, списки з пагінацією."
+    },
+    {
+      "id": "FR-020",
+      "title": "Вільні слоти у горизонті",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/queries.py",
+          "symbol": "search_slots"
+        },
+        {
+          "path": "src/api/stubs/slot_service.py",
+          "symbol": "is_free"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_search_returns_only_free_slots_in_time_order",
+          "line": 35,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_date_outside_horizon_is_rejected",
+          "line": 70,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_sql_search_matches_memory_filters_and_cursor",
+          "line": 54,
+          "passed_instances": 6
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-021",
+      "title": "Фільтри провайдера, типу й дати",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/queries.py",
+          "symbol": "search_slots"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_filters_combine",
+          "line": 46,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_cached_search_shape_keeps_filter_values_and_current_rows_fresh",
+          "line": 73,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-022",
+      "title": "Мінімальна місткість лише аудиторій",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/queries.py",
+          "symbol": "_search_query"
+        },
+        {
+          "path": "src/api/stubs/slot_service.py",
+          "symbol": "_matches_filters"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_min_capacity_applies_to_rooms_only",
+          "line": 61,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_sql_search_matches_memory_filters_and_cursor",
+          "line": 54,
+          "passed_instances": 6
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-023",
+      "title": "Приховування зайнятих, заблокованих і початих",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/queries.py",
+          "symbol": "_search_query"
+        },
+        {
+          "path": "src/api/stubs/slot_service.py",
+          "symbol": "is_free"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_search_returns_only_free_slots_in_time_order",
+          "line": 35,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_slots.py",
+          "function": "test_booked_slot_disappears_from_search",
+          "line": 104,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-030",
+      "title": "Бронювання у горизонті",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "create_booking"
+        },
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_slot_bookable"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_booking_a_free_slot",
+          "line": 38,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_booking_and_outbox_survive_adapter_restart",
+          "line": 37,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-031",
+      "title": "Негайно активне бронювання",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "create_booking"
+        },
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "_new_booking"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_booking_a_free_slot",
+          "line": 38,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-032",
+      "title": "Один переможець за конкуренції",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "create_booking"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_parallel_independent_connections_have_one_booking_winner",
+          "line": 314,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Додатково 3 навантажувальні прогони на PostgreSQL: кожного разу 1×201 + 99×409; посилання нижче."
+    },
+    {
+      "id": "FR-033",
+      "title": "Ліміт із поясненням значення",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_within_student_limits"
+        },
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "create_booking"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_limit_reached_names_limit_and_count",
+          "line": 76,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_parallel_student_limit_is_preserved",
+          "line": 175,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-034",
+      "title": "Закриття запису від початку слота",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_slot_bookable"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_unbookable_slots_give_409_with_reason",
+          "line": 61,
+          "passed_instances": 5
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_sql_booking_preserves_domain_rejections",
+          "line": 143,
+          "passed_instances": 5
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-035",
+      "title": "Заборона перетину записів одного студента",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_within_student_limits"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_unbookable_slots_give_409_with_reason",
+          "line": 61,
+          "passed_instances": 5
+        },
+        {
+          "path": "tests/integration/test_sql_paths.py",
+          "function": "test_sql_booking_preserves_domain_rejections",
+          "line": 143,
+          "passed_instances": 5
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-036",
+      "title": "Власні активні та минулі бронювання",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "list_mine"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_my_bookings_active_first",
+          "line": 214,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_my_bookings_filter_and_empty_result",
+          "line": 224,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_separate_api_and_worker_processes_share_durable_state",
+          "line": 203,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-040",
+      "title": "Скасування в межах вікна",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "cancel"
+        },
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_changeable"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_cancel_exactly_at_deadline_is_allowed",
+          "line": 145,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_cancel_after_deadline_names_the_deadline",
+          "line": 155,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-041",
+      "title": "Фіксований дедлайн у підтвердженні",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "_response"
+        },
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "cancel_deadline"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_booking_a_free_slot",
+          "line": 38,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_policy_versions_keep_existing_bookings_unchanged",
+          "line": 106,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-042",
+      "title": "Звільнення слота після скасування",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "cancel"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_cancel_frees_the_slot",
+          "line": 134,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-043",
+      "title": "Атомарне перенесення",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "reschedule"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_reschedule_is_atomic_replacement",
+          "line": 183,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_failed_reschedule_keeps_notice_success_replaces_it",
+          "line": 137,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-044",
+      "title": "Вікно перенесення і виняток із ліміту",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "reschedule"
+        },
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_within_student_limits"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_reschedule_at_limit_is_allowed",
+          "line": 200,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_bookings.py",
+          "function": "test_reschedule_after_deadline_or_to_same_slot",
+          "line": 206,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-045",
+      "title": "Після початку зміни заборонені всім ролям",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/unislot/booking/domain/rules.py",
+          "symbol": "ensure_changeable"
+        },
+        {
+          "path": "src/api/stubs/availability_service.py",
+          "symbol": "create_block"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/unit/test_booking_rules.py",
+          "function": "test_started_slot_cannot_be_changed_even_before_deadline_check",
+          "line": 206,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_availability_blocks.py",
+          "function": "test_started_booking_rejects_entire_block_without_partial_cancellation",
+          "line": 95,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-050",
+      "title": "Підтвердження студенту",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/notification_service.py",
+          "symbol": "booking_created"
+        },
+        {
+          "path": "src/api/infrastructure/outbox.py",
+          "symbol": "dispatch_due"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_confirmation_and_provider_delivery_are_private_and_idempotent",
+          "line": 55,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "Outbox створюється разом із бронею; Worker доставляє у постійну особисту скриньку. Локальний адаптер за C-002, без SMTP/SMS."
+    },
+    {
+      "id": "FR-051",
+      "title": "Нагадування за 24 години",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/unislot/notifications/domain/reminders.py",
+          "symbol": "reminder_due_at"
+        },
+        {
+          "path": "src/api/infrastructure/outbox.py",
+          "symbol": "dispatch_due"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/unit/test_reminders.py",
+          "function": "test_booking_exactly_24_hours_ahead_still_gets_a_reminder",
+          "line": 40,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/unit/test_reminders.py",
+          "function": "test_lead_is_absolute_time_across_the_dst_change",
+          "line": 55,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_reminder_is_delayed_until_due",
+          "line": 110,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "Час доставки перевірено контрольованим clock; реальні 24 години під час свіжого запуску не очікували. Потрібен Worker."
+    },
+    {
+      "id": "FR-052",
+      "title": "Провайдеру про створення й скасування",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/notification_service.py",
+          "symbol": "booking_created"
+        },
+        {
+          "path": "src/api/stubs/notification_service.py",
+          "symbol": "booking_cancelled"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_confirmation_and_provider_delivery_are_private_and_idempotent",
+          "line": 55,
+          "passed_instances": 2
+        },
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_cancellation_after_claim_prevents_late_worker_delivery",
+          "line": 122,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "Постійна скринька C-002; доставка окремим Worker також перевірена живим HTTP-сценарієм."
+    },
+    {
+      "id": "FR-053",
+      "title": "Стійка черга повторів без блокування броні",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/outbox.py",
+          "symbol": "dispatch_due"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_failure_never_blocks_booking_and_survives_retry",
+          "line": 88,
+          "passed_instances": 2
+        },
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_crash_between_send_and_ack_retries_without_duplicate_delivery",
+          "line": 189,
+          "passed_instances": 2
+        },
+        {
+          "path": "tests/integration/test_worker_operations.py",
+          "function": "test_operator_lists_minimal_fields_and_retries_one_failed_message",
+          "line": 40,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Після вичерпання спроб status=failed; явний операторський повтор із причиною та аудитом."
+    },
+    {
+      "id": "FR-054",
+      "title": "Перепланування після перенесення",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/booking_service.py",
+          "symbol": "reschedule"
+        },
+        {
+          "path": "src/api/stubs/notification_service.py",
+          "symbol": "booking_cancelled"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_outbox.py",
+          "function": "test_failed_reschedule_keeps_notice_success_replaces_it",
+          "line": 137,
+          "passed_instances": 2
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-060",
+      "title": "Створення й редагування ресурсів",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/resource_service.py",
+          "symbol": "create_resource"
+        },
+        {
+          "path": "src/api/stubs/resource_service.py",
+          "symbol": "update_resource"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_resources.py",
+          "function": "test_admin_creates_room_with_location_and_audit",
+          "line": 60,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_resources.py",
+          "function": "test_patch_changes_only_sent_fields",
+          "line": 110,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Тип є полем створення; його зміна PATCH навмисно заборонена чинним контрактом. Назва/місткість/провайдер редагуються."
+    },
+    {
+      "id": "FR-061",
+      "title": "Призначення провайдера ресурсу",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/resource_service.py",
+          "symbol": "_check_provider"
+        },
+        {
+          "path": "src/api/stubs/resource_service.py",
+          "symbol": "update_resource"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_resources.py",
+          "function": "test_admin_creates_room_with_location_and_audit",
+          "line": 60,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_resources.py",
+          "function": "test_provider_must_have_provider_role",
+          "line": 94,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_provider_role_requires_reassignment_of_owned_resources",
+          "line": 75,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-062",
+      "title": "Надання й відкликання ролей",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/admin_service.py",
+          "symbol": "change_role"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_role_changes_take_effect_on_the_next_request",
+          "line": 26,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_role_put_and_delete_are_idempotent",
+          "line": 63,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-063",
+      "title": "Захист останнього адміністратора",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/admin_service.py",
+          "symbol": "change_role"
+        },
+        {
+          "path": "src/unislot/admin/domain/rules.py",
+          "symbol": "ensure_role_revocable"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_last_admin_is_protected_without_mutation",
+          "line": 38,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_concurrent_self_revocation_always_keeps_one_admin",
+          "line": 46,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-064",
+      "title": "Зміна ліміту й вікна",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/admin_service.py",
+          "symbol": "update_policy"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_policy_versions_keep_existing_bookings_unchanged",
+          "line": 106,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_bad_policy_is_422_and_does_not_change_state",
+          "line": 158,
+          "passed_instances": 9
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-065",
+      "title": "Стара бронь зберігає свою політику",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/admin_service.py",
+          "symbol": "update_policy"
+        },
+        {
+          "path": "src/api/infrastructure/booking_commands.py",
+          "symbol": "create_booking"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_policy_versions_keep_existing_bookings_unchanged",
+          "line": 106,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_lowering_limit_preserves_bookings_and_blocks_new_ones",
+          "line": 127,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_old_cancel_window_still_applies_after_policy_change",
+          "line": 177,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-066",
+      "title": "Аудит ресурсу, ролей і політики",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/stubs/admin_service.py",
+          "symbol": "_audit"
+        },
+        {
+          "path": "src/api/stubs/resource_service.py",
+          "symbol": "_audit"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_resources.py",
+          "function": "test_admin_creates_room_with_location_and_audit",
+          "line": 60,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_role_put_and_delete_are_idempotent",
+          "line": 63,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_admin_management.py",
+          "function": "test_policy_versions_keep_existing_bookings_unchanged",
+          "line": 106,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_audit_failure_rolls_back_admin_change",
+          "line": 246,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "У межах поточного локального профілю."
+    },
+    {
+      "id": "FR-067",
+      "title": "Append-only аудит",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/infrastructure/security.py",
+          "symbol": "install_audit_protection"
+        },
+        {
+          "path": "src/api/infrastructure/security.py",
+          "symbol": "grant_runtime"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_runtime_cannot_change_audit",
+          "line": 166,
+          "passed_instances": 4
+        },
+        {
+          "path": "tests/integration/test_persistence.py",
+          "function": "test_owner_triggers_also_reject_audit_mutation",
+          "line": 185,
+          "passed_instances": 3
+        }
+      ],
+      "limits": "Runtime не має UPDATE/DELETE/TRUNCATE/DDL; тригери захищають журнал. DB superuser, який змінює сам механізм захисту, не є роллю продукту."
+    },
+    {
+      "id": "FR-068",
+      "title": "Читання аудиту з фільтрами",
+      "status": "verified_locally",
+      "implementation": [
+        {
+          "path": "src/api/routers/workspace.py",
+          "symbol": "audit_log"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/api/test_calendar_audit.py",
+          "function": "test_audit_filter_pagination_before_after_and_read_only",
+          "line": 41,
+          "passed_instances": 1
+        },
+        {
+          "path": "tests/api/test_calendar_audit.py",
+          "function": "test_audit_never_exposes_nested_auth_secrets",
+          "line": 67,
+          "passed_instances": 1
+        }
+      ],
+      "limits": "Admin-only; дата, автор і дія, період до 31 дня, пагінація. Включено на запит Дениса; OQ-004 очікує командного PR."
+    }
+  ],
+  "remaining": [
+    "Result from a different physical computer",
+    "Team decisions on Auth/UI/OQ",
+    "Publish and independently review with real CI",
+    "Docker conditions PORT-001/PERF-001 outside this native check"
+  ],
+  "ai_use": "Codex performed local checks and documentation; no teammate verification attributed.",
+  "scan_explanation": "Initial full commit SHA was a verified high-entropy false positive; changed to unambiguous 12-character Git ID. Baseline and scanning rules unchanged; complete rescan passed."
+}

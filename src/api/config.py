@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 
 API_TITLE = "UniSlot API"
@@ -46,6 +46,21 @@ class Settings:
     demo_auth_enabled: bool
     # Джерела, яким дозволено CORS (через кому). Порожньо — CORS вимкнено.
     cors_origins: tuple[str, ...]
+    database_url: str | None = field(default=None, repr=False)
+    session_cookie_secure: bool = True
+    session_ttl_seconds: int = 28800
+    login_max_failures: int = 5
+    login_cooldown_seconds: int = 300
+    thread_switch_interval_ms: int = 1
+
+    def __post_init__(self) -> None:
+        """Додатні конфігуровані межі не можна вимкнути випадковим нулем."""
+        if min(self.session_ttl_seconds, self.login_max_failures, self.login_cooldown_seconds) < 1:
+            raise ValueError("auth configuration values must be positive")
+        if "*" in self.cors_origins:
+            raise ValueError("cookie CORS requires explicit origins")
+        if not 1 <= self.thread_switch_interval_ms <= 20:
+            raise ValueError("thread switch interval must be between 1 and 20 milliseconds")
 
 
 @lru_cache
@@ -58,4 +73,10 @@ def get_settings() -> Settings:
         # серед них `demo-admin`. Сервер, запущений без змінної, їх не приймає (V-01).
         demo_auth_enabled=_flag("UNISLOT_DEMO_AUTH", default=False),
         cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip()),
+        database_url=os.environ.get("UNISLOT_DATABASE_URL") or None,
+        session_cookie_secure=_flag("UNISLOT_SESSION_COOKIE_SECURE", default=True),
+        session_ttl_seconds=int(os.environ.get("UNISLOT_SESSION_TTL_SECONDS", "28800")),
+        login_max_failures=int(os.environ.get("UNISLOT_LOGIN_MAX_FAILURES", "5")),
+        login_cooldown_seconds=int(os.environ.get("UNISLOT_LOGIN_COOLDOWN_SECONDS", "300")),
+        thread_switch_interval_ms=int(os.environ.get("UNISLOT_THREAD_SWITCH_INTERVAL_MS", "1")),
     )

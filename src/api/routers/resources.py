@@ -10,6 +10,7 @@ from fastapi import APIRouter, Body, Path, Query, Response
 from api.config import API_PREFIX
 from api.enums import ResourceType
 from api.errors import ErrorCode, FieldError, problem_responses
+from api.infrastructure.unit_of_work import transactional
 from api.pagination import DEFAULT_PAGE_SIZE, Limit, Offset, OffsetPagination
 from api.schemas.resources import ResourceCreate, ResourceList, ResourceOut, ResourceUpdate
 from api.security import Admin, AnyUser
@@ -58,6 +59,7 @@ _LOCATION = {
         ),
     ),
 )
+@transactional
 def list_resources(
     user: AnyUser,
     resource_type: Annotated[
@@ -98,6 +100,7 @@ def list_resources(
         ),
     ),
 )
+@transactional
 def get_resource(resource_id: ResourceId, user: AnyUser) -> ResourceOut:
     """Повертає один ресурс каталогу з провайдером. Неіснуючий ідентифікатор — 404."""
     return service.to_out(service.get_resource(resource_id))
@@ -124,6 +127,7 @@ def get_resource(resource_id: ResourceId, user: AnyUser) -> ResourceOut:
         ),
     },
 )
+@transactional
 def create_resource(
     payload: Annotated[
         ResourceCreate,
@@ -189,6 +193,7 @@ def create_resource(
         ),
     ),
 )
+@transactional
 def update_resource(
     resource_id: ResourceId,
     payload: Annotated[
