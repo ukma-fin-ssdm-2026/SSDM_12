@@ -24,6 +24,7 @@ def debug_stages_valid(stages: object) -> bool:
         and len(stages) == 2
         and all(isinstance(stage, dict) for stage in stages)
         and [stage.get("stage") for stage in stages] == ["red", "green"]
+        and all(type(stage.get("exit_code")) is int for stage in stages)
         and [stage.get("exit_code") for stage in stages] == [1, 0]
     )
 
@@ -54,7 +55,7 @@ def main() -> int:
             if actual.hexdigest() != expected:
                 errors.append(f"report stale after source change: {name}")
         debug = json.loads((REPORT / "evidence/debug-results.json").read_text(encoding="utf-8"))
-        if [r["exit_code"] for r in debug["stages"]] != [1, 0]:
+        if not debug_stages_valid(debug.get("stages")):
             errors.append("debug challenge must show a failing then passing test")
         if not debug["working_source_unchanged"]:
             errors.append("debug challenge did not restore working source")
