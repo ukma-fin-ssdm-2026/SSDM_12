@@ -23,6 +23,7 @@ def debug_stages_valid(stages: object) -> bool:
         isinstance(stages, list)
         and len(stages) == 2
         and all(isinstance(stage, dict) for stage in stages)
+        and [stage.get("stage") for stage in stages] == ["red", "green"]
         and [stage.get("exit_code") for stage in stages] == [1, 0]
     )
 
