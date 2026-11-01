@@ -136,8 +136,8 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 | TP-06 | `tests/api/test_slots.py::test_overlap_rejected_adjacent_allowed` | є | — |
 | TP-07 | `tests/unit/test_resource_rules.py` (усі), `tests/unit/test_resource_service.py::test_service_boundary_rejects_invalid_capacity_without_http` | є (з Лаб 6, #190) | вцілілий мутант `is` → `==` на StrEnum — `lab06/mutation-report.md` |
 | TP-08 | `tests/api/test_resources.py`: `test_patch_changes_only_sent_fields`, `test_patch_rejects_null_empty_and_type_change` | є | — |
-| TP-09 | `tests/api/test_rbac_decision_table.py` — 56 правил DT-01…DT-56 і перевірка повноти таблиці | новий — PR бонусу 2 | правило «анонім → 401» закриває й V-01 (демо-автентифікація за замовчуванням, #177) |
-| TP-10 | `tests/api/test_privacy_sweep.py`; `tests/api/test_bookings.py::test_owner_sees_booking_others_get_403_without_data` | частково → повний перебір у PR бонусу 4 | у р. 2 рядок мав стан «є», але тест перевіряв лише `GET /bookings/{id}` |
+| TP-09 | `tests/api/test_rbac_decision_table.py` — 56 правил DT-01…DT-56 і перевірка повноти таблиці | є — #234 | правило «анонім → 401» закриває й V-01 (демо-автентифікація за замовчуванням, #177) |
+| TP-10 | `tests/api/test_privacy_sweep.py`; `tests/api/test_bookings.py::test_owner_sees_booking_others_get_403_without_data` | є — #236 | у р. 2 рядок мав стан «є», але тест перевіряв лише `GET /bookings/{id}` |
 | TP-11 | — (потрібна PostgreSQL) | новий, поза CI | — |
 | TP-12 | `tests/unit/test_reminders.py` — 13 випадків | є (PR #232, CI `883ef7a` зелений) | межі 24 год, часові пояси, DST, наївний час і недодатний `lead` |
 | TP-13 | `tests/api/test_booking_reminders.py` — 9 сценаріїв | є (PR #232, CI `883ef7a` зелений) | **Nit Павла** — межу в §4 узгоджено з тестами: ≥ 24 год / < 24 год; див. «Бонус 3» |
@@ -239,6 +239,12 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
   RED і GREEN, фактичних журналів агента та CI після злиття; команди й результати нижче.
   Точний ідентифікатор моделі сесії реалізації інструмент не повернув; його не вказуємо
   навмання. Це доповнення не засвідчує особистий відеозахист або завершення issue #225.
+- **р. 4 (01.11), @NykytaBabakov:** перед PR-F звірив із Claude стан §5 (TP-09, TP-10) і
+  формулювання §10/§11 з реальною історією Git і з review-log.md §1.4 — а не переписував
+  їх за пам'яттю. Знайдено й виправлено: посилання на PR #240 (`gh api .../pulls/240` →
+  404, PR не існує) і втрату фрази «його не вказуємо навмання» (з `baf13ca`) через правку
+  зі старішої локальної копії файлу. Стан TP-09/TP-10 підтверджено новим — PR #234 і #236
+  ніколи не оновлювали цей стовпець §5.
 
 ---
 
