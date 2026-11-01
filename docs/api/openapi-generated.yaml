@@ -29,6 +29,8 @@ info:
     url: https://github.com/ukma-fin-ssdm-2026/SSDM_12
   version: 1.0.0-alpha.1
 servers:
+- url: /
+  description: Поточний сервер API (локальний або публічний HTTPS)
 - url: http://localhost:3000
   description: Локальний запуск (uvicorn, порт 3000)
 paths:

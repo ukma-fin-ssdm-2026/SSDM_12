@@ -167,7 +167,10 @@ def create_app() -> FastAPI:
         summary="Бронювання консультацій викладачів і навчальних аудиторій.",
         description=API_DESCRIPTION,
         contact={"name": "Команда SSDM_12", "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12"},
-        servers=[{"url": LOCAL_SERVER_URL, "description": "Локальний запуск (uvicorn, порт 3000)"}],
+        servers=[
+            {"url": "/", "description": "Поточний сервер API (локальний або публічний HTTPS)"},
+            {"url": LOCAL_SERVER_URL, "description": "Локальний запуск (uvicorn, порт 3000)"},
+        ],
         openapi_tags=[module.TAG for module in routers.ALL],
         docs_url="/api-docs",
         redoc_url="/redoc",
