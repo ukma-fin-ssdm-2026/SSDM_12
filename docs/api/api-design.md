@@ -437,6 +437,9 @@ GET `/admin/audit` (admin); date_from/date_to — київські дати вк
 діапазон до 31 дня, limit/offset. Аудит підтримує actor_id і точну action.
 Календар не розкриває особу студента. Всього 32 операції; деталі й результати
 HTTP-навантаження — у [звіті Worker/календаря/аудиту](../implementation/load-worker-calendar-audit.md).
+Оптимізація SQL не змінює ці 32 операції: [конкурентність і відмови](../implementation/sql-concurrency-hardening.md)
+описують свіжу перевірку прав, один retry транзакції броні після 40P01,
+відображення відомих UNIQUE/EXCLUDE у 409 і вичерпаного пулу в 503.
 
 ## Використання ШІ
 

@@ -71,6 +71,8 @@ Worker; запуск і межі — у [`звіті PostgreSQL/outbox`](docs/im
 [`звіті Web UI`](docs/implementation/web-ui.md).
 Календар провайдера, перегляд аудиту, фоновий горизонт, операторський CLI та
 виміряні межі навантаження — у [`наступному локальному етапі`](docs/implementation/load-worker-calendar-audit.md).
+SQL-оптимізації, обмежені повтори й перевірки прав усередині транзакції — у
+[`продовженні 01.11`](docs/implementation/sql-concurrency-hardening.md).
 
 | Що | Де |
 |---|---|
