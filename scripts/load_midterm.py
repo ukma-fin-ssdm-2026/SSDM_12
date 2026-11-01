@@ -1,4 +1,4 @@
-"""Ізольовані HTTP-виміри на PostgreSQL; не використовує робочу БД або Docker."""
+"""Ізольовані HTTP-виміри на PostgreSQL; не використовує робочу БД."""
 
 from __future__ import annotations
 
@@ -247,7 +247,7 @@ def run(output: Path, search_requests: int, api_workers: int = 1) -> dict:
                     "platform": platform.platform(),
                     "python": platform.python_version(),
                     "database": "PostgreSQL 16 (native isolated cluster)",
-                    "deployment": "native Windows; Docker condition not verified",
+                    "deployment": "native Windows; Render hosting not verified",
                     "slots": 5000,
                     "users": 200,
                     "booking_warmups": 10,

@@ -1,11 +1,12 @@
-"""Заглушка `BookingService` (HLD §5.2): сценарії бронювання на даних у пам'яті.
+"""Сценарії бронювання через memory/PostgreSQL StoreProxy (HLD §5.2).
 
 З Лаб 5 правила бронювання живуть у доменному шарі `unislot.booking.domain.rules`,
-а тут лишилася роль майбутнього шару application: знайти записи, зібрати для правил
+а тут — роль шару application: знайти записи, зібрати для правил
 значення (інтервали, політику, «чи зайнятий слот»), застосувати зміну під
-`store.lock`, як у транзакції. Порушення правил домен кидає як `DomainError`, і
-REST API перекладає їх у 409 (HLD §9). Справжню гарантію REL-001 дасть PostgreSQL
-(ADR-002).
+`store.lock`. У PostgreSQL це транзакція з exclusive advisory gate для скасування
+й перенесення; створення броні має адресний SQL-шлях в infrastructure.booking_commands.
+Порушення правил домен кидає як `DomainError`, і REST API перекладає їх у 409
+(HLD §9). Конкурентну цілісність PostgreSQL перевіряють інтеграційні тести (ADR-002).
 """
 
 from __future__ import annotations

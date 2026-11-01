@@ -67,7 +67,7 @@ Worker; запуск і межі — у [`звіті PostgreSQL/outbox`](docs/im
 Реєстрація, парольний вхід, cookie/CSRF і створення першого адміністратора — у
 [`звіті Auth`](docs/implementation/password-auth.md).
 Кабінети студента, провайдера й адміністратора відкриваються на `/` того самого
-сервера; запуск без Docker, перевірені сценарії та межі — у
+сервера; нативний запуск, перевірені сценарії та межі — у
 [`звіті Web UI`](docs/implementation/web-ui.md).
 Календар провайдера, перегляд аудиту, фоновий горизонт, операторський CLI та
 виміряні межі навантаження — у [`наступному локальному етапі`](docs/implementation/load-worker-calendar-audit.md).
@@ -75,6 +75,10 @@ SQL-оптимізації, обмежені повтори й перевірк�
 [`продовженні 01.11`](docs/implementation/sql-concurrency-hardening.md).
 Завершальні навантажувальні прогони й профіль із двома процесами API — у
 [`звіті продуктивності`](docs/implementation/performance-completion.md).
+Остаточна звірка всіх 44 FR і межі доказів — у
+[`локальному аудиті реалізації`](docs/implementation/fr-readiness-audit.md);
+повторюваний нативний запуск Windows — у
+[`native-launch-checklist.md`](docs/implementation/native-launch-checklist.md).
 
 | Що | Де |
 |---|---|
@@ -328,9 +332,17 @@ SSDM_12/
 | Тестування | pytest, pytest-cov |
 | Якість коду | Ruff, Bandit, detect-secrets, pip-audit, import-linter, pre-commit, Dependabot; SonarCloud — Лаб 8 |
 | CI/CD | GitHub Actions |
-| Середовище | Docker Compose |
+| Локальне середовище | Python 3.12 + PostgreSQL 16, нативний запуск |
+| Публічне середовище | Render native Python + managed PostgreSQL (конфігурація підготовлена, сервіс ще не розгорнуто) |
 
 Обґрунтування вибору — у [`Project-Description.md`](Project-Description.md), §2.6.
+
+### Публічне розгортання
+
+GitHub Pages публікує статичну документацію Swagger і не запускає FastAPI, PostgreSQL
+чи Worker. Для публічного API підготовлено [`render.yaml`](render.yaml) та
+[інструкцію Render](docs/deployment/render.md). URL сервісу буде додано сюди після
+фактичного розгортання й перевірки; зараз публічного API немає.
 
 ## Робочий процес
 

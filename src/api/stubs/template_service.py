@@ -1,4 +1,4 @@
-"""Шаблони в пам'яті: атомарне оновлення й ідемпотентне продовження горизонту."""
+"""Шаблони через StoreProxy: атомарне оновлення й ідемпотентне продовження горизонту."""
 
 from __future__ import annotations
 
@@ -131,7 +131,7 @@ def get_template(
 
 
 def extend_horizon(now: datetime) -> None:
-    """Створює нові слоти перед пошуком; придатна також для виклику майбутнім Worker."""
+    """Створює нові слоти; використовується API та refresh_horizon окремого Worker."""
     with store.lock:
         for rec in store.templates.values():
             _generate(rec, now)

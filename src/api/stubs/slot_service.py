@@ -1,4 +1,4 @@
-"""Заглушки `SlotSearch` і публікації слотів з `AvailabilityService` (HLD §5.2) для Лаб 4."""
+"""Пошук і публікація слотів через StoreProxy; SQL-пошук — в infrastructure.queries."""
 
 from __future__ import annotations
 
