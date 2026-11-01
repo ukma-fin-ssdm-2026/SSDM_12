@@ -37,6 +37,11 @@ def operations(spec: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]]]:
     ]
 
 
+def test_swagger_uses_current_origin_before_local_fallback(spec: dict[str, Any]) -> None:
+    assert spec["servers"][0]["url"] == "/"
+    assert any(server["url"] == "http://localhost:3000" for server in spec["servers"])
+
+
 def test_every_operation_is_documented(spec: dict[str, Any]) -> None:
     declared_tags = {t["name"] for t in spec["tags"]}
     for path, method, op in operations(spec):
