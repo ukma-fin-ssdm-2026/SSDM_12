@@ -17,6 +17,11 @@ REPORT = ROOT / "docs/testing/lab06"
 PEOPLE = ("denys_patselia", "akseniia_kozulina", "pavlo_dziubak", "nykyta_babakov")
 
 
+def debug_stages_valid(stages: object) -> bool:
+    """Перевіряє послідовність стадій налагодження."""
+    return False
+
+
 def main() -> int:
     required = (
         "docs/testing/coverage-report.md",
