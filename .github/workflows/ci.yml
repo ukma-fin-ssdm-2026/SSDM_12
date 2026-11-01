@@ -32,6 +32,11 @@ jobs:
           python -c "import sys; assert sys.version_info >= (3, 12), 'Python 3.12+ required'"
           if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 or newer is required' }
 
+      - name: Set up Node.js for client tests and PlantUML
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Check requirements consistency (Lab 2)
         run: python scripts/check_requirements.py
 
@@ -57,6 +62,27 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
           .\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
           if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
+
+      - name: Verify PostgreSQL integration test prerequisites
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          @'
+          import subprocess
+          from scripts.postgres_dev import postgres_bin
+
+          directory = postgres_bin()
+          for name in ("initdb.exe", "pg_ctl.exe", "postgres.exe"):
+              if not (directory / name).is_file():
+                  raise SystemExit("PostgreSQL binary missing: " + name)
+          version = subprocess.check_output(
+              [str(directory / "postgres.exe"), "--version"], text=True
+          ).strip()
+          print(version)
+          if " 16." not in version:
+              raise SystemExit("PostgreSQL 16 binaries required for integration tests")
+          '@ | .\.venv\Scripts\python.exe -
+          if ($LASTEXITCODE -ne 0) { throw 'Install PostgreSQL 16 or configure UNISLOT_POSTGRES_BIN on the runner' }
 
       # Lab 5 quality gates (charter 11.2). Static checks run before tests: they take seconds
       # and stop a broken change early. Configuration lives in pyproject.toml, .importlinter
@@ -168,11 +194,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-
-      - name: Set up Node.js for PlantUML npm package
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
 
       - name: Download PlantUML and verify checksum
         working-directory: ${{ runner.temp }}
