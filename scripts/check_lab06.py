@@ -15,17 +15,19 @@ from defusedxml import ElementTree
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "docs/testing/lab06"
 PEOPLE = ("denys_patselia", "akseniia_kozulina", "pavlo_dziubak", "nykyta_babakov")
+EXPECTED_DEBUG_STAGES = (("red", 1), ("green", 0))
 
 
 def debug_stages_valid(stages: object) -> bool:
-    """Перевіряє послідовність стадій налагодження."""
-    return (
-        isinstance(stages, list)
-        and len(stages) == 2
-        and all(isinstance(stage, dict) for stage in stages)
-        and [stage.get("stage") for stage in stages] == ["red", "green"]
-        and all(type(stage.get("exit_code")) is int for stage in stages)
-        and [stage.get("exit_code") for stage in stages] == [1, 0]
+    """Перевіряє назви й цілочисельні коди двох стадій налагодження."""
+    if not isinstance(stages, list) or len(stages) != len(EXPECTED_DEBUG_STAGES):
+        return False
+    return all(
+        isinstance(stage, dict)
+        and stage.get("stage") == name
+        and type(stage.get("exit_code")) is int
+        and stage["exit_code"] == exit_code
+        for stage, (name, exit_code) in zip(stages, EXPECTED_DEBUG_STAGES, strict=True)
     )
 
 
