@@ -1,4 +1,7 @@
-"""Unit and property-based tests for the cursor codec, independent of HTTP."""
+"""Unit and property-based tests for the cursor codec, independent of HTTP.
+
+Чернетку тестів підготовлено за допомогою ChatGPT (OpenAI), див. PR #131.
+"""
 
 from __future__ import annotations
 
