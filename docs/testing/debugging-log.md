@@ -53,6 +53,31 @@
 рівно межу та ±1 мкс. Команда скасування й ознака доступності дії мають узгоджуватися.
 Це реальна локальна вправа з навмисною помилкою, не студентська історія TDD.
 
+## Автоматизоване трасування межі скасування у Windows CI (03.11.2026)
+
+У PR #263 додано `tests/unit/test_lab06_deadline_trace.py`. Тест використовує
+`sys.settrace` для фіксації фактичного проходження рядка 128
+(`if now > deadline:` у `ensure_changeable`) без ручного breakpoint у VS Code.
+Це **автоматизоване трасування**, а не запис особистої сесії Дениса в IDE.
+
+Успішний запуск [GitHub Actions #41542344865](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41542344865)
+на Windows runner (коміт `273b777e`). У завантаженому артефакті
+`api-coverage` файл `docs/testing/lab06/junit.xml` містить property
+`lab06_automated_deadline_trace` для тесту `test_exact_deadline_trace`:
+
+- рядок виконання: **128**, один виклик;
+- `now = 2026-10-21T05:00:00+00:00`;
+- `deadline = 2026-10-21T05:00:00+00:00`;
+- `now == deadline` — **true**;
+- стек: `ensure_changeable` → `_check_changeable` → `cancel` →
+  `test_exact_deadline_trace`.
+
+У цій ситуації `now > deadline` — **false**, тому скасування у точний
+граничний момент дозволено. Фактичний звіт CI: **761 passed**,
+сукупне покриття **98,28%** (поріг 90%). Експеримент із
+`>` → `>=` описано окремо в D-02; він виконувався автоматизованим
+скриптом у тимчасовій копії й не є особистою демонстрацією студента.
+
 ## Попередні матеріали
 
 Попередній журнал зовнішнього Spectrum збережений в [історії main 94b7444](https://github.com/ukma-fin-ssdm-2026/SSDM_12/blob/94b7444a86e03a5158a74ca2fe79a2c4ca5940ac/docs/testing/debugging-log.md). Копію того журналу та старий звіт перенесено до `docs/testing/external/spectrum/` у #209. Поточний журнал і логи описують власний UniSlot.
