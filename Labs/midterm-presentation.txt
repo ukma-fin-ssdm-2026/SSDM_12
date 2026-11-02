@@ -1,5 +1,3 @@
-ЧЕРНЕТКА — замінити TODO реальними посиланнями перед здачею.
-
-Відеодемонстрація UniSlot (4–5 хв): TODO — додати публічне посилання на відео.
-Публічний API: TODO — додати URL після фактичного розгортання.
-Swagger UI: TODO — https://<render-service>.onrender.com/api-docs
+Відеодемонстрація UniSlot (4–5 хв): https://www.loom.com/share/7ec1e8b19539446291a7270a64859884
+Публічний API: https://14bbbee230185d.lhr.life (тимчасовий тунель з ПК учасника; актуальна адреса — у README.md)
+Swagger UI: https://14bbbee230185d.lhr.life/api-docs
