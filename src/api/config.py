@@ -34,6 +34,39 @@ def _flag(name: str, default: bool) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+# Числові налаштування: змінна → (типове, мінімум, максимум). Самі числа тимчасові
+# (OQ-001), але діапазон обов'язковий: він відсікає і одруківки, і значення, що фактично
+# вимикають захист. Межі 1..20 для інтервалу перемикання дублює `__post_init__` —
+# захист у два шари лишаємо свідомо (R-01, docs/reliability/scavenger-hunt.md).
+NUMERIC_SETTINGS: dict[str, tuple[int, int, int]] = {
+    "UNISLOT_SESSION_TTL_SECONDS": (28800, 1, 30 * 24 * 3600),
+    "UNISLOT_LOGIN_MAX_FAILURES": (5, 1, 1000),
+    "UNISLOT_LOGIN_COOLDOWN_SECONDS": (300, 1, 24 * 3600),
+    "UNISLOT_THREAD_SWITCH_INTERVAL_MS": (1, 1, 20),
+}
+
+
+def _bounded_int(name: str) -> int:
+    """Читає цілу змінну середовища в межах із `NUMERIC_SETTINGS`.
+
+    Порожнє значення — fail-safe: змінну вважаємо незаданою й беремо типове, бо порожнє
+    поле в панелі розгортання означає саме «не задано». Нечислове або позамежне —
+    fail-fast із назвою змінної: `5min` не має тихо стати `5` і змінити межу безпеки,
+    а `invalid literal for int()` без назви змінної не вказує, що саме виправляти.
+    """
+    default, low, high = NUMERIC_SETTINGS[name]
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        value = int(raw.strip())
+    except ValueError:
+        raise ValueError(f"{name} must be a whole number, got {raw.strip()!r}") from None
+    if not low <= value <= high:
+        raise ValueError(f"{name} must be between {low} and {high}, got {value}")
+    return value
+
+
 @dataclass(frozen=True)
 class Settings:
     """Налаштування процесу API."""
@@ -75,8 +108,8 @@ def get_settings() -> Settings:
         cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip()),
         database_url=os.environ.get("UNISLOT_DATABASE_URL") or None,
         session_cookie_secure=_flag("UNISLOT_SESSION_COOKIE_SECURE", default=True),
-        session_ttl_seconds=int(os.environ.get("UNISLOT_SESSION_TTL_SECONDS", "28800")),
-        login_max_failures=int(os.environ.get("UNISLOT_LOGIN_MAX_FAILURES", "5")),
-        login_cooldown_seconds=int(os.environ.get("UNISLOT_LOGIN_COOLDOWN_SECONDS", "300")),
-        thread_switch_interval_ms=int(os.environ.get("UNISLOT_THREAD_SWITCH_INTERVAL_MS", "1")),
+        session_ttl_seconds=_bounded_int("UNISLOT_SESSION_TTL_SECONDS"),
+        login_max_failures=_bounded_int("UNISLOT_LOGIN_MAX_FAILURES"),
+        login_cooldown_seconds=_bounded_int("UNISLOT_LOGIN_COOLDOWN_SECONDS"),
+        thread_switch_interval_ms=_bounded_int("UNISLOT_THREAD_SWITCH_INTERVAL_MS"),
     )

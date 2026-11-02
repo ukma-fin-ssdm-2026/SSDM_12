@@ -1,0 +1,9 @@
+FAILED tests/unit/test_dispatch_diagnostics.py::test_gateway_keeps_the_database_error_as_cause
+FAILED tests/unit/test_startup_degradation.py::test_api_still_serves_requests_when_spec_cannot_be_written[failure0]
+FAILED tests/unit/test_startup_degradation.py::test_api_still_serves_requests_when_spec_cannot_be_written[failure1]
+41 failed, 7 passed in 0.69s
+=== Імпорт next_delay до правки (R-07) ===
+    from scripts.run_worker import next_delay
+ImportError: cannot import name 'next_delay' from 'scripts.run_worker' (/home/claude/ssdm_12/scripts/run_worker.py)
+=== Відтворення R-01 на невиправленому config.py ===
+ValueError: invalid literal for int() with base 10: ''

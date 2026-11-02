@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import copy
+import json
+import logging
 import os
 import uuid
 from dataclasses import dataclass
@@ -16,9 +18,29 @@ from api.infrastructure import tables as t
 from api.stubs.store import store
 from unislot.notifications.domain.model import Notification, RetryPolicy
 
+logger = logging.getLogger("unislot.outbox")
+
 
 class DeliveryUnavailable(Exception):
     """Контрольований збій адаптера, не помилка бронювання."""
+
+
+# Код причини, а не текст помилки: `last_error` потрапляє в аудит і до оператора, тож не
+# несе внутрішніх деталей (CWE-209) і має вкластися в `String(64)`. `TimeoutError` —
+# підклас `OSError`, тому порядок перевірки значущий (R-02).
+FAILURE_CODES: tuple[tuple[type[BaseException], str], ...] = (
+    (DeliveryUnavailable, "gateway_unavailable"),
+    (TimeoutError, "gateway_timeout"),
+    (OSError, "gateway_network_error"),
+)
+
+
+def failure_code(exc: BaseException) -> str:
+    """Стабільний код причини відмови доставки."""
+    for kind, code in FAILURE_CODES:
+        if isinstance(exc, kind):
+            return code
+    return "gateway_unavailable"
 
 
 def _due(notice: Notification, now: datetime) -> bool:
@@ -40,12 +62,18 @@ def _claim(notice: Notification, now: datetime, policy: RetryPolicy) -> None:
     notice.locked_until = now + timedelta(seconds=policy.lease_seconds)
 
 
-def _finish(notice: Notification, now: datetime, policy: RetryPolicy, error: bool) -> None:
+def _finish(
+    notice: Notification,
+    now: datetime,
+    policy: RetryPolicy,
+    error: bool,
+    reason: str = "gateway_unavailable",
+) -> None:
     notice.locked_until = notice.claim_token = None
     if error:
         notice.status = "failed" if notice.attempts >= policy.max_attempts else "pending"
         notice.next_attempt_at = policy.next_attempt(now, notice.attempts)
-        notice.last_error = "gateway_unavailable"
+        notice.last_error = reason
     else:
         notice.status, notice.sent_at, notice.last_error = "sent", now, None
         notice.next_attempt_at = None
@@ -101,12 +129,19 @@ class MemoryOutbox:
             )
             return True
 
-    def finish(self, notice: Notification, now: datetime, policy: RetryPolicy, error: bool) -> None:
+    def finish(
+        self,
+        notice: Notification,
+        now: datetime,
+        policy: RetryPolicy,
+        error: bool,
+        reason: str = "gateway_unavailable",
+    ) -> None:
         """Прострочений Worker не може підтвердити чужу новішу спробу."""
         with store.lock:
             current = store.notifications[notice.id]
             if current.status == "sending" and current.claim_token == notice.claim_token:
-                _finish(current, now, policy, error)
+                _finish(current, now, policy, error, reason)
                 if not error and notice.kind == "reminder":
                     store.reminders.pop(notice.booking_id, None)
 
@@ -206,10 +241,17 @@ class PostgresOutbox:
             )
             return True
 
-    def finish(self, notice: Notification, now: datetime, policy: RetryPolicy, error: bool) -> None:
+    def finish(
+        self,
+        notice: Notification,
+        now: datetime,
+        policy: RetryPolicy,
+        error: bool,
+        reason: str = "gateway_unavailable",
+    ) -> None:
         """Підтверджує лише власний чинний lease; помилка залишається в черзі."""
         token = notice.claim_token
-        _finish(notice, now, policy, error)
+        _finish(notice, now, policy, error, reason)
         with self.engine.begin() as conn:
             conn.execute(
                 update(t.notifications)
@@ -242,8 +284,10 @@ class MailboxGateway:
             raise DeliveryUnavailable
         try:
             return self.repository.deliver(notice, now)
-        except DBAPIError:
-            raise DeliveryUnavailable from None
+        except DBAPIError as exc:
+            # Причину лишаємо в `__cause__`: обробник вище запише клас у журнал. Назовні
+            # вона не виходить — драйверні деталі не є частиною контракту (CWE-209).
+            raise DeliveryUnavailable from exc
 
 
 @dataclass
@@ -268,8 +312,25 @@ def dispatch_due(
     for notice in claimed:
         try:
             sent = gateway.send(notice, now)
-        except (DeliveryUnavailable, TimeoutError, OSError):
-            repository.finish(notice, now, policy, error=True)
+        except (DeliveryUnavailable, TimeoutError, OSError) as exc:
+            code, cause = failure_code(exc), exc.__cause__
+            # Один рядок JSON на подію, як у журналі доступу. У журнал ідуть лише назви
+            # класів: тіло повідомлення й контакти туди не потрапляють (THR-09, CWE-532).
+            logger.warning(
+                json.dumps(
+                    {
+                        "event": "delivery_failed",
+                        "notification_id": str(notice.id),
+                        "kind": notice.kind,
+                        "attempts": notice.attempts,
+                        "code": code,
+                        "error": type(exc).__name__,
+                        "cause": type(cause).__name__ if cause is not None else None,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            repository.finish(notice, now, policy, error=True, reason=code)
             result.failed += 1
         else:
             if sent:

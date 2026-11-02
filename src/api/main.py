@@ -146,8 +146,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             backend = PostgresStore(settings.database_url)
             previous = store.set_backend(backend)
         if settings.export_openapi_on_startup:
-            for path in openapi_export.write_artifacts(app):
-                logger.info("OpenAPI згенеровано з коду → %s", path)
+            try:
+                for path in openapi_export.write_artifacts(app):
+                    logger.info("OpenAPI згенеровано з коду → %s", path)
+            except OSError as exc:
+                # Права, файлова система лише для читання або брак місця — операційна
+                # причина. Готова специфікація вже лежить у репозиторії, тож відмова
+                # запису не варта того, щоб не обслуговувати запити. Дефект самої
+                # генерації (не OSError) лишається фатальним — його не можна пропустити
+                # в реліз (R-08, docs/reliability/scavenger-hunt.md).
+                logger.warning(
+                    "OpenAPI не записано (%s); чинною лишається специфікація з репозиторію",
+                    type(exc).__name__,
+                )
         yield
     finally:
         if sys.platform == "win32":
