@@ -42,6 +42,12 @@ def transactional(function=None, *, direct=False, retry_deadlock=False):
                 raise ApiProblem(
                     ErrorCode.TRANSIENT_CONFLICT, headers={"Retry-After": "1"}
                 ) from None
+        # Недосяжно: кожна ітерація завершується return або raise, а `continue` можливий
+        # лише на першій спробі. Guard лишає явну відмову, якщо межу циклу колись змінять:
+        # без нього `wrapped` повернув би None і FastAPI віддала б 500 без причини (R-05).
+        raise ApiProblem(  # pragma: no cover — страховка від майбутньої зміни range()
+            ErrorCode.TRANSIENT_CONFLICT, headers={"Retry-After": "1"}
+        )
 
     hints = get_type_hints(function, include_extras=True)
     signature = inspect.signature(function)

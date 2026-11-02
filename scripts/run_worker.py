@@ -14,6 +14,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "src")]
 
+# Відступ після операційного збою: подвоєння, обмежене MAX_BACKOFF_FACTOR × --interval.
+# Без межі нова спроба відкладалася б на години і нагадування запізнювалися б; без
+# відступу взагалі недоступна БД отримувала ~60 спроб підключення за хвилину (R-07).
+MAX_BACKOFF_FACTOR = 60
+
+
+def next_delay(interval: float, previous: float) -> float:
+    """Наступна затримка після збою: подвоєння з верхньою межею."""
+    return min(previous * 2, interval * MAX_BACKOFF_FACTOR)
+
 
 def main() -> None:
     from sqlalchemy.exc import DBAPIError
@@ -55,6 +65,7 @@ def main() -> None:
     repository = PostgresOutbox(backend.engine)
     previous = store.set_backend(backend)
     next_refresh = 0
+    delay = args.interval
     try:
         while True:
             try:
@@ -69,16 +80,31 @@ def main() -> None:
                     repository, clock.utc_now(), batch=args.batch_size, policy=policy
                 )
                 print(json.dumps(asdict(result)), flush=True)
-            except DBAPIError:
+                delay = args.interval
+            except (DBAPIError, OSError) as exc:
+                # Операційні збої переживаємо з відступом. `ValueError` з інваріантів
+                # сховища лишається фатальним: це дефект, і цикл не має його переживати.
+                if args.once:
+                    print(
+                        json.dumps({"event": "worker_retry", "code": "database_unavailable"}),
+                        flush=True,
+                    )
+                    raise SystemExit(1) from None
+                delay = next_delay(args.interval, delay)
                 print(
-                    json.dumps({"event": "worker_retry", "code": "database_unavailable"}),
+                    json.dumps(
+                        {
+                            "event": "worker_retry",
+                            "code": "database_unavailable",
+                            "error": type(exc).__name__,
+                            "retry_in_s": round(delay, 1),
+                        }
+                    ),
                     flush=True,
                 )
-                if args.once:
-                    raise SystemExit(1) from None
             if args.once:
                 break
-            time.sleep(args.interval)
+            time.sleep(delay)
     finally:
         store.set_backend(previous)
         backend.close()
