@@ -1,4 +1,7 @@
-"""Direct booking-state checks: no HTTP transport or TestClient."""
+"""Direct booking-state checks: no HTTP transport or TestClient.
+
+Чернетку тестів підготовлено за допомогою ChatGPT (OpenAI), див. PR #131.
+"""
 
 from __future__ import annotations
 
