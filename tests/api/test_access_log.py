@@ -16,12 +16,35 @@ pytestmark = pytest.mark.req("THR-09")
 STUDENT = {"Authorization": "Bearer demo-student"}
 
 
-def test_access_log_records_the_route_template(client, caplog):
-    booking_id = uuid.UUID(int=0)
-    with caplog.at_level(logging.INFO, logger="unislot.access"):
-        client.get(f"/api/v1/bookings/{booking_id}", headers=STUDENT)
+class _Collector(logging.Handler):
+    """Збирає записи одного логера, не залежачи від плагіна логування pytest."""
 
-    entries = [json.loads(r.message) for r in caplog.records if r.name == "unislot.access"]
+    def __init__(self) -> None:
+        super().__init__(level=logging.INFO)
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
+def test_access_log_records_the_route_template(client):
+    """Шлях у журналі — шаблон, а не конкретний ідентифікатор."""
+    booking_id = uuid.UUID(int=0)
+    # Хендлер вішаємо на сам логер: `configure_logging` ставить
+    # `unislot.propagate = False`, тож через корінь записи не дійдуть, а
+    # вбудований `caplog` у різних версіях pytest ловить їх по-різному.
+    access = logging.getLogger("unislot.access")
+    collector = _Collector()
+    previous_level = access.level
+    access.addHandler(collector)
+    access.setLevel(logging.INFO)
+    try:
+        client.get(f"/api/v1/bookings/{booking_id}", headers=STUDENT)
+    finally:
+        access.removeHandler(collector)
+        access.setLevel(previous_level)
+
+    entries = [json.loads(r.getMessage()) for r in collector.records]
     assert len(entries) == 1
     assert entries[0]["path"] == "/api/v1/bookings/{id}"
     assert str(booking_id) not in entries[0]["path"]
