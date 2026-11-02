@@ -1,4 +1,7 @@
-"""Pure search-date rule and slot availability checks without HTTP."""
+"""Pure search-date rule and slot availability checks without HTTP.
+
+Чернетку тестів підготовлено за допомогою ChatGPT (OpenAI), див. PR #131.
+"""
 
 from __future__ import annotations
 
