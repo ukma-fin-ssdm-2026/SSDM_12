@@ -88,3 +88,18 @@ def test_main_fails_when_source_hash_changes(tmp_path, monkeypatch):
     monkeypatch.setattr(checker, "REPORT", report)
 
     assert checker.main() == 1
+
+def test_main_fails_when_new_source_file_is_added(tmp_path, monkeypatch):
+    import json
+
+    source_dir = tmp_path / "src"
+    source_dir.mkdir()
+    (source_dir / "new.py").write_text("x = 1", encoding="utf-8")
+
+    report = tmp_path / "run.json"
+    report.write_text(json.dumps({"files_sha256": {}}), encoding="utf-8")
+
+    monkeypatch.setattr(checker, "ROOT", tmp_path)
+    monkeypatch.setattr(checker, "REPORT", report)
+
+    assert checker.main() == 1
