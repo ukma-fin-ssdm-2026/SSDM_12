@@ -17,7 +17,7 @@ def changed_source_paths(expected: dict[str, str], actual: dict[str, str]) -> li
 
 def file_sha256(path: Path) -> str:
     """Обчислює SHA-256 вмісту файлу."""
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def main() -> int:
@@ -33,7 +33,16 @@ def main() -> int:
             relative_path = source_path.relative_to(ROOT).as_posix()
             actual[relative_path] = file_sha256(source_path)
 
-    return 1 if changed_source_paths(expected, actual) else 0
+    differences = changed_source_paths(expected, actual)
+    if differences:
+        print(f"Інвентар застарів: {len(differences)} розбіжностей")
+        for path in differences[:20]:
+            print(f"  {path}")
+        if len(differences) > 20:
+            print(f"  … ще {len(differences) - 20}")
+        return 1
+    print("Інвентар джерел актуальний.")
+    return 0
 
 
 if __name__ == "__main__":
