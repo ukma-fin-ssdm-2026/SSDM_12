@@ -104,3 +104,32 @@ def test_main_fails_when_new_source_file_is_added(tmp_path, monkeypatch):
     monkeypatch.setattr(checker, "REPORT", report)
 
     assert checker.main() == 1
+
+
+def test_main_reports_stale_source_paths(tmp_path, monkeypatch, capsys):
+    import json
+
+    source = tmp_path / "src" / "example.py"
+    source.parent.mkdir()
+    source.write_text("modified", encoding="utf-8")
+    report = tmp_path / "run.json"
+    report.write_text(
+        json.dumps({"files_sha256": {"src/example.py": "outdated-hash"}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(checker, "ROOT", tmp_path)
+    monkeypatch.setattr(checker, "REPORT", report)
+
+    assert checker.main() == 1
+    output = capsys.readouterr().out
+    assert "1 розбіжностей" in output
+    assert "src/example.py" in output
+
+
+def test_file_sha256_normalizes_crlf(tmp_path):
+    import hashlib
+
+    source = tmp_path / "example.py"
+    source.write_bytes(b"first\r\nsecond\r\n")
+    expected = hashlib.sha256(b"first\nsecond\n").hexdigest()
+    assert checker.file_sha256(source) == expected
