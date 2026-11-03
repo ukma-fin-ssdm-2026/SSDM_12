@@ -6,6 +6,10 @@
 import base64
 import json
 
+import pytest
+
+pytestmark = pytest.mark.req("FR-020", "QA-06")
+
 
 def test_non_string_cursor_uuid_returns_422(client):
     payload = {"s": "2026-10-20T09:00:00Z", "i": 7}

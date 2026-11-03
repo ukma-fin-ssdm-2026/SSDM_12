@@ -1,9 +1,7 @@
 @startuml deployment
-' UniSlot — діаграма розгортання цільового виробничого середовища (Лаб 3).
-' Один сервер із Docker Compose (C-005); локальне демо — та сама конфігурація.
-' Пунктирні рамки — зони довіри Z0…Z4; позначки TB1…TB5 на зв'язках —
-' межі довіри, які аналізує ../threat-model.md (STRIDE).
-title UniSlot — діаграма розгортання (виробниче середовище) з межами довіри
+' UniSlot — цільова публічна топологія на Render без контейнерного runtime.
+' Публічне розгортання ще не виконане; діаграма описує підготовлену конфігурацію.
+title UniSlot — цільове публічне розгортання з межами довіри
 skinparam shadowing false
 skinparam nodesep 45
 skinparam ranksep 60
@@ -18,43 +16,45 @@ rectangle "Z0: Інтернет — недовірена зона" as z0 #line.d
   }
 }
 
-node "Сервер UniSlot\n(VM, Linux)" <<device>> as host {
-  node "Docker Engine + Docker Compose" <<execution environment>> as docker {
-    rectangle "Z1: периметр (мережа edge)" as z1 #line.dashed {
-      node "proxy\n(nginx: TLS, HSTS, CSP,\nобмеження частоти)" <<container>> as proxy
+cloud "Render Platform\n(Frankfurt)" as render {
+  rectangle "Z1: HTTPS периметр Render" as z1 #line.dashed {
+    node "Managed HTTPS edge" as edge
+  }
+  rectangle "Z2: застосунок" as z2 #line.dashed {
+    node "Native Python Web Service" as api {
+      component "FastAPI + Uvicorn\nREST API, Web UI, Swagger" as fastapi
+      artifact "Python 3.12 source" as source
     }
-    rectangle "Z2: застосунок (мережі edge і backend)" as z2 #line.dashed {
-      node "api\n(uvicorn + FastAPI)" <<container>> as api {
-        artifact "образ unislot\n(Python 3.12)" as img
-      }
-      node "worker\n(python -m unislot.worker)" <<container>> as worker
-      node "migrate\n(alembic upgrade head,\nодноразовий)" <<container>> as migrate
-    }
-    rectangle "Z3: дані (мережа backend, internal)" as z3 #line.dashed {
-      database "db\n(PostgreSQL 16)" <<container>> as db
-      storage "том pgdata" as vol
+    node "Native Python Worker" as worker {
+      component "Outbox dispatcher\nі розширення горизонту" as worker_app
     }
   }
-  file ".env\n(секрети поза git)" as env
+  rectangle "Z3: managed data service" as z3 #line.dashed {
+    database "Managed PostgreSQL 16" as db
+    note right of db
+      API/Worker: окрема runtime роль
+      operator migrations: owner role
+      owner URL не передається застосунку
+    end note
+  }
 }
 
 rectangle "Z4: зовнішній провайдер доставки" as z4 #line.dashed {
-  cloud "Провайдер e-mail\n(у семестрі — заглушка\nвсередині worker, C-002)" as mail
+  cloud "Провайдер e-mail\n(у семестрі — заглушка\nвсередині Worker, C-002)" as mail
 }
 
-webui --> proxy : <b>TB1</b> HTTPS 443\nREST /api/v1 і статика
-proxy --> api : <b>TB2</b> HTTP 8000\nмережа edge
-api --> db : <b>TB3</b> SQL, TCP 5432\nмережа backend
-worker --> db : <b>TB3</b> SQL, TCP 5432
-migrate --> db : <b>TB3</b> DDL міграцій
+webui --> edge : <b>TB1</b> HTTPS 443\nREST API і UI з одного origin
+edge --> api : <b>TB2</b> внутрішня маршрутизація\nRender
+api --> db : <b>TB3</b> приватний SQL\nruntime role
+worker --> db : <b>TB3</b> приватний SQL\nruntime role
 worker ..> mail : <b>TB4</b> SMTP/HTTPS\n(після заміни заглушки)
-db -- vol
-ops ..> host : <b>TB5</b> SSH, docker compose,\nредагування .env
-env ..> docker : змінні середовища\nдля api, worker, migrate, db
+ops --> render : <b>TB5</b> HTTPS\nпанель і secret env vars
+ops ..> db : <b>TB5</b> TLS, зовнішній URL\nлише для первинного налаштування/міграцій
 
 legend bottom right
   Z0…Z4 — зони з різним рівнем довіри; TB1…TB5 — межі довіри.
-  Порт 5432 не публікується на хості: db доступна лише з мережі backend.
-  Локально (C-005) браузер і сервер на одній машині; TLS — у production.
+  API та Worker підключаються до PostgreSQL внутрішнім URL одного регіону.
+  Вхідна точка API — HTTPS; demo auth вимкнено, сесійна cookie Secure.
+  GitHub Pages залишається лише статичною документацією.
 endlegend
 @enduml

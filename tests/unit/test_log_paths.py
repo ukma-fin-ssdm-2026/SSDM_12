@@ -1,6 +1,15 @@
-"""Шаблон маршруту для журналу доступу: ідентифікатори не потрапляють у лог."""
+"""Шаблон маршруту для журналу доступу: ідентифікатори не потрапляють у лог.
+
+Використання ШІ: ціль циклу, план, реалізацію й тести написав Claude (Opus 5);
+виконання, перевірку кожного RED/GREEN і володіння результатом — Никита.
+Повний опис: docs/testing/testing-strategy.md, розділ «Використання ШІ».
+"""
+
+import pytest
 
 from api.log_paths import route_template
+
+pytestmark = pytest.mark.req("THR-09")
 
 
 def test_path_without_identifiers_is_unchanged():

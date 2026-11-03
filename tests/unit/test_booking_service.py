@@ -19,6 +19,7 @@ from api.stubs.store import Ids, store
 from unislot.platform.errors import DomainError
 
 
+@pytest.mark.req("FR-036")
 @pytest.mark.parametrize(
     ("position", "expected"),
     [(-1, BookingState.ACTIVE), (0, BookingState.IN_PROGRESS), (30, BookingState.COMPLETED)],
@@ -32,12 +33,14 @@ def test_state_changes_at_start_and_end(position, expected):
     assert service.booking_state(booking, slot, when) is expected
 
 
+@pytest.mark.req("FR-036")
 def test_cancelled_state_has_priority_over_time(now):
     booking = store.bookings[Ids.BOOKING_CANCELLED]
     slot = store.slots[booking.slot_id]
     assert service.booking_state(booking, slot, now) is BookingState.CANCELLED
 
 
+@pytest.mark.req("FR-040", "FR-041", "TP-01")
 def test_cancel_exact_deadline_allowed(student):
     booking = store.bookings[Ids.BOOKING_ACTIVE]
     deadline = booking.cancel_deadline_at
@@ -49,6 +52,7 @@ def test_cancel_exact_deadline_allowed(student):
     assert result.cancelled_by == student.id
 
 
+@pytest.mark.req("FR-041", "TP-01")
 def test_can_cancel_view_agrees_with_command_at_exact_deadline(student):
     booking = store.bookings[Ids.BOOKING_ACTIVE]
     deadline = booking.cancel_deadline_at
@@ -57,6 +61,7 @@ def test_can_cancel_view_agrees_with_command_at_exact_deadline(student):
     assert service.to_out(booking, deadline).can_cancel is False
 
 
+@pytest.mark.req("FR-040", "FR-041", "TP-01")
 def test_one_microsecond_after_deadline_preserves_booking(student):
     booking = store.bookings[Ids.BOOKING_ACTIVE]
     before = copy.deepcopy(booking)
@@ -69,6 +74,7 @@ def test_one_microsecond_after_deadline_preserves_booking(student):
     assert booking == before
 
 
+@pytest.mark.req("FR-045")
 def test_cancel_at_slot_start_is_forbidden(student):
     booking = store.bookings[Ids.BOOKING_ACTIVE]
     slot = store.slots[booking.slot_id]
@@ -78,6 +84,7 @@ def test_cancel_at_slot_start_is_forbidden(student):
     assert booking.status is BookingStatus.CONFIRMED
 
 
+@pytest.mark.req("FR-007", "SEC-004")
 def test_foreign_booking_cannot_be_changed(student, now):
     before = copy.deepcopy(store.bookings)
     with pytest.raises(ApiProblem) as error:
@@ -86,12 +93,14 @@ def test_foreign_booking_cannot_be_changed(student, now):
     assert store.bookings == before
 
 
+@pytest.mark.req("SEC-004", "QA-09")
 def test_missing_booking_is_distinct_from_forbidden(student):
     with pytest.raises(ApiProblem) as error:
         service.get_owned(student, uuid.UUID(int=0))
     assert error.value.code == ErrorCode.BOOKING_NOT_FOUND
 
 
+@pytest.mark.req("FR-041", "FR-065")
 def test_policy_change_does_not_rewrite_saved_deadline(student, now):
     booking, _ = service.book(student, Ids.SLOT_DB_D1_1030, now)
     saved = booking.cancel_deadline_at
@@ -99,6 +108,7 @@ def test_policy_change_does_not_rewrite_saved_deadline(student, now):
     assert service.to_out(booking, now).cancel_deadline_at == saved
 
 
+@pytest.mark.req("QA-04")
 def test_idempotency_is_scoped_to_user(student, other_student, now):
     first, replayed = service.book(student, Ids.SLOT_DB_D1_1030, now, "same-key-001")
     other, other_replayed = service.book(other_student, Ids.SLOT_NET_D4_0900, now, "same-key-001")
@@ -106,6 +116,7 @@ def test_idempotency_is_scoped_to_user(student, other_student, now):
     assert not replayed and not other_replayed
 
 
+@pytest.mark.req("QA-04")
 def test_replay_does_not_recheck_availability(student, now, monkeypatch):
     first, _ = service.book(student, Ids.SLOT_DB_D1_1030, now, "same-key-001")
     unavailable = Mock(side_effect=AssertionError("replay must not create a booking"))
@@ -117,6 +128,7 @@ def test_replay_does_not_recheck_availability(student, now, monkeypatch):
     unavailable.assert_not_called()
 
 
+@pytest.mark.req("FR-043")
 @pytest.mark.parametrize(
     ("new_slot", "error_type", "code"),
     [
@@ -132,6 +144,7 @@ def test_failed_reschedule_is_atomic(student, now, new_slot, error_type, code):
     assert store.bookings == before
 
 
+@pytest.mark.req("FR-035", "FR-043")
 def test_reschedule_rejects_student_overlap(student, now):
     before = copy.deepcopy(store.bookings)
     # Інтервал перетинає BOOKING_SOON: його не можна ігнорувати як попереднє бронювання.
@@ -144,6 +157,7 @@ def test_reschedule_rejects_student_overlap(student, now):
     assert store.bookings == before
 
 
+@pytest.mark.req("FR-043", "FR-044")
 def test_successful_reschedule_links_successor_and_keeps_count(student, now):
     before = len(service._open_bookings(student.id, now))
     new = service.reschedule(student, Ids.BOOKING_ACTIVE, Ids.SLOT_DB_D2_1030, now)
@@ -153,6 +167,7 @@ def test_successful_reschedule_links_successor_and_keeps_count(student, now):
     assert len(service._open_bookings(student.id, now)) == before
 
 
+@pytest.mark.req("FR-036", "QA-11")
 def test_list_total_is_count_before_pagination(student, now):
     rows, total = service.list_mine(student, None, 1, 1, now)
     assert len(rows) == 1 and total == 4

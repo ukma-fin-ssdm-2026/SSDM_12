@@ -12,6 +12,8 @@ import pytest
 from api.errors import ApiProblem, ErrorCode
 from api.pagination import cursor_fields, decode_cursor, encode_cursor
 
+pytestmark = pytest.mark.req("QA-06")
+
 
 def test_cursor_fields_preserves_strings():
     assert cursor_fields({"s": "time", "i": "uuid"}) == ("time", "uuid")
@@ -29,6 +31,7 @@ def cursor(data):
     return base64.urlsafe_b64encode(json.dumps(data).encode()).decode().rstrip("=")
 
 
+@pytest.mark.req("QA-11")
 def test_cursor_roundtrip_and_urlsafe_alphabet():
     now = datetime(2026, 10, 25, 0, 30, tzinfo=UTC)
     item = uuid.UUID(int=123)

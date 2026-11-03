@@ -16,11 +16,12 @@ from api import clock
 from api.config import API_PREFIX
 from api.enums import BookingState
 from api.errors import ErrorCode, FieldError, problem_responses
+from api.infrastructure.unit_of_work import transactional
 from api.pagination import DEFAULT_PAGE_SIZE, Limit, Offset, OffsetPagination
 from api.schemas.bookings import BookingCreate, BookingList, BookingOut, BookingReschedule
 from api.security import Student
 from api.stubs import booking_service as service
-from api.stubs.store import Ids
+from api.stubs.store import Ids, store
 
 TAG = {
     "name": "bookings",
@@ -65,6 +66,7 @@ _BAD_BOOKING_ID = FieldError(
     message="Input should be a valid UUID, invalid length: found 3",
 )
 _SLOT_STATE_CONFLICTS = (
+    ErrorCode.SLOT_WITHDRAWN,
     ErrorCode.SLOT_ALREADY_BOOKED,
     ErrorCode.SLOT_STARTED,
     ErrorCode.SLOT_OUT_OF_HORIZON,
@@ -94,6 +96,7 @@ _SLOT_STATE_CONFLICTS = (
         ),
     },
 )
+@transactional(direct=True, retry_deadlock=True)
 def create_booking(
     payload: Annotated[
         BookingCreate,
@@ -139,6 +142,14 @@ def create_booking(
     `active_bookings`); перетин із власним бронюванням (FR-035).
     """
     now = clock.utc_now()
+    if store.persistent:
+        from api.infrastructure.booking_commands import create_booking as sql_create
+
+        result, replayed = sql_create(store.engine, student, payload.slot_id, now, idempotency_key)
+        response.headers["Location"] = f"{API_PREFIX}/bookings/{result.id}"
+        if replayed:
+            response.headers["Idempotent-Replayed"] = "true"
+        return result
     booking, replayed = service.book(student, payload.slot_id, now, idempotency_key)
     response.headers["Location"] = f"{API_PREFIX}/bookings/{booking.id}"
     if replayed:
@@ -160,6 +171,7 @@ def create_booking(
         field_error=_BAD_BOOKING_ID,
     ),
 )
+@transactional
 def get_booking(booking_id: BookingId, student: Student) -> BookingOut:
     """Деталі бронювання для його власника. Чуже бронювання — 403 без жодних його даних
     (SEC-004, THR-03); неіснуюче — 404.
@@ -185,6 +197,7 @@ def get_booking(booking_id: BookingId, student: Student) -> BookingOut:
         field_error=_BAD_BOOKING_ID,
     ),
 )
+@transactional
 def cancel_booking(booking_id: BookingId, student: Student) -> BookingOut:
     """Скасовує активне бронювання до граничного часу скасування включно (FR-040, FR-041);
     слот одразу знову з'являється в пошуку (FR-042). Після граничного часу — 409 з полем
@@ -222,6 +235,7 @@ def cancel_booking(booking_id: BookingId, student: Student) -> BookingOut:
         ),
     },
 )
+@transactional
 def reschedule_booking(
     booking_id: BookingId,
     payload: Annotated[
@@ -269,6 +283,7 @@ def reschedule_booking(
         ),
     ),
 )
+@transactional
 def list_my_bookings(
     student: Student,
     state: Annotated[

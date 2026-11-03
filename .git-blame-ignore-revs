@@ -1,0 +1,8 @@
+# Коміти, які git blame має пропускати: масові зміни без зміни поведінки.
+# Застосувати локально: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub враховує цей файл автоматично.
+
+# chore: normalize line endings to LF per .gitattributes (#217) — 1369/1369 рядків,
+# `git diff --ignore-cr-at-eol` порожній. Без цього мутаційна робота Павла
+# у blame виглядає роботою автора нормалізації.
+2bcb8dfad168176bc528d811eccbcb605c8f5ceb

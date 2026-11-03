@@ -1,0 +1,20 @@
+=== НОВІ ТЕСТИ ПІСЛЯ ПРАВОК (green) ===
+......................................................                   [100%]
+54 passed in 0.18s
+
+=== ПОВНИЙ НАБІР (регрес; integration потребує не-root initdb) ===
+........................................................................ [ 97%]
+................                                                         [100%]
+664 passed in 9.85s
+
+=== ruff ===
+All checks passed!
+160 files already formatted
+
+=== bandit -r src scripts ===
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):

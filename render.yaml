@@ -1,0 +1,50 @@
+# Render Blueprint for the optional public demo.
+# Provision the database and restricted runtime role before syncing this Blueprint;
+# see docs/deployment/render.md. No credentials belong in this file.
+services:
+  - type: web
+    name: unislot-api
+    runtime: python
+    branch: main
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --app-dir src --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.12
+      - key: UNISLOT_DATABASE_URL
+        sync: false
+      - key: UNISLOT_DEMO_AUTH
+        value: "0"
+      - key: UNISLOT_EXPORT_OPENAPI
+        value: "0"
+      - key: UNISLOT_SESSION_COOKIE_SECURE
+        value: "1"
+
+  - type: worker
+    name: unislot-worker
+    runtime: python
+    branch: main
+    region: frankfurt
+    plan: 0.5c-512mb
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/run_worker.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.12
+      - key: UNISLOT_DATABASE_URL
+        fromService:
+          type: web
+          name: unislot-api
+          envVarKey: UNISLOT_DATABASE_URL
+
+databases:
+  - name: unislot-midterm-db
+    databaseName: unislot
+    user: unislot_owner
+    region: frankfurt
+    plan: free
+    postgresMajorVersion: "16"
+    diskSizeGB: 1

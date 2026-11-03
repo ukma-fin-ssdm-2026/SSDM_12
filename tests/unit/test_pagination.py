@@ -1,4 +1,7 @@
-"""Unit and property-based tests for the cursor codec, independent of HTTP."""
+"""Unit and property-based tests for the cursor codec, independent of HTTP.
+
+Чернетку тестів підготовлено за допомогою ChatGPT (OpenAI), див. PR #131.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +14,8 @@ from hypothesis import strategies as st
 
 from api.errors import ApiProblem
 from api.pagination import decode_cursor, encode_cursor
+
+pytestmark = pytest.mark.req("QA-11")
 
 
 @pytest.mark.parametrize(
@@ -25,6 +30,7 @@ def test_cursor_roundtrip_with_timezones(offset_hours: int, offset_minutes: int)
     assert decode_cursor(encode_cursor(starts_at, item_id)) == (starts_at, item_id)
 
 
+@pytest.mark.req("QA-06")
 @pytest.mark.parametrize(
     "bad_cursor",
     ["", "not-a-cursor", "e30", "bm90LWpzb24", "%%%%"],

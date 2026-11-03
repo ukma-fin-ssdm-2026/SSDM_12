@@ -12,11 +12,12 @@ from api import clock
 from api.config import API_PREFIX
 from api.enums import ResourceType
 from api.errors import ErrorCode, FieldError, problem_responses
+from api.infrastructure.unit_of_work import transactional
 from api.pagination import DEFAULT_PAGE_SIZE, CursorPagination, Limit
 from api.schemas.slots import SlotCreate, SlotDetail, SlotList
 from api.security import AnyUser, Provider, Student
 from api.stubs import slot_service as service
-from api.stubs.store import Ids
+from api.stubs.store import Ids, store
 
 TAG = {
     "name": "slots",
@@ -46,6 +47,7 @@ _LOCATION = {"Location": {"description": "Адреса створеного сл
         ),
     ),
 )
+@transactional(direct=True)
 def search_free_slots(
     student: Student,
     provider_id: Annotated[
@@ -96,6 +98,24 @@ def search_free_slots(
     Порядок — за часом початку. Пагінація курсором: набір вільних слотів змінюється,
     поки користувач гортає, і зсув пропускав би або дублював слоти.
     """
+    if store.persistent:
+        from api.infrastructure.queries import search_slots
+        from api.services.worker_service import ensure_horizon
+
+        now = clock.utc_now()
+        if day is not None:
+            service.check_search_date(day, now)
+        ensure_horizon(now)
+        return search_slots(
+            store.engine,
+            now=now,
+            provider_id=provider_id,
+            resource_type=resource_type,
+            day=day,
+            min_capacity=min_capacity,
+            limit=limit,
+            cursor=cursor,
+        )
     items, next_cursor = service.search_free(
         now=clock.utc_now(),
         provider_id=provider_id,
@@ -129,6 +149,7 @@ def search_free_slots(
         ),
     ),
 )
+@transactional
 def get_slot(
     slot_id: Annotated[
         uuid.UUID,
@@ -175,6 +196,7 @@ def get_slot(
         ),
     },
 )
+@transactional
 def create_slot(
     resource_id: Annotated[
         uuid.UUID,

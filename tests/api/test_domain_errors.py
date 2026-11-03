@@ -7,11 +7,14 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api.errors import CATALOG, ErrorCode
 from api.main import create_app
 from unislot.platform.errors import DomainError
+
+pytestmark = pytest.mark.req("QA-09")
 
 
 class _SlotTaken(DomainError):
@@ -59,6 +62,7 @@ def test_domain_error_context_reaches_the_client() -> None:
     assert r.json()["active_bookings"] == 3
 
 
+@pytest.mark.req("QA-08")
 def test_unknown_domain_code_is_internal_error_without_details() -> None:
     r = _client_raising(_UnknownCode("внутрішня деталь")).get("/raise")
     assert r.status_code == 500

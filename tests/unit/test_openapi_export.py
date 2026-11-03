@@ -13,6 +13,8 @@ import yaml
 
 from api import openapi_export as exporter
 
+pytestmark = pytest.mark.req("QA-10")
+
 
 @pytest.fixture
 def fake_app():

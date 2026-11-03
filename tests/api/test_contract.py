@@ -17,7 +17,9 @@ from api import clock
 from api.main import create_app
 from api.openapi_export import render_spec_yaml
 
-PUBLIC_OPERATIONS = {"get_health"}  # єдиний виняток із deny-by-default
+pytestmark = pytest.mark.req("QA-10")
+
+PUBLIC_OPERATIONS = {"get_health", "register_user", "login_user"}
 METHODS = {"get", "post", "put", "patch", "delete"}
 
 
@@ -33,6 +35,11 @@ def operations(spec: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]]]:
         for method, op in item.items()
         if method in METHODS
     ]
+
+
+def test_swagger_uses_current_origin_before_local_fallback(spec: dict[str, Any]) -> None:
+    assert spec["servers"][0]["url"] == "/"
+    assert any(server["url"] == "http://localhost:3000" for server in spec["servers"])
 
 
 def test_every_operation_is_documented(spec: dict[str, Any]) -> None:
@@ -63,6 +70,7 @@ def test_every_parameter_has_description(spec: dict[str, Any]) -> None:
             assert param.get("description"), f"{method.upper()} {path}: {param['name']} без опису"
 
 
+@pytest.mark.req("QA-09")
 def test_errors_use_problem_json_with_examples(spec: dict[str, Any]) -> None:
     for path, method, op in operations(spec):
         for status, response in op["responses"].items():
@@ -76,21 +84,24 @@ def test_errors_use_problem_json_with_examples(spec: dict[str, Any]) -> None:
             assert media.get("examples"), f"{where}: немає прикладу помилки"
 
 
+@pytest.mark.req("QA-07", "SEC-002")
 def test_protected_operations_declare_auth_and_401(spec: dict[str, Any]) -> None:
     for path, method, op in operations(spec):
         if op["operationId"] in PUBLIC_OPERATIONS:
             continue
         where = f"{method.upper()} {path}"
-        assert op.get("security") == [{"demoBearer": []}], f"{where}: немає вимоги автентифікації"
+        assert op.get("security") == [{"demoBearer": []}, {"sessionCookie": []}], where
         assert "401" in op["responses"], f"{where}: не задокументовано 401"
 
 
+@pytest.mark.req("QA-06")
 def test_operations_with_input_document_422(spec: dict[str, Any]) -> None:
     for path, method, op in operations(spec):
         if op.get("parameters") or op.get("requestBody"):
             assert "422" in op["responses"], f"{method.upper()} {path}: не задокументовано 422"
 
 
+@pytest.mark.req("QA-06")
 def test_no_default_fastapi_validation_schema(spec: dict[str, Any]) -> None:
     schemas = spec["components"]["schemas"]
     assert "HTTPValidationError" not in schemas

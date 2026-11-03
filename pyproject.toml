@@ -6,7 +6,11 @@
 # src/ — корінь імпорту пакета `api` (той самий, що й `uvicorn --app-dir src`).
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-ra"
+# --strict-markers: мітка з одруківкою (req → reg) — помилка збору, а не тихе попередження.
+addopts = "-ra --strict-markers"
+markers = [
+    "req(*ids): ID вимог із docs/requirements/rtm.md, які перевіряє тест (Лаб 7); звіряє scripts/check_traceability.py",
+]
 
 [tool.ruff]
 # Стандарт кодування — PEP 8 через `ruff format` (сумісний із Black) і PEP 257 для
@@ -50,6 +54,11 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.isort]
+# Явно: інакше Ruff визначає «свій» пакет за наявністю модуля на диску, і тест-специфікація
+# для ще не створеного модуля (бонус 3 Лаб 7) отримала б інший порядок імпортів.
+known-first-party = ["api", "unislot"]
 
 [tool.bandit]
 # Запуск: bandit -c pyproject.toml -r src scripts

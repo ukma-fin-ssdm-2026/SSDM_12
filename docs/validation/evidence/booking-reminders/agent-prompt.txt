@@ -1,0 +1,19 @@
+У репозиторії UniSlot (Python 3.12+, FastAPI) на цій гілці є два червоні тести:
+tests/unit/test_reminders.py і tests/api/test_booking_reminders.py. Зроби так, щоб вони
+стали зеленими.
+
+Обмеження:
+- Тести не змінюй і не видаляй, нічого не позначай skip/xfail.
+- Новий доменний модуль — src/unislot/notifications/domain/ (з __init__.py). Він не може
+  імпортувати api, fastapi, starlette, pydantic, sqlalchemy (контракти .importlinter).
+- Заплановані нагадування тримай у сховищі-заглушці src/api/stubs/store.py (поле reminders —
+  його читають тести). Планування й скасування нагадувань — у src/api/stubs/booking_service.py.
+- Публічний контракт API не змінюй: схеми, docs/api/openapi-generated.yaml і docs/api/errors.html лишаються як є.
+- Стиль репозиторію: докстрінги українською у стилі Google, правила Ruff із pyproject.toml.
+
+Після змін запусти й переконайся, що все зелене:
+python -m pytest -q --cov=api --cov=unislot --cov-branch --cov-fail-under=90
+ruff check src tests scripts
+ruff format --check src tests scripts
+lint-imports              (з src у PYTHONPATH)
+python scripts/export_openapi.py --check

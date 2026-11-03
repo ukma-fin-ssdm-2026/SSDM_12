@@ -1,4 +1,7 @@
-"""Direct booking-state checks: no HTTP transport or TestClient."""
+"""Direct booking-state checks: no HTTP transport or TestClient.
+
+Чернетку тестів підготовлено за допомогою ChatGPT (OpenAI), див. PR #131.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +12,8 @@ import pytest
 from api.enums import BookingState, BookingStatus
 from api.stubs.booking_service import booking_state
 from api.stubs.store import Ids, store
+
+pytestmark = pytest.mark.req("FR-036")
 
 
 @pytest.mark.parametrize(

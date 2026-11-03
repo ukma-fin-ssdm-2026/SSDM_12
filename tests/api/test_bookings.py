@@ -34,6 +34,7 @@ def at(iso: str) -> datetime:
     return datetime.fromisoformat(iso)
 
 
+@pytest.mark.req("FR-030", "FR-031", "FR-041", "TC-001")
 def test_booking_a_free_slot(client: TestClient) -> None:
     r = book(client, Ids.SLOT_DB_D1_1030)
     assert r.status_code == 201
@@ -44,6 +45,9 @@ def test_booking_a_free_slot(client: TestClient) -> None:
     assert at(body["cancel_deadline_at"]) == slot.starts_at - timedelta(hours=2)  # FR-041, A-003
 
 
+@pytest.mark.req(
+    "FR-014", "FR-030", "FR-032", "FR-034", "FR-035", "USAB-001", "QA-09", "TC-003", "TC-005"
+)
 @pytest.mark.parametrize(
     ("slot_id", "code"),
     [
@@ -62,11 +66,13 @@ def test_unbookable_slots_give_409_with_reason(client: TestClient, slot_id, code
     assert len(store.bookings) == before
 
 
+@pytest.mark.req("FR-030", "QA-06")
 def test_unknown_slot_is_404(client: TestClient) -> None:
     r = book(client, uuid.uuid4())
     assert r.status_code == 404 and r.json()["code"] == "SLOT_NOT_FOUND"
 
 
+@pytest.mark.req("FR-033", "USAB-001", "TC-002", "TP-02")
 def test_limit_reached_names_limit_and_count(client: TestClient) -> None:
     assert book(client, Ids.SLOT_DB_D1_1030).status_code == 201  # третє активне
     r = book(client, Ids.SLOT_NET_D4_0900)
@@ -75,11 +81,13 @@ def test_limit_reached_names_limit_and_count(client: TestClient) -> None:
     assert (r.json()["limit"], r.json()["active_bookings"]) == (3, 3)
 
 
+@pytest.mark.req("FR-007", "SEC-002")
 def test_only_students_book(client: TestClient) -> None:
     r = book(client, Ids.SLOT_DB_D1_1030, headers=PROVIDER)
     assert r.status_code == 403 and r.json()["code"] == "FORBIDDEN_ROLE"
 
 
+@pytest.mark.req("FR-032", "REL-001", "TC-004", "TP-03")
 def test_concurrent_requests_give_one_201(client: TestClient) -> None:
     def attempt(_: int) -> int:
         return book(client, Ids.SLOT_DB_D1_1030, headers=STUDENT_2).status_code
@@ -97,6 +105,7 @@ def test_concurrent_requests_give_one_201(client: TestClient) -> None:
     )
 
 
+@pytest.mark.req("QA-04")
 def test_idempotency_key_replays_first_booking(client: TestClient) -> None:
     key = {"Idempotency-Key": "retry-after-timeout-01"}
     first = book(client, Ids.SLOT_DB_D1_1030, headers={**STUDENT, **key})
@@ -110,6 +119,7 @@ def test_idempotency_key_replays_first_booking(client: TestClient) -> None:
     assert short.status_code == 422
 
 
+@pytest.mark.req("FR-007", "FR-036", "SEC-004", "TC-058", "TP-10")
 def test_owner_sees_booking_others_get_403_without_data(client: TestClient) -> None:
     own = client.get(f"/api/v1/bookings/{Ids.BOOKING_ACTIVE}", headers=STUDENT)
     assert own.status_code == 200 and own.json()["resource"]["name"] == "Консультація з баз даних"
@@ -120,6 +130,7 @@ def test_owner_sees_booking_others_get_403_without_data(client: TestClient) -> N
     assert missing.status_code == 404
 
 
+@pytest.mark.req("FR-040", "FR-042", "TC-007")
 def test_cancel_frees_the_slot(client: TestClient) -> None:
     r = client.post(f"/api/v1/bookings/{Ids.BOOKING_ACTIVE}/cancel", headers=STUDENT)
     assert r.status_code == 200
@@ -130,6 +141,7 @@ def test_cancel_frees_the_slot(client: TestClient) -> None:
     assert book(client, Ids.SLOT_DB_D2_1000, headers=STUDENT_2).status_code == 201
 
 
+@pytest.mark.req("FR-040", "FR-041", "TC-007")
 def test_cancel_exactly_at_deadline_is_allowed(client: TestClient, monkeypatch) -> None:
     deadline = store.bookings[Ids.BOOKING_ACTIVE].cancel_deadline_at
     monkeypatch.setattr(clock, "utc_now", lambda: deadline)
@@ -139,6 +151,7 @@ def test_cancel_exactly_at_deadline_is_allowed(client: TestClient, monkeypatch) 
     )
 
 
+@pytest.mark.req("FR-040", "FR-041", "USAB-001", "TC-008")
 def test_cancel_after_deadline_names_the_deadline(client: TestClient) -> None:
     r = client.post(f"/api/v1/bookings/{Ids.BOOKING_SOON}/cancel", headers=STUDENT)
     assert r.status_code == 409 and r.json()["code"] == "CANCELLATION_DEADLINE_PASSED"
@@ -147,6 +160,7 @@ def test_cancel_after_deadline_names_the_deadline(client: TestClient) -> None:
     assert store.bookings[Ids.BOOKING_SOON].status is BookingStatus.CONFIRMED
 
 
+@pytest.mark.req("FR-007", "FR-040", "SEC-004", "TC-009")
 def test_cancel_twice_and_foreign_cancel(client: TestClient) -> None:
     url = f"/api/v1/bookings/{Ids.BOOKING_ACTIVE}/cancel"
     assert client.post(url, headers=STUDENT).status_code == 200
@@ -165,6 +179,7 @@ def reschedule(client: TestClient, booking_id: uuid.UUID, new_slot: uuid.UUID):
     )
 
 
+@pytest.mark.req("FR-043", "TC-013")
 def test_reschedule_is_atomic_replacement(client: TestClient) -> None:
     r = reschedule(client, Ids.BOOKING_ACTIVE, Ids.SLOT_DB_D2_1030)
     assert r.status_code == 201
@@ -174,17 +189,20 @@ def test_reschedule_is_atomic_replacement(client: TestClient) -> None:
     assert r.headers["Location"] == f"/api/v1/bookings/{r.json()['id']}"
 
 
+@pytest.mark.req("FR-032", "FR-043", "TC-014")
 def test_reschedule_to_taken_slot_keeps_old_booking(client: TestClient) -> None:
     r = reschedule(client, Ids.BOOKING_ACTIVE, Ids.SLOT_DB_D1_1000)
     assert r.status_code == 409 and r.json()["code"] == "SLOT_ALREADY_BOOKED"
     assert store.bookings[Ids.BOOKING_ACTIVE].status is BookingStatus.CONFIRMED
 
 
+@pytest.mark.req("FR-044", "TC-015")
 def test_reschedule_at_limit_is_allowed(client: TestClient) -> None:
     assert book(client, Ids.SLOT_DB_D1_1030).status_code == 201  # ліміт 3 із 3
     assert reschedule(client, Ids.BOOKING_ACTIVE, Ids.SLOT_NET_D4_0900).status_code == 201
 
 
+@pytest.mark.req("FR-044", "FR-045", "TC-015")
 def test_reschedule_after_deadline_or_to_same_slot(client: TestClient) -> None:
     late = reschedule(client, Ids.BOOKING_SOON, Ids.SLOT_NET_D4_0900)
     assert late.status_code == 409 and late.json()["code"] == "CANCELLATION_DEADLINE_PASSED"
@@ -192,6 +210,7 @@ def test_reschedule_after_deadline_or_to_same_slot(client: TestClient) -> None:
     assert same.status_code == 422
 
 
+@pytest.mark.req("FR-036", "TC-056")
 def test_my_bookings_active_first(client: TestClient) -> None:
     r = client.get("/api/v1/me/bookings", headers=STUDENT)
     assert r.status_code == 200
@@ -201,6 +220,7 @@ def test_my_bookings_active_first(client: TestClient) -> None:
     assert first_two == sorted(first_two)  # найближчі першими
 
 
+@pytest.mark.req("FR-036")
 def test_my_bookings_filter_and_empty_result(client: TestClient) -> None:
     done = client.get("/api/v1/me/bookings", params={"state": "completed"}, headers=STUDENT).json()
     assert [i["id"] for i in done["items"]] == [str(Ids.BOOKING_PAST)]

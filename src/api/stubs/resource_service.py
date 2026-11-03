@@ -1,7 +1,8 @@
-"""Заглушка `ResourceManagement` і читання каталогу (HLD §5.2) для Лаб 4.
+"""Керування ресурсами й читання каталогу через StoreProxy (HLD §5.2).
 
 Ресурсами володіє модуль `Availability`; адміністративні сценарії йдуть через
-`Admin` і пишуть журнал аудиту (FR-066). Тут — та сама поведінка на даних у пам'яті.
+`Admin` і пишуть журнал аудиту (FR-066). Memory та PostgreSQL використовують
+спільні сценарії; у постійному адаптері зміна й аудит комітяться разом.
 """
 
 from __future__ import annotations
@@ -90,6 +91,9 @@ def _snapshot(rec: ResourceRec) -> dict[str, Any]:
 def create_resource(actor: CurrentUser, data: ResourceCreate) -> ResourceRec:
     """Створює ресурс (FR-060, FR-061) і пише запис аудиту в тому самому блокуванні (FR-066)."""
     with store.lock:
+        user = store.users.get(actor.id)
+        if user is None or Role.ADMIN not in user.roles:
+            raise ApiProblem(ErrorCode.FORBIDDEN_ROLE)
         _check_provider(data.provider_id)
         rec = ResourceRec(
             id=uuid.uuid4(),
@@ -141,6 +145,9 @@ def update_resource(
     місткості. Його видно у відповіді, коли запит ламає кілька правил одночасно.
     """
     with store.lock:
+        user = store.users.get(actor.id)
+        if user is None or Role.ADMIN not in user.roles:
+            raise ApiProblem(ErrorCode.FORBIDDEN_ROLE)
         rec = get_resource(resource_id)
         if "capacity" in changes:
             _check_capacity_presence(rec, changes["capacity"])

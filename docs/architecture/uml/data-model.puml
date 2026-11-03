@@ -19,6 +19,7 @@ entity "app_user\n(користувач)" as app_user {
   * is_active : boolean
   failed_login_count : integer
   last_failed_login_at : timestamptz
+  locked_until : timestamptz
   * created_at : timestamptz
 }
 
@@ -35,6 +36,7 @@ entity "session\n(сесія)" as session {
   --
   * user_id : uuid <<FK>>
   * token_hash : bytea <<чутливі>> <<унікальний>>
+  * csrf_hash : bytea <<чутливі>>
   * created_at : timestamptz
   * expires_at : timestamptz
 }
