@@ -48,9 +48,7 @@ NFR_DEFINITION = r"^#### ((?:" + NFR_ALTERNATIVES + r")-\d{3})"
 
 ANY_ID = (
     r"(?<![A-Za-z0-9_])"
-    r"(?:FR|US|TC|BN|A|C|R|OQ|"
-    + NFR_ALTERNATIVES
-    + r")-\d{3}\b"
+    r"(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALTERNATIVES + r")-\d{3}\b"
 )
 
 # Заголовки функцій оголошують зарезервований діапазон ID,
