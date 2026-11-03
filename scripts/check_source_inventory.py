@@ -27,9 +27,7 @@ def main() -> int:
     expected = data["files_sha256"]
 
     actual = {}
-    source_paths = sorted((ROOT / "src").rglob("*.py")) + sorted(
-        (ROOT / "tests").rglob("*.py")
-    )
+    source_paths = sorted((ROOT / "src").rglob("*.py")) + sorted((ROOT / "tests").rglob("*.py"))
     for source_path in source_paths:
         if source_path.is_file():
             relative_path = source_path.relative_to(ROOT).as_posix()
