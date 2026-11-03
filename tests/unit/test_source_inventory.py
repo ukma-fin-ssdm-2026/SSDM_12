@@ -89,6 +89,7 @@ def test_main_fails_when_source_hash_changes(tmp_path, monkeypatch):
 
     assert checker.main() == 1
 
+
 def test_main_fails_when_new_source_file_is_added(tmp_path, monkeypatch):
     import json
 
