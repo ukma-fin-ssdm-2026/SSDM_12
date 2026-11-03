@@ -27,9 +27,12 @@ def main() -> int:
     expected = data["files_sha256"]
 
     actual = {}
-    for relative_path in expected:
-        source_path = ROOT / relative_path
+    source_paths = sorted((ROOT / "src").rglob("*.py")) + sorted(
+        (ROOT / "tests").rglob("*.py")
+    )
+    for source_path in source_paths:
         if source_path.is_file():
+            relative_path = source_path.relative_to(ROOT).as_posix()
             actual[relative_path] = file_sha256(source_path)
 
     return 1 if changed_source_paths(expected, actual) else 0
