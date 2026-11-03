@@ -6,6 +6,8 @@ import pytest
 
 from scripts import check_source_inventory as checker
 
+pytestmark = pytest.mark.req("QA-17")
+
 
 def test_changed_hash_is_reported():
     expected = {"src/api/example.py": "old"}
@@ -53,11 +55,12 @@ def test_main_succeeds_when_source_hashes_match(tmp_path, monkeypatch):
     source.write_text("original", encoding="utf-8")
 
     report = tmp_path / "run.json"
-    report.write_text(json.dumps({
-        "files_sha256": {
-            "src/example.py": hashlib.sha256(source.read_bytes()).hexdigest()
-        }
-    }), encoding="utf-8")
+    report.write_text(
+        json.dumps(
+            {"files_sha256": {"src/example.py": hashlib.sha256(source.read_bytes()).hexdigest()}}
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(checker, "ROOT", tmp_path)
     monkeypatch.setattr(checker, "REPORT", report)
@@ -77,9 +80,9 @@ def test_main_fails_when_source_hash_changes(tmp_path, monkeypatch):
     source.write_text("modified", encoding="utf-8")
 
     report = tmp_path / "run.json"
-    report.write_text(json.dumps({
-        "files_sha256": {"src/example.py": original_hash}
-    }), encoding="utf-8")
+    report.write_text(
+        json.dumps({"files_sha256": {"src/example.py": original_hash}}), encoding="utf-8"
+    )
 
     monkeypatch.setattr(checker, "ROOT", tmp_path)
     monkeypatch.setattr(checker, "REPORT", report)
