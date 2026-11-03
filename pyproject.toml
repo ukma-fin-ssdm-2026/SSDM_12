@@ -75,8 +75,3 @@ source = ["api", "unislot"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 90
-
-# Manual mutation testing runs in Linux/WSL, not native Windows CI.
-[tool.mutmut]
-source_paths = ["src/api/"]
-pytest_add_cli_args_test_selection = ["tests/unit/"]
