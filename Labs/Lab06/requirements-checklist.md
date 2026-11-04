@@ -7,7 +7,7 @@
 | Навмисна помилка, причина, виправлення, регресія | debugging-log.md, evidence/debug-red.txt і debug-green.txt |
 | Реальна помилка курсора | evidence/cursor-before.txt, cursor-after.txt, tests/api/test_lab06_regressions.py |
 | Стратегія на одну сторінку | testing-strategy.md: основна частина; бонуси окремим додатком |
-| Особисті 6–12 TDD-комітів | Никита — 12 комітів у PR #212 (5×RED, 5×GREEN, 1×REFACTOR, 1 тест закріплення), без squash, перевіряється через `git log`; Денис, Аксенія, Павло ще виконують. Готові файли не заміняють процес |
+| Особисті 6–12 TDD-комітів | Никита — 12 комітів у PR #212 (5×RED, 5×GREEN, 1×REFACTOR, 1 тест закріплення); Денис — 7 комітів у PR #246 (`feature/lab06-tdd-debug-sequence`); Аксенія — 8 комітів у PR #264 (`feature/lab06-tdd-source-inventory`), з них 6 із тегами `[RED]`/`[GREEN]`/`[REFACTOR]` і 2 з тегами `RED`/`GREEN` без дужок, тому автоматичний підрахунок показує 6. Усі без squash, перевіряється через `git log --grep='\[RED\]\|\[GREEN\]\|\[REFACTOR\]'`. Павло — 0, цикл не виконано. Готові файли не заміняють процес |
 | 2 Loom-відео ≤5 хв від кожного | Є: Никита (#215), Денис, Аксенія (#228). Лишається Павло — файлу `video_pavlo_dziubak.txt` немає ні в Лаб5, ні в Лаб6 |
 | Mutation bonus | mutation-before.json / mutation-after.json; **не зараховано**: пояснити мав Павло, відео немає |
 | Property bonus | tests/property/test_cursor_shapes.py; обґрунтування «для будь-якого входу» — у testing-strategy.md; чи пояснив Денис у своєму відео — підтвердити |
