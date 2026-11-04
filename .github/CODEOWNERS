@@ -111,3 +111,8 @@
 /src/api/log_paths.py                      @NykytaBabakov @asyakozulina
 /tests/unit/test_log_paths.py              @NykytaBabakov @asyakozulina
 /tests/api/test_access_log.py              @NykytaBabakov @asyakozulina
+# Lab 8: release management — Release Manager and Repo Maintainer.
+/CHANGELOG.md                              @DziubakPavlo @NykytaBabakov
+/scripts/release.py                        @DziubakPavlo @NykytaBabakov
+/tests/unit/test_release.py                @DziubakPavlo @NykytaBabakov
+/requirements-release.txt                  @DziubakPavlo @NykytaBabakov

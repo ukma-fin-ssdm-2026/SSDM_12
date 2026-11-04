@@ -50,6 +50,15 @@ jobs:
           python scripts/check_traceability.py
           if ($LASTEXITCODE -ne 0) { throw 'Traceability gap: fix the markers, the test or rtm.md' }
 
+      # Lab 8: the version in pyproject.toml, the latest release in CHANGELOG.md and the
+      # Keep a Changelog format must agree on every PR. Standard library only, runs early.
+      - name: Check release metadata (Lab 8)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          python scripts/release.py check
+          if ($LASTEXITCODE -ne 0) { throw 'Release metadata mismatch: run python scripts/release.py check' }
+
 
       # Версії закріплено: інакше згенерована специфікація залежала б від машини.
       # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
