@@ -105,6 +105,22 @@ def expand(ids_text, ordered):
     return found
 
 
+class Report:
+    """Друкує результат кожної перевірки й рахує порушення для коду виходу."""
+
+    def __init__(self):
+        self.failures = 0
+
+    def __call__(self, title, problems):
+        if problems:
+            self.failures += len(problems)
+            print(f"[FAIL] {title}: {len(problems)}")
+            for p in problems:
+                print(f"       {p}")
+        else:
+            print(f"[ ok ] {title}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
@@ -115,17 +131,7 @@ def main():
     )
     args = parser.parse_args()
 
-    failures = 0
-
-    def report(title, problems, fmt=str):
-        nonlocal failures
-        if problems:
-            failures += len(problems)
-            print(f"[FAIL] {title}: {len(problems)}")
-            for p in problems:
-                print(f"       {fmt(p)}")
-        else:
-            print(f"[ ok ] {title}")
+    report = Report()
 
     # --- 1. Наявність артефактів -------------------------------------------------
     missing = [str(p) for p in DOCS.values() if not p.is_file()]
@@ -363,8 +369,8 @@ def main():
         f"\nВимог у матриці: {len(rows)} з {len(ordered)} · компонентів: {len(components)} · "
         f"діаграм: {len(pumls)} · ADR: {len(adrs)} · загроз: {len(threat_rows)} · QAS: {len(qas)}"
     )
-    if failures:
-        print(f"Порушень: {failures}")
+    if report.failures:
+        print(f"Порушень: {report.failures}")
         return 1
     print("Порушень немає.")
     return 0
