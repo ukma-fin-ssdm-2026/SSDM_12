@@ -22,6 +22,14 @@ REPORT = ROOT / "docs/testing/lab06"
 
 
 def main() -> int:
+    # Windows consoles default to the system codepage (e.g. cp1251), which cannot
+    # encode every character pytest may print (e.g. "→"). Re-point stdout/stderr at
+    # UTF-8 and replace anything the terminal still can't show, so a non-ASCII
+    # character in test output never crashes this script.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     REPORT.mkdir(parents=True, exist_ok=True)
     arguments = [
         "-m",
