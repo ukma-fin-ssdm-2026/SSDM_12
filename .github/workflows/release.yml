@@ -37,7 +37,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout with full history and tags
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -104,7 +104,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout with full history and tags
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
