@@ -1,6 +1,16 @@
-# Налаштування інструментів. Версія API живе в одному місці — src/api/config.py (API_VERSION).
+# Налаштування інструментів. Версій дві, і кожна живе в одному місці:
+#   • версія продукту UniSlot — [project].version нижче; той самий номер стоїть у CHANGELOG.md
+#     і в git-тегі vX.Y.Z (Лаб 8, перевіряє scripts/release.py check у CI);
+#   • версія контракту API — src/api/config.py (API_VERSION); рефакторинг контракт не змінює,
+#     тож і її не змінює (docs/api/api-design.md §4.9).
 # Версії інструментів якості закріплено в requirements-dev.txt і .pre-commit-config.yaml:
 # оновлюємо обидва файли одним PR (статут §11.2).
+
+[project]
+name = "unislot"
+version = "0.1.0"
+description = "UniSlot: бронювання консультацій викладачів і навчальних аудиторій (SSDM_12)"
+requires-python = ">=3.12"
 
 [tool.pytest.ini_options]
 # src/ — корінь імпорту пакета `api` (той самий, що й `uvicorn --app-dir src`).
@@ -75,3 +85,14 @@ source = ["api", "unislot"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 90
+
+[tool.commitizen]
+# Реліз за Conventional Commits (бонус 3 Лаб 8, .github/workflows/release.yml). Вбудовані
+# правила cz_conventional_commits: feat → MINOR; fix, refactor, perf → PATCH; «!» або
+# BREAKING CHANGE → MAJOR, а поки версія 0.y.z — MINOR (major_version_zero, SemVer §4).
+# Журнал змін веде scripts/release.py у форматі Keep a Changelog, тому commitizen його не пише.
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+major_version_zero = true
+update_changelog_on_bump = false

@@ -1,0 +1,4 @@
+# Реліз за Conventional Commits (бонус 3 Лаб 8): лише для .github/workflows/release.yml.
+# commitizen рахує наступну версію (refactor → PATCH) і оновлює pyproject.toml; журнал змін
+# у форматі Keep a Changelog веде scripts/release.py.
+commitizen==4.19.3

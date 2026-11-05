@@ -1,0 +1,155 @@
+name: Release
+
+# Реліз за Conventional Commits (Лаб 8, бонус 3). Два кроки, бо main захищено ruleset-ом:
+#   1. prepare (вручну: Actions → Release → Run workflow) — commitizen рахує наступну версію
+#      з комітів від останнього тегу (refactor → PATCH), scripts/release.py рахує її незалежно;
+#      якщо відповіді збігаються — оновлює pyproject.toml і CHANGELOG.md і пушить гілку
+#      release/vX.Y.Z. PR із неї відкриває й зливає Менеджер релізу — як звичайний PR.
+#   2. publish (на push у main, коли змінилися pyproject.toml чи CHANGELOG.md) — якщо версії ще
+#      немає тегу: перевіряє узгодженість і правило приросту, створює анотований тег vX.Y.Z і
+#      GitHub Release з розділом журналу.
+# GITHUB_TOKEN не запускає інших workflow, тож CI на гілці release/* стартує, коли PR
+# відкриває людина.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ "pyproject.toml", "CHANGELOG.md" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout with full history and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install commitizen
+        run: python -m pip install -r requirements-release.txt
+
+      - name: Compute the next version from Conventional Commits
+        id: next
+        run: |
+          current=$(python scripts/release.py version)
+          last=$(git describe --tags --abbrev=0 --match 'v[0-9]*')
+          if [ "$last" != "v$current" ]; then
+            echo "::error::pyproject.toml має $current, а останній тег — $last: спершу випустіть $current"
+            exit 1
+          fi
+          git log --no-merges --format='%H%x1f%s%x1f%b%x1e' "$last..HEAD" > "$RUNNER_TEMP/commits.txt"
+          ours=$(python scripts/release.py next --commits "$RUNNER_TEMP/commits.txt")
+          theirs=$(cz bump --get-next | tail -n 1)
+          echo "Наступна версія: scripts/release.py — $ours, commitizen — $theirs" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$ours" != "$theirs" ]; then
+            echo "::error::Правила розійшлися: scripts/release.py $ours, commitizen $theirs"
+            exit 1
+          fi
+          message=$(python scripts/release.py message --new "$ours" --commits "$RUNNER_TEMP/commits.txt")
+          {
+            echo "current=$current"
+            echo "version=$ours"
+            echo "message=$message"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bump pyproject.toml and CHANGELOG.md
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          cz bump --files-only --yes
+          python scripts/release.py changelog --version "$VERSION" --commits "$RUNNER_TEMP/commits.txt"
+          python scripts/release.py check
+          git diff --stat
+
+      - name: Push the release branch
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+          MESSAGE: ${{ steps.next.outputs.message }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "release/v$VERSION"
+          git add pyproject.toml CHANGELOG.md
+          git commit -m "$MESSAGE"
+          git push origin "release/v$VERSION"
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...release/v$VERSION?expand=1"
+          echo "Гілку release/v$VERSION запушено. Відкрийте PR: $url" | tee -a "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout with full history and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check release metadata against the tags
+        id: meta
+        run: |
+          version=$(python scripts/release.py version)
+          git tag --list 'v*' > "$RUNNER_TEMP/tags.txt"
+          python scripts/release.py check --tags "$RUNNER_TEMP/tags.txt"
+          if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
+            echo "v$version уже випущено — нового релізу немає." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if last=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2> /dev/null); then
+            git log --no-merges --format='%H%x1f%s%x1f%b%x1e' "$last..HEAD" > "$RUNNER_TEMP/commits.txt"
+            expected=$(python scripts/release.py next --base "${last#v}" --commits "$RUNNER_TEMP/commits.txt")
+            if [ "$expected" != "$version" ]; then
+              echo "::error::За комітами від $last має бути $expected, а в pyproject.toml — $version"
+              exit 1
+            fi
+            echo "Приріст від $last за Conventional Commits: $expected" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "new=true" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create the annotated tag and the GitHub Release
+        if: steps.meta.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          python scripts/release.py notes --version "$VERSION" > "$RUNNER_TEMP/notes.md"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # --cleanup=verbatim: інакше git викидає з повідомлення тегу рядки «### …» як коментарі.
+          { echo "UniSlot $VERSION"; echo; cat "$RUNNER_TEMP/notes.md"; } > "$RUNNER_TEMP/tag.txt"
+          git tag -a "v$VERSION" --cleanup=verbatim -F "$RUNNER_TEMP/tag.txt"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" --title "UniSlot $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
+          echo "Випущено v$VERSION: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/v$VERSION" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
