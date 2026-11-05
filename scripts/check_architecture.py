@@ -123,11 +123,11 @@ class Report:
 
 def missing_artifacts(pumls, adrs):
     """Перевірка 1: обов'язкові документи, щонайменше 3 діаграми й 2–3 ADR."""
-    missing = [str(p) for p in DOCS.values() if not p.is_file()]
+    missing = [p.as_posix() for p in DOCS.values() if not p.is_file()]
     if len(pumls) < 3:
-        missing.append(f"{UML}/ — діаграм {len(pumls)}, потрібно щонайменше 3")
+        missing.append(f"{UML.as_posix()}/ — діаграм {len(pumls)}, потрібно щонайменше 3")
     if not 2 <= len(adrs) <= 3:
-        missing.append(f"{DECISIONS}/ — ADR {len(adrs)}, завдання вимагає 2–3")
+        missing.append(f"{DECISIONS.as_posix()}/ — ADR {len(adrs)}, завдання вимагає 2–3")
     return missing
 
 
@@ -243,7 +243,7 @@ def unknown_references(files, arch_defined, defined):
     for path in (p for p in files if p.is_file()):
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             bad_refs += [
-                f"{path}:{lineno}: {found}"
+                f"{path.as_posix()}:{lineno}: {found}"
                 for found in ID_PATTERN.findall(line)
                 if not is_declared(found, arch_defined, defined)
             ]
@@ -330,7 +330,7 @@ FENCE = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
 def ai_section_problems(adrs):
     """Перевірка 11: розділ «Використання ШІ» поза блоками коду й посилання з README."""
     problems = [
-        str(p)
+        p.as_posix()
         for p in list(DOCS.values()) + adrs + [DECISIONS / "README.md"]
         if "## Використання ШІ" not in FENCE.sub("", p.read_text(encoding="utf-8"))
     ]
@@ -347,7 +347,7 @@ SLOT = re.compile(r"‹(?![\s…]*›)")
 def author_slots(adrs):
     """Перевірка 12: незаповнені місця для автора «‹…›» у документах і ADR."""
     return [
-        f"{p}:{n}: {ln.strip()[:70]}"
+        f"{p.as_posix()}:{n}: {ln.strip()[:70]}"
         for p in list(DOCS.values()) + adrs
         for n, ln in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
         if SLOT.search(ln)
