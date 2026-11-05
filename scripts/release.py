@@ -37,6 +37,9 @@ from zoneinfo import ZoneInfo
 
 PYPROJECT = Path("pyproject.toml")
 CHANGELOG = Path("CHANGELOG.md")
+# Єдиний файл, який цей скрипт перезаписує: pyproject.toml змінює `cz bump`, решту — автори.
+# Перелік — межа для _write_project_file(): ім'я для запису беремо лише звідси.
+WRITABLE_FILES = frozenset({CHANGELOG.name})
 REPO_URL = "https://github.com/ukma-fin-ssdm-2026/SSDM_12"
 
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
@@ -350,6 +353,22 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _write_project_file(name: str, text: str) -> None:
+    """Перезаписує файл проєкту в каталозі запуску; `name` — лише з WRITABLE_FILES.
+
+    Запис — єдина руйнівна дія скрипта, тому шлях до нього не складається з даних: ім'я звіряємо
+    з переліком дозволених, а об'єкт шляху будуємо тут же з перевіреного імені. Так ні
+    `--commits`, ні `--version`, ні вміст журналу чи файла комітів не можуть вказати інший файл
+    (правило S6549 SonarQube Cloud: виклики введення-виведення не мають залежати від
+    підставленого шляху). Текст віддаємо вже відкритому потоку, щоб у самому виклику запису не
+    було нічого, крім перевіреного імені.
+    """
+    if name not in WRITABLE_FILES:
+        raise ValueError(f"не файл проєкту: {name}")
+    with Path(name).open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(text)
+
+
 def _cmd_version(_args: argparse.Namespace, pyproject: str) -> int:
     print(project_version(pyproject))
     return 0
@@ -392,7 +411,7 @@ def _cmd_changelog(args: argparse.Namespace, _pyproject: str) -> int:
     day = args.date or datetime.now(ZoneInfo("Europe/Kyiv")).date().isoformat()
     commits = parse_commits(_read(args.commits))
     text = release_changelog(_read(CHANGELOG), args.version, day, commits)
-    CHANGELOG.write_text(text, encoding="utf-8", newline="\n")
+    _write_project_file(CHANGELOG.name, text)
     print(f"CHANGELOG.md: розділ [{args.version}] - {day}")
     return 0
 

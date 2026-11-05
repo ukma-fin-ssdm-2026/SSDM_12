@@ -161,3 +161,35 @@ def test_check_command_reads_the_repository_files(tmp_path, monkeypatch, capsys)
     assert "0.1.0" in capsys.readouterr().out
     (tmp_path / "CHANGELOG.md").write_text(CHANGELOG.replace("0.1.0] -", "0.1.9] -"), "utf-8")
     assert release.main(["check"]) == 1
+
+
+def test_changelog_command_rewrites_only_the_project_changelog(tmp_path, monkeypatch, capsys):
+    (tmp_path / "pyproject.toml").write_text(PYPROJECT, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(CURATED, encoding="utf-8")
+    (tmp_path / "commits.txt").write_text(log("refactor: extract helper"), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    arguments = ["changelog", "--version", "0.1.1", "--date", "2026-11-07", "--commits"]
+    assert release.main([*arguments, "commits.txt"]) == 0
+    assert "[0.1.1] - 2026-11-07" in capsys.readouterr().out
+    assert sorted(p.name for p in tmp_path.iterdir()) == [
+        "CHANGELOG.md",
+        "commits.txt",
+        "pyproject.toml",
+    ]
+    assert (
+        release.check_changelog(
+            (tmp_path / "CHANGELOG.md").read_text(encoding="utf-8"), "0.1.1", tags={"v0.1.0"}
+        )
+        == []
+    )
+
+
+@pytest.mark.parametrize(
+    "name", ["../CHANGELOG.md", "/etc/passwd", "CHANGELOG.md.bak", "notes.md", "pyproject.toml"]
+)
+def test_no_other_file_can_be_written(name, tmp_path, monkeypatch):
+    """Шлях запису не складається з даних, а pyproject.toml належить `cz bump`, не цьому скрипту."""
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError, match="не файл проєкту"):
+        release._write_project_file(name, "whatever")
+    assert list(tmp_path.iterdir()) == []
