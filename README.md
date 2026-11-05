@@ -246,6 +246,28 @@ python scripts/check_lab06.py   # контроль повноти артефак
 [`docs/testing/external/spectrum/`](docs/testing/external/spectrum/README.md).
 Особисті TDD-коміти й відео кожного учасника подаються за вимогами Лаб 6.
 
+## План тестування й огляди (Лаб 7)
+
+| Документ | Що всередині |
+|---|---|
+| [`docs/validation/test-plan.md`](docs/validation/test-plan.md) | План тестування р. 3: обсяг і межі, критерії виходу, ризики, тест-кейси `TP-01…TP-13` з власниками й вимогами, розділ «Бонуси» |
+| [`docs/validation/review-log.md`](docs/validation/review-log.md) | Журнал взаємного огляду: огляд плану рецензентами-не-авторами, правки окремими комітами, огляд ШІ-коду |
+| [`docs/validation/partner-plan-review-monkey-business.md`](docs/validation/partner-plan-review-monkey-business.md) | Огляд плану тестування команди-партнера |
+| [`docs/quality/test-automation.md`](docs/quality/test-automation.md) | Автоматизація тестів у CI, мутаційне тестування Cosmic Ray |
+
+## Рефакторинг і реліз (Лаб 8)
+
+| Документ | Що всередині |
+|---|---|
+| [`docs/refactoring/sonarcloud-report.md`](docs/refactoring/sonarcloud-report.md) | Метрики SonarQube Cloud до й після, Security Rating, сім рефакторингів двох циклів, регресія, реліз, «Використання ШІ», бонуси |
+| [`CHANGELOG.md`](CHANGELOG.md) | Журнал змін у форматі Keep a Changelog; версія однакова в `pyproject.toml`, журналі й тегу `vX.Y.Z` |
+| [`.github/workflows/release.yml`](.github/workflows/release.yml) | Реліз за Conventional Commits: commitizen рахує версію, CI створює анотований тег і GitHub Release |
+
+```bash
+python scripts/release.py check                               # версія, журнал і формат узгоджені
+python scripts/regression_compare.py before.xml after.xml     # регресія між двома прогонами pytest
+```
+
 ## Команда
 
 | Учасник | GitHub | Роль у команді |
