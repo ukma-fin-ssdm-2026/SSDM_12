@@ -121,39 +121,18 @@ class Report:
             print(f"[ ok ] {title}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
-    parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="незаповнені місця «‹…›» для автора вважати порушенням (для CI)",
-    )
-    args = parser.parse_args()
-
-    report = Report()
-
-    # --- 1. Наявність артефактів -------------------------------------------------
+def missing_artifacts(pumls, adrs):
+    """Перевірка 1: обов'язкові документи, щонайменше 3 діаграми й 2–3 ADR."""
     missing = [str(p) for p in DOCS.values() if not p.is_file()]
-    pumls = sorted(UML.glob("*.puml")) if UML.is_dir() else []
-    adrs = sorted(DECISIONS.glob("ADR-[0-9][0-9][0-9].md")) if DECISIONS.is_dir() else []
     if len(pumls) < 3:
         missing.append(f"{UML}/ — діаграм {len(pumls)}, потрібно щонайменше 3")
     if not 2 <= len(adrs) <= 3:
         missing.append(f"{DECISIONS}/ — ADR {len(adrs)}, завдання вимагає 2–3")
-    report("Обов'язкові артефакти Лаб 3", missing)
-    if any(not p.is_file() for p in DOCS.values()):
-        print("\nБез основних документів подальші перевірки неможливі.")
-        return 1
+    return missing
 
-    text = {k: p.read_text(encoding="utf-8") for k, p in DOCS.items()}
-    req_text = req.load()
-    defined, _ = req.collect_definitions(req_text)
-    fr_ids = sorted(defined["FR"])
-    nfr_ids = sorted(set().union(*(defined[p] for p in req.NFR_PREFIXES)))
-    ordered = fr_ids + nfr_ids
 
-    # --- 2. Діаграми ---------------------------------------------------------------
+def diagram_problems(pumls):
+    """Перевірка 2: пара @startuml … @enduml у кожній діаграмі й наявність ER-діаграми."""
     bad_uml = []
     for p in pumls:
         body = p.read_text(encoding="utf-8")
@@ -162,28 +141,30 @@ def main():
             bad_uml.append(f"{p.name}: немає пари @startuml … @enduml")
     if not any("entity " in p.read_text(encoding="utf-8") for p in pumls):
         bad_uml.append("немає ER-діаграми (entity) для data-model.md")
-    report(f"Діаграми PlantUML ({len(pumls)} файлів)", bad_uml)
-    if args.plantuml:
-        # Команда фіксована, аргументи — шлях до jar і шляхи файлів репозиторію; shell не використовується.
-        run = subprocess.run(  # nosec B603 B607  # noqa: S603
-            ["java", "-jar", args.plantuml, "--check-syntax", *map(str, pumls)],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        errors = [
-            ln
-            for ln in (run.stdout + run.stderr).splitlines()
-            if ln.strip() and "JAVA_TOOL_OPTIONS" not in ln
-        ]
-        report("Синтаксис PlantUML (--check-syntax)", errors if run.returncode else [])
-    else:
-        print("[skip] Синтаксис PlantUML: передайте --plantuml шлях/до/plantuml.jar")
+    return bad_uml
 
-    # --- 3–4. Матриця простежуваності ------------------------------------------
-    components = re.findall(r"^\|\s*`([^`]+)`\s*\|", section(text["hld"], "## 4."), re.MULTILINE)
+
+def plantuml_syntax_errors(jar, pumls):
+    """Перевірка 2 за --plantuml: рядки помилок `--check-syntax`, якщо PlantUML їх знайшов."""
+    # Команда фіксована, аргументи — шлях до jar і шляхи файлів репозиторію; shell не використовується.
+    run = subprocess.run(  # nosec B603 B607  # noqa: S603
+        ["java", "-jar", jar, "--check-syntax", *map(str, pumls)],  # noqa: S607
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    errors = [
+        ln
+        for ln in (run.stdout + run.stderr).splitlines()
+        if ln.strip() and "JAVA_TOOL_OPTIONS" not in ln
+    ]
+    return errors if run.returncode else []
+
+
+def matrix_rows(matrix_text, components):
+    """Перевірка 3: рядки прямої матриці — вимога → компоненти — і їхні вади."""
     rows, row_problems = {}, []
-    forward = section(text["matrix"], "## 1.") + "\n" + section(text["matrix"], "## 2.")
+    forward = section(matrix_text, "## 1.") + "\n" + section(matrix_text, "## 2.")
     for line in forward.splitlines():
         m = REQ_ROW.match(line)
         if not m:
@@ -201,6 +182,111 @@ def main():
         if unknown:
             row_problems.append(f"{rid}: невідомі компоненти {unknown} (канон — HLD §4)")
         rows[rid] = comps
+    return rows, row_problems
+
+
+def reverse_matrix_problems(matrix_text, rows, components, ordered):
+    """Перевірка 5: зворотна матриця (§3) збігається з прямою, і числа в «Скільки» теж."""
+    computed = {c: {r for r, comps in rows.items() if c in comps} for c in components}
+    problems = []
+    for line in section(matrix_text, "## 3.").splitlines():
+        m = re.match(r"^\|\s*`([^`]+)`\s*\|", line)
+        if not m:
+            continue
+        comp, c = m.group(1), cells(line)
+        listed = expand(c[1], ordered)
+        if comp not in computed:
+            problems.append(f"{comp}: немає в HLD §4")
+            continue
+        if listed != computed[comp]:
+            lack = sorted(computed[comp] - listed)
+            more = sorted(listed - computed[comp])
+            problems.append(f"{comp}: бракує {lack or '—'}, зайві {more or '—'}")
+        if len(c) > 2 and c[2].isdigit() and int(c[2]) != len(computed[comp]):
+            problems.append(
+                f"{comp}: у колонці «Скільки» {c[2]}, а за прямою матрицею {len(computed[comp])}"
+            )
+    return problems
+
+
+def architecture_ids(text, adrs):
+    """Архітектурні ID, оголошені в документах Лаб 3: ADR, DD, AQ, THR, AR, AS, TB, QAS, INV."""
+    return {
+        "ADR": {p.stem for p in adrs},
+        "DD": set(re.findall(r"^\|\s*(DD-\d{2})\s*\|", text["hld"], re.MULTILINE)),
+        "AQ": set(re.findall(r"^\|\s*(AQ-\d{2})\s*\|", text["hld"], re.MULTILINE)),
+        "THR": set(re.findall(r"^\|\s*(THR-\d{2})\s*\|", text["threat"], re.MULTILINE)),
+        "AR": set(re.findall(r"^\|\s*(AR-\d)\s*\|", text["threat"], re.MULTILINE)),
+        "AS": set(re.findall(r"^\|\s*(AS-\d)\s*\|", text["threat"], re.MULTILINE)),
+        "TB": set(re.findall(r"^\|\s*(TB\d)\s*\|", text["threat"], re.MULTILINE)),
+        "QAS": set(re.findall(r"^### (QAS-\d{2})\b", text["matrix"], re.MULTILINE)),
+        "INV": set(re.findall(r"^\|\s*(INV-\d{2})\s*\|", text["data"], re.MULTILINE)),
+    }
+
+
+ID_PATTERN = re.compile(
+    r"\b(?:(?:ADR-\d{3})|(?:DD|AQ|THR|QAS|INV)-\d{2}|(?:AR|AS)-\d|TB\d"
+    r"|(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALT + r")-\d{3})\b"
+)
+
+
+def _declared(found, arch_defined, defined):
+    """ID оголошено: архітектурний — у документах Лаб 3, вимоги — у docs/requirements/."""
+    prefix = "TB" if found.startswith("TB") else found.rsplit("-", 1)[0]
+    pool = arch_defined.get(prefix, defined.get(prefix))
+    return pool is not None and found in pool
+
+
+def unknown_references(files, arch_defined, defined):
+    """Перевірка 6: кожен ID у документах, ADR і діаграмах оголошено у своєму джерелі."""
+    bad_refs = []
+    for path in (p for p in files if p.is_file()):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            bad_refs += [
+                f"{path}:{lineno}: {found}"
+                for found in ID_PATTERN.findall(line)
+                if not _declared(found, arch_defined, defined)
+            ]
+    return bad_refs
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="незаповнені місця «‹…›» для автора вважати порушенням (для CI)",
+    )
+    args = parser.parse_args()
+
+    report = Report()
+
+    # --- 1. Наявність артефактів -------------------------------------------------
+    pumls = sorted(UML.glob("*.puml")) if UML.is_dir() else []
+    adrs = sorted(DECISIONS.glob("ADR-[0-9][0-9][0-9].md")) if DECISIONS.is_dir() else []
+    report("Обов'язкові артефакти Лаб 3", missing_artifacts(pumls, adrs))
+    if any(not p.is_file() for p in DOCS.values()):
+        print("\nБез основних документів подальші перевірки неможливі.")
+        return 1
+
+    text = {k: p.read_text(encoding="utf-8") for k, p in DOCS.items()}
+    req_text = req.load()
+    defined, _ = req.collect_definitions(req_text)
+    fr_ids = sorted(defined["FR"])
+    nfr_ids = sorted(set().union(*(defined[p] for p in req.NFR_PREFIXES)))
+    ordered = fr_ids + nfr_ids
+
+    # --- 2. Діаграми ---------------------------------------------------------------
+    report(f"Діаграми PlantUML ({len(pumls)} файлів)", diagram_problems(pumls))
+    if args.plantuml:
+        report("Синтаксис PlantUML (--check-syntax)", plantuml_syntax_errors(args.plantuml, pumls))
+    else:
+        print("[skip] Синтаксис PlantUML: передайте --plantuml шлях/до/plantuml.jar")
+
+    # --- 3–4. Матриця простежуваності ------------------------------------------
+    components = re.findall(r"^\|\s*`([^`]+)`\s*\|", section(text["hld"], "## 4."), re.MULTILINE)
+    rows, row_problems = matrix_rows(text["matrix"], components)
     report("Рядки матриці: заповненість і канонічні компоненти", row_problems)
 
     no_row = [i for i in ordered if i not in rows]
@@ -215,55 +301,17 @@ def main():
     )
 
     # --- 5. Зворотна матриця -----------------------------------------------------
-    computed = {c: {r for r, comps in rows.items() if c in comps} for c in components}
-    reverse_problems = []
-    for line in section(text["matrix"], "## 3.").splitlines():
-        m = re.match(r"^\|\s*`([^`]+)`\s*\|", line)
-        if not m:
-            continue
-        comp, c = m.group(1), cells(line)
-        listed = expand(c[1], ordered)
-        if comp not in computed:
-            reverse_problems.append(f"{comp}: немає в HLD §4")
-            continue
-        if listed != computed[comp]:
-            lack = sorted(computed[comp] - listed)
-            more = sorted(listed - computed[comp])
-            reverse_problems.append(f"{comp}: бракує {lack or '—'}, зайві {more or '—'}")
-        if len(c) > 2 and c[2].isdigit() and int(c[2]) != len(computed[comp]):
-            reverse_problems.append(
-                f"{comp}: у колонці «Скільки» {c[2]}, а за прямою матрицею {len(computed[comp])}"
-            )
-    report("Зворотна матриця збігається з прямою", reverse_problems)
+    report(
+        "Зворотна матриця збігається з прямою",
+        reverse_matrix_problems(text["matrix"], rows, components, ordered),
+    )
 
     # --- 6. Посилання на ID --------------------------------------------------------
-    arch_defined = {
-        "ADR": {p.stem for p in adrs},
-        "DD": set(re.findall(r"^\|\s*(DD-\d{2})\s*\|", text["hld"], re.MULTILINE)),
-        "AQ": set(re.findall(r"^\|\s*(AQ-\d{2})\s*\|", text["hld"], re.MULTILINE)),
-        "THR": set(re.findall(r"^\|\s*(THR-\d{2})\s*\|", text["threat"], re.MULTILINE)),
-        "AR": set(re.findall(r"^\|\s*(AR-\d)\s*\|", text["threat"], re.MULTILINE)),
-        "AS": set(re.findall(r"^\|\s*(AS-\d)\s*\|", text["threat"], re.MULTILINE)),
-        "TB": set(re.findall(r"^\|\s*(TB\d)\s*\|", text["threat"], re.MULTILINE)),
-        "QAS": set(re.findall(r"^### (QAS-\d{2})\b", text["matrix"], re.MULTILINE)),
-        "INV": set(re.findall(r"^\|\s*(INV-\d{2})\s*\|", text["data"], re.MULTILINE)),
-    }
-    id_pattern = re.compile(
-        r"\b(?:(?:ADR-\d{3})|(?:DD|AQ|THR|QAS|INV)-\d{2}|(?:AR|AS)-\d|TB\d"
-        r"|(?:FR|US|TC|BN|A|C|R|OQ|" + NFR_ALT + r")-\d{3})\b"
-    )
     files = list(DOCS.values()) + adrs + [DECISIONS / "README.md"] + pumls
-    bad_refs = []
-    for path in files:
-        if not path.is_file():
-            continue
-        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            for found in id_pattern.findall(line):
-                prefix = "TB" if found.startswith("TB") else found.rsplit("-", 1)[0]
-                pool = arch_defined.get(prefix, defined.get(prefix))
-                if pool is None or found not in pool:
-                    bad_refs.append(f"{path}:{lineno}: {found}")
-    report("Посилання на неіснуючі ID", bad_refs)
+    report(
+        "Посилання на неіснуючі ID",
+        unknown_references(files, architecture_ids(text, adrs), defined),
+    )
 
     # --- 7. Модель загроз ----------------------------------------------------------
     threat_rows = [
