@@ -230,7 +230,7 @@ ID_PATTERN = re.compile(
 )
 
 
-def _declared(found, arch_defined, defined):
+def is_declared(found, arch_defined, defined):
     """ID оголошено: архітектурний — у документах Лаб 3, вимоги — у docs/requirements/."""
     prefix = "TB" if found.startswith("TB") else found.rsplit("-", 1)[0]
     pool = arch_defined.get(prefix, defined.get(prefix))
@@ -245,7 +245,7 @@ def unknown_references(files, arch_defined, defined):
             bad_refs += [
                 f"{path}:{lineno}: {found}"
                 for found in ID_PATTERN.findall(line)
-                if not _declared(found, arch_defined, defined)
+                if not is_declared(found, arch_defined, defined)
             ]
     return bad_refs
 
