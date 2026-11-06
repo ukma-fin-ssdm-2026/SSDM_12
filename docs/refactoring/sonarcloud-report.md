@@ -11,7 +11,7 @@ Conventional Commits. Ролі — статут §2.6.
 
 | | Цикл 1 (26.10) | Цикл 2 (`v0.1.0` → `v0.1.1`) |
 |---|---|---|
-| Стан «до» | гілка `pre-refactor` = `3d4c833` | тег `v0.1.0` = ‹SHA злиття PR-1› |
+| Стан «до» | гілка `pre-refactor` = `3d4c833` | тег `v0.1.0` = `783b757ec4cb46ded290fa407a7eded38e98c750` (#281) |
 | Стан «після» | `7474881` (після #196, #197) | тег `v0.1.1` = ‹SHA злиття релізного PR› |
 | Рефакторинги | 3 — усі @NykytaBabakov (агент Claude) | 4 — по одному від кожного учасника, §5 |
 | Найскладніша функція (когнітивна складність, локально) | 23 → 12 у `src/` (у `scripts/` лишалася `check_architecture.main` = 146) | 146 → 44 |
@@ -28,10 +28,10 @@ Conventional Commits. Ролі — статут §2.6.
 | Організація / проєкт | `ukma-fin-ssdm-2026` / `ukma-fin-ssdm-2026_SSDM_12` |
 | Режим аналізу | Automatic Analysis; область — `.sonarcloud.properties` (`sonar.sources=src,scripts`, `sonar.tests=tests`, Python 3.12) з #197 |
 | Перевірка на PR | GitHub-check «SonarCloud Code Analysis» від застосунку SonarQube Cloud на кожен PR і коміт `main` |
-| Профіль якості Python / JavaScript | Заповнює @dysett: Project Information → Quality Profiles (назва й кількість активних правил) |
-| Quality Gate | Заповнює @dysett: назва й умови з Project Information → Quality Gate |
-| Період нового коду | Заповнює @dysett: Administration → New Code |
-| Коміт «до» (цикл 2) | Заповнює @dysett: SHA тегу `v0.1.0` і дата аналізу з Activity |
+| Профіль якості Python / JavaScript | Перевірено 06.11.2026: `Sonar way core`; Python — 300 активних правил, JavaScript — 249. Python S3776 неактивне (`rules/search`: 0 активних збігів) |
+| Quality Gate | `Sonar way`: на новому коді Security, Reliability і Maintainability Rating ≤ A; coverage ≥ 80%; duplicated lines ≤ 3%; reviewed security hotspots ≥ 100%. Це налаштовані умови; фактичний аналіз покриття через Automatic Analysis не налаштовано |
+| Період нового коду | `sonar.leak.period=previous_version`, успадковано від інстансу; поточний `leakPeriodDate=2026-10-25T18:45:46+0000`, версія аналізу — `not provided`. `pyproject.toml` із версією продукту не передає її автоматично аналізатору |
+| Коміт «до» (цикл 2) | `v0.1.0` → `783b757ec4cb46ded290fa407a7eded38e98c750`; аналіз `3ade4593-180f-4e37-9e68-c7737894ea3b`, 05.11.2026 16:16:09 за Києвом (14:16:09 UTC) |
 | Коміт «після» (цикл 2) | Заповнює @dysett: SHA тегу `v0.1.1` і дата аналізу з Activity |
 
 **Чому «до» знімаємо заново.** Метрики циклу 1 (§4) зняті на `3d4c833` 26.10. Після нього
@@ -42,24 +42,37 @@ Conventional Commits. Ролі — статут §2.6.
 
 ## 2. Метрики до і після (цикл 2)
 
-Знято з вкладки **Overall Code** панелі (не New Code) для гілки `main` на комітах тегів.
-Скриншоти — §9.
+Стовпець «До» відновлено 06.11.2026 з історії **Overall Code** гілки `main` саме для аналізу
+коміту тегу `v0.1.0`: `project_analyses/search` зв'язує дату з SHA, а
+`measures/search_history` повертає значення на цю дату. Сирі значення, ідентифікатор аналізу й
+посилання на API — [before-sonarcloud.json](evidence/before-sonarcloud.json). «Після»
+заповнюється в PR-13 після релізу `v0.1.1`. Скриншоти поточного стану до R-2 — §9;
+вони не видаються за скриншоти панелі на старому коміті.
 
 | Показник | До (`v0.1.0`) | Після (`v0.1.1`) | Джерело в панелі |
 |---|---|---|---|
-| Code Smells (Maintainability issues) | Заповнює @dysett | Заповнює @dysett | Overview → Maintainability |
-| Maintainability Rating | Заповнює @dysett | Заповнює @dysett | Overview → Maintainability |
-| Technical Debt | Заповнює @dysett | Заповнює @dysett | Measures → Maintainability → Technical Debt |
-| Duplicated Lines (%) | Заповнює @dysett | Заповнює @dysett | Overview → Duplications |
-| Reliability Rating | Заповнює @dysett | Заповнює @dysett | Overview → Reliability |
-| **Security Rating** | Заповнює @dysett | Заповнює @dysett | Overview → Security, §3 |
-| Довідково: Cognitive Complexity (сума) | Заповнює @dysett | Заповнює @dysett | Measures → Complexity |
-| Довідково: Lines of Code | Заповнює @dysett | Заповнює @dysett | Overview |
+| Code Smells (Maintainability issues) | 0 | Заповнює @dysett | Overview → Maintainability |
+| Maintainability Rating | A (`sqale_rating=1.0`) | Заповнює @dysett | Overview → Maintainability |
+| Technical Debt | 0 хв | Заповнює @dysett | Measures → Maintainability → Technical Debt |
+| Duplicated Lines (%) | 0.0% | Заповнює @dysett | Overview → Duplications |
+| Reliability Rating | E (`reliability_rating=5.0`), 1 bug | Заповнює @dysett | Overview → Reliability |
+| **Security Rating** | E (`security_rating=5.0`), 3 vulnerabilities | Заповнює @dysett | Overview → Security, §3 |
+| Довідково: Cognitive Complexity (сума) | 1532 | Заповнює @dysett | Measures → Complexity |
+| Довідково: Lines of Code | 10 210 | Заповнює @dysett | Overview |
 
 ### 2.1. Три показники, які покращуємо
 
-Заповнює @dysett після зняття «до»: які три показники обрано й чому. Security Rating у ці три
-не входить — його фіксуємо завжди (§3).
+Обрано **Reliability Rating**, **Technical Debt** і **Code Smells** (варіант А плану).
+Reliability E потребує окремого розбору знахідки; Debt і Smells уже дорівнюють нулю,
+тому їх зменшення не заявляється. `Sonar way core` не активує Python S3776: головний
+доказ ефекту R-2 — локальна когнітивна складність `flush` 34 → 32 → 0 і регресія на тих
+самих тестах. Загальні локальні сигнали — §2.2. Зміну профілю якості в цьому PR не
+виконано; узгодження профілю з викладачем — окремий крок плану. Security Rating
+фіксується незалежно від цих трьох показників (§3, виправлення — PR-7).
+
+Назви профілів, їхні активні правила, умови Quality Gate і налаштування нового коду
+перевірено **06.11.2026**. Це поточна конфігурація, а не відновлена історія її змін на
+дату тегу; історичні значення метрик наведено окремо.
 
 ### 2.2. Локальні сигнали — та сама міра, що в правилі S3776
 
@@ -145,9 +158,10 @@ complexipy src scripts --plain --sort desc --top 15
 
 На `3d4c833` у `scripts/check_architecture.py` уже була функція `main` із когнітивною
 складністю 146, а панель показувала 0 проблем супровідності. PR #243 додав 20 204 рядки з
-функціями складністю 30–41 — і перевірка на PR знайшла 0 нових проблем. Отже, у профілі якості
-проєкту правило когнітивної складності, найімовірніше, не активне. Це припущення перевіряє
-@dysett у §1 (профіль якості); до відповіді локальні сигнали §2.2 — головна міра рефакторингу.
+функціями складністю 30–41 — і перевірка на PR знайшла 0 нових проблем. Перевірка 06.11.2026
+підтвердила: у призначеному профілі Python `Sonar way core` правило S3776 неактивне (§1,
+доказ — `evidence/before-sonarcloud.json`). Локальні сигнали §2.2 залишаються головною
+мірою ефекту цих рефакторингів.
 
 ---
 
@@ -170,7 +184,58 @@ complexipy src scripts --plain --sort desc --top 15
 
 ### 5.2. R-2 · `PostgresStore.flush` — @dysett
 
-Заповнює @dysett у PR R-2.
+- **Де:** `src/api/infrastructure/postgres.py`, метод `PostgresStore.flush` — запис дельти
+  стану в PostgreSQL наприкінці кожної транзакції (етап мідтерму, #243).
+- **Запах:** Long Method — 67 рядків від `def` до останнього оператора, когнітивна складність 34: видалення, вставки, особливе
+  правило outbox і журнал аудиту в одному тілі; перелік 13 таблиць — безіменний кортеж, хоча
+  від його порядку залежать зовнішні ключі.
+- **Техніка:** Extract Constant — `FLUSH_ORDER` з коментарем, чому порядок важливий;
+  Extract Method ×6 — `_delete_removed_rows`, `_write_changed_rows`,
+  `_cancel_pending_notification`, `_upsert`, `_primary_key_predicate`, `_append_audit`.
+- **Що лишилося незмінним:** набір і **порядок** SQL-операцій у транзакції — спершу
+  видалення від дочірніх таблиць до батьківських, потім вставки й оновлення від батьківських до
+  дочірніх, наприкінці аудит; заборона стирати outbox і переписувати аудит (ті самі
+  `ValueError`); запис outbox після створення лише скасовується й лише зі статусу
+  `pending`/`sending`.
+- **Що змінилося в структурі:** після побудови дельти `flush` викликає три іменовані кроки; кожне правило збереження має назву
+  й докстрінг; `_upsert` повертає оператор, а виконує його викликач.
+- **Який тест це доводить:** увесь каталог `tests/integration/` — 96 тестів на справжньому
+  PostgreSQL 16.14. Зокрема, `test_erasing_outbox_or_rewriting_audit_is_rejected` фіксує обидва
+  `ValueError`, `test_outbox_insert_failure_rolls_back_booking_idempotency_and_audit` і
+  `test_audit_failure_rolls_back_admin_change` — атомарність, а
+  `test_policy_roles_templates_blocks_and_audit_round_trip` — пов'язаний стан і складені
+  ключі. Повний набір до й після кожного кроку — **817 passed**, тести не змінювалися.
+- **Виміряно:** когнітивна складність `flush` 34 → 32 (крок 1) → 0 (крок 2); найбільша серед
+  нових функцій — 10 (`_write_changed_rows`).
+- **Власне рішення:** підтверджено, що `_upsert` лише будує та повертає SQL-оператор;
+  `conn.execute` залишається у `_write_changed_rows`. Так місце виконання всіх upsert
+  видно в одному циклі й збережено початковий порядок та кількість викликів у транзакції.
+  Заборону видалення outbox не винесено перед циклом: `ValueError` і далі виникає після
+  обробки видалень `login_attempts` і `sessions`, як у початковому коді; зовнішня транзакція
+  відкочується повністю.
+
+Перевірено локально 06.11.2026, Windows 10 (build 19045), Python 3.13.13, PostgreSQL 16.14:
+
+| Стан | Коміт | Повний набір | З них інтеграційних | Складність `flush` |
+|---|---|---|---|---|
+| Перед R-2, після R-1 | `a44e314` | 817 passed | 96 passed | 34 |
+| Extract Constant + audit | `dac3564` | 817 passed | 96 passed | 32 |
+| Delete / upsert helpers | `f801861` | 817 passed | 96 passed | 0 |
+
+Фінальний запуск із branch coverage: **98.29%** для `api` та `unislot` (поріг 90%).
+Команди, результати й hash незміненого дерева тестів —
+[postgres-flush-validation.txt](evidence/postgres-flush-validation.txt).
+Ruff check/format, Bandit, import-linter, перевірки вимог, простежуваності, версії,
+OpenAPI та `check_architecture.py --strict` завершилися з кодом 0.
+
+Перший [прогін CI R-2](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42203523052/job/127844377457)
+також пройшов 817 тестів із покриттям 98.29%, але зупинився пізніше, під час підготовки
+PlantUML: у сесії PowerShell раннера не знайшлося `Get-FileHash`. У workflow обчислення
+SHA-256 замінено прямим викликом .NET; еталонна сума й відмова при розбіжності збережені.
+Цей блок із workflow перевірено окремо у Windows PowerShell 5.1 з вимкненим автозавантаженням
+модулів: справжній JAR прийнято, неправильну суму відхилено. Локальна перевірка всіх
+діаграм із цим JAR і `--strict` пройшла. Це виправлення середовища CI, а не зміна поведінки
+`PostgresStore.flush` чи тестів.
 
 ### 5.3. R-3 · `template_service._generate` — @asyakozulina
 
@@ -209,7 +274,21 @@ complexipy src scripts --plain --sort desc --top 15
 
 ## 9. Скриншоти до і після
 
-Заповнює @dysett: файли в `docs/refactoring/img/`.
+Панель переглянуто й збережено **06.11.2026 до R-2**: на цей момент останній аналіз
+`main` — `a44e31413d780f3141a49991d1b66f3e12020c4d` (після R-1), 06.11.2026 00:09:40
+за Києвом. Це поточні скриншоти, а не ретроспективно відтворена панель на `v0.1.0`:
+
+- [before-overview.jpg](img/before-overview.jpg) — Overall Code, коміт поточного аналізу,
+  Security E / 3 issues, Reliability E / 1 issue, Maintainability A / 0 issues.
+- [before-security.jpg](img/before-security.jpg) — фільтр Security, 3 відкриті знахідки.
+- [before-issues.jpg](img/before-issues.jpg) — 4 відкриті знахідки всіх категорій.
+- [before-measures.jpg](img/before-measures.jpg) — Activity, історія Cognitive Complexity.
+
+Для стовпця «До (`v0.1.0`)» використано історичний аналіз `783b757`, а не числа з поточної
+панелі: Cognitive Complexity 1532, ncloc 10 210 (у поточному аналізі — 1512 і 10 263).
+Відповідність SHA, дати й чисел перевіряється за
+[before-sonarcloud.json](evidence/before-sonarcloud.json), де також є джерела API.
+Скриншоти `after-*.png` і метрики релізу `v0.1.1` додаються в PR-13.
 
 ---
 
@@ -244,5 +323,9 @@ complexipy src scripts --plain --sort desc --top 15
   заготовки розділів учасників.
 - **Перевірено:** числа §2.2 — прогоном `complexipy` на `v0.1.0` і на стані після всіх PR
   рефакторингу; посилання на PR — з історії `main`.
-- **Не згенеровано:** значення з панелі SonarQube Cloud — їх знімає й вписує @dysett зі
-  скриншотами; висновки §10.
+- **Додано в PR R-2:** патчі рефакторингу з пакета команди — Claude; застосування патчів,
+  звірка діфа, збирання історичних метрик через API, скриншотів та результатів локальних
+  перевірок, заповнення §1, §2.1, §5.2 і §9 — Codex. Патчі коду відповідають пакету;
+  перевірки після кожного кроку наведено в §5.2. Локальні числа не видаються за метрики
+  SonarQube Cloud, поточні скриншоти — за історичні.
+- **Не заповнено цим PR:** результати релізу `v0.1.1`, стовпець «Після», висновки §10.
