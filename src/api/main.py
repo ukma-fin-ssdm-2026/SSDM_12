@@ -63,6 +63,10 @@ def operation_id(route: APIRoute) -> str:
     return route.name
 
 
+# Методи, для яких cookie-сесія вимагає X-CSRF-Token (THR-13); безпечні методи його не мають.
+UNSAFE_METHODS = frozenset({"post", "put", "patch", "delete"})
+
+
 def _problem_ref() -> dict[str, str]:
     """Посилання на схему Problem — новий словник щоразу, щоб операції не ділили об'єкт."""
     return {"$ref": "#/components/schemas/Problem"}
@@ -75,11 +79,38 @@ def _catalog_response(code: ErrorCode, status: int) -> dict[str, Any]:
     return response
 
 
+def _csrf_header() -> dict[str, Any]:
+    """Параметр X-CSRF-Token: обов'язковий для cookie-сесії, не для demoBearer."""
+    return {
+        "name": "X-CSRF-Token",
+        "in": "header",
+        "required": False,
+        "description": "Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для явно ввімкненого demoBearer не потрібний.",
+        "schema": {"type": "string", "minLength": 43, "maxLength": 43},
+    }
+
+
 def _document_unavailable(operation: dict[str, Any]) -> None:
     """Кожна захищена операція може відповісти 503 TRANSIENT_CONFLICT (сховище зайняте)."""
     response = _catalog_response(ErrorCode.TRANSIENT_CONFLICT, 503)
     response["content"]["application/json"]["schema"] = _problem_ref()
     operation.setdefault("responses", {})["503"] = response
+
+
+def _document_csrf(operation: dict[str, Any]) -> None:
+    """403 CSRF_FAILED дописується до наявної 403 або стає нею; плюс заголовок X-CSRF-Token."""
+    csrf_error = _catalog_response(ErrorCode.CSRF_FAILED, 403)
+    csrf_media = csrf_error["content"]["application/json"]
+    existing = operation.setdefault("responses", {}).get("403")
+    if existing:
+        existing["description"] += "\n\n" + csrf_error["description"]
+        content = existing["content"]
+        media = content.get("application/json", content.get(PROBLEM_MEDIA_TYPE))
+        media.setdefault("examples", {}).update(csrf_media["examples"])
+    else:
+        csrf_media["schema"] = _problem_ref()
+        operation["responses"]["403"] = csrf_error
+    operation.setdefault("parameters", []).append(_csrf_header())
 
 
 def _use_problem_media_type(operation: dict[str, Any]) -> None:
@@ -112,28 +143,8 @@ def custom_openapi(app: FastAPI) -> dict[str, Any]:
         for method, operation in path_item.items():
             if operation.get("security"):
                 _document_unavailable(operation)
-                if method in {"post", "put", "patch", "delete"}:
-                    csrf_error = problem_responses(ErrorCode.CSRF_FAILED)[403]
-                    csrf_error.pop("model")
-                    csrf_media = csrf_error["content"]["application/json"]
-                    existing = operation.setdefault("responses", {}).get("403")
-                    if existing:
-                        existing["description"] += "\n\n" + csrf_error["description"]
-                        content = existing["content"]
-                        media = content.get("application/json", content.get(PROBLEM_MEDIA_TYPE))
-                        media.setdefault("examples", {}).update(csrf_media["examples"])
-                    else:
-                        csrf_media["schema"] = {"$ref": "#/components/schemas/Problem"}
-                        operation["responses"]["403"] = csrf_error
-                    operation.setdefault("parameters", []).append(
-                        {
-                            "name": "X-CSRF-Token",
-                            "in": "header",
-                            "required": False,
-                            "description": "Обов'язковий для cookie-сесії; значення з /auth/login або unislot_csrf cookie. Для явно ввімкненого demoBearer не потрібний.",
-                            "schema": {"type": "string", "minLength": 43, "maxLength": 43},
-                        }
-                    )
+                if method in UNSAFE_METHODS:
+                    _document_csrf(operation)
             _use_problem_media_type(operation)
     app.openapi_schema = schema
     return schema
