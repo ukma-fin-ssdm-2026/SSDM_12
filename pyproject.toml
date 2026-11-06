@@ -8,7 +8,7 @@
 
 [project]
 name = "unislot"
-version = "0.1.0"
+version = "0.1.1"
 description = "UniSlot: бронювання консультацій викладачів і навчальних аудиторій (SSDM_12)"
 requires-python = ">=3.12"
 
