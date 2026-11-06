@@ -20,6 +20,23 @@ from api.stubs.store import StubStore
 
 LOCK_KEY = 7120001
 POOL_SIZE = 32
+# Таблиці дельти в порядку зовнішніх ключів: батьківські перед дочірніми. Вставки й оновлення
+# ідуть у цьому порядку, видалення — у зворотному, щоб жоден рядок не лишився без батька.
+FLUSH_ORDER = (
+    "users",
+    "roles",
+    "resources",
+    "templates",
+    "policies",
+    "current_policy",
+    "slots",
+    "blocks",
+    "bookings",
+    "idempotency",
+    "notifications",
+    "sessions",
+    "login_attempts",
+)
 
 
 class DatabaseLock:
@@ -136,22 +153,7 @@ class PostgresStore(StubStore):
         """Зберігає дельту; outbox і аудит комітяться разом із дією."""
         previous = type("Snapshot", (), before)
         old, new = codec.rows(previous), codec.rows(self)
-        names = (
-            "users",
-            "roles",
-            "resources",
-            "templates",
-            "policies",
-            "current_policy",
-            "slots",
-            "blocks",
-            "bookings",
-            "idempotency",
-            "notifications",
-            "sessions",
-            "login_attempts",
-        )
-        for name in reversed(names):
+        for name in reversed(FLUSH_ORDER):
             table = getattr(tables, name)
             for key in old[name].keys() - new[name].keys():
                 if name == "notifications":
@@ -164,7 +166,7 @@ class PostgresStore(StubStore):
                     )
                 )
                 conn.execute(delete(table).where(predicate))
-        for name in names:
+        for name in FLUSH_ORDER:
             table = getattr(tables, name)
             for key, row in new[name].items():
                 if row == old[name].get(key):
@@ -193,9 +195,13 @@ class PostgresStore(StubStore):
                     conn.execute(
                         statement.on_conflict_do_nothing(index_elements=list(table.primary_key))
                     )
-        old_audit = before["audit"]
-        if self.audit[: len(old_audit)] != old_audit:
-            raise ValueError("audit history cannot be rewritten")
-        for entry in self.audit[len(old_audit) :]:
-            entry.setdefault("id", uuid.uuid4())
-            conn.execute(insert(tables.audit).values(**entry))
+        _append_audit(conn, before["audit"], self.audit)
+
+
+def _append_audit(conn, old_audit: list, audit: list) -> None:
+    """Журнал аудиту лише доповнюється: переписаний префікс — помилка, а не оновлення."""
+    if audit[: len(old_audit)] != old_audit:
+        raise ValueError("audit history cannot be rewritten")
+    for entry in audit[len(old_audit) :]:
+        entry.setdefault("id", uuid.uuid4())
+        conn.execute(insert(tables.audit).values(**entry))
