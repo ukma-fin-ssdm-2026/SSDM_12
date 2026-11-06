@@ -17,27 +17,28 @@
 
 ### Refactoring
 
-- Replace the nested report closure with a Report object (`scripts`)
-- Extract the artifact, diagram, matrix and reference checks (`scripts`)
-- Extract the threat, ADR, scenario, data model and slot checks (`scripts`)
-- Rename _declared to is_declared for clarity (`scripts`)
-- Name the flush table order and extract the audit append (`store`)
-- Extract delete and upsert steps from PostgresStore.flush (`store`)
-- Extract stale slot withdrawal from template generation (`availability`)
-- Extract slot lookup, overlap conflicts and publishing from _generate (`availability`)
-- Extract the 503 and problem media type steps from custom_openapi (`openapi`)
-- Extract CSRF documentation and name the unsafe methods (`openapi`)
-
-### Fixed
-
-- Make run_lab06.py console-encoding safe on Windows (`scripts`)
-- Keep forward slashes in check_architecture.py output on Windows (`scripts`)
+- Перевірка архітектурних артефактів (`scripts/check_architecture.py`): 260-рядкову `main`
+  розкладено на 20 функцій-перевірок і клас `Report` — *Replace Function with Command*,
+  *Remove Parameter*, *Extract Method*. Вивід і коди виходу ті самі — їх фіксують 16
+  характеризаційних тестів; когнітивна складність `main` 146 → 5 (#283).
+- Збереження в PostgreSQL (`PostgresStore.flush`): порядок таблиць названо константою, а
+  видалення, вставки, скасування outbox і аудит винесено в окремі функції — *Extract
+  Constant*, *Extract Method*. Набір і порядок SQL-операцій ті самі; складність 34 → 0
+  (#284).
+- Генерація слотів тижневого шаблону (`template_service._generate`): зняття застарілих
+  слотів, пошук слота, перетини й публікація — окремі функції — *Extract Method*; складність
+  33 → 8 (#286).
+- Документація OpenAPI (`custom_openapi`): правила 503, CSRF і медіатипу помилок — окремі
+  функції, методи зміни — константа `UNSAFE_METHODS` — *Extract Method*, *Replace Magic
+  Literal with Constant*. Специфікація та сама байт у байт; складність 25 → 11 (#290).
 
 ### Security
 
-- Accept only an existing .jar for check_architecture --plantuml (`security`)
-- Keep export_openapi --out-dir inside the repository (`security`)
-- Restrict regression XML inputs to working directory (`security`)
+- `scripts/check_architecture.py --plantuml` приймає лише наявний файл `*.jar`: раніше значення
+  без перевірки потрапляло в `java -jar` (знахідка SonarQube Cloud «Command Argument
+  Injection», #‹PR S-2/S-3›).
+- `scripts/export_openapi.py --out-dir` пише лише всередині репозиторію: раніше `../..`
+  створював каталоги й переписував файли поза ним (знахідка «Path Traversal», #‹PR S-2/S-3›).
 
 ## [0.1.0] - 2026-11-05
 
