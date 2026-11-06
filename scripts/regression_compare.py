@@ -68,6 +68,13 @@ def report(before: dict[str, str], after: dict[str, str]) -> tuple[str, bool]:
 
 
 def _load(path: Path) -> dict[str, str]:
+    """Load only local JUnit XML files within the working directory."""
+    root = Path.cwd().resolve()
+    candidate = path.resolve()
+    if candidate.suffix.lower() != ".xml" or not candidate.is_relative_to(root):
+        print(f"Недозволений шлях до JUnit XML: {path}")
+        raise SystemExit(2)
+    path = candidate
     if not path.is_file():
         print(f"Не знайдено звіт {path}.")
         raise SystemExit(2)
