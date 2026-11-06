@@ -228,6 +228,15 @@ complexipy src scripts --plain --sort desc --top 15
 Ruff check/format, Bandit, import-linter, перевірки вимог, простежуваності, версії,
 OpenAPI та `check_architecture.py --strict` завершилися з кодом 0.
 
+Перший [прогін CI R-2](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42203523052/job/127844377457)
+також пройшов 817 тестів із покриттям 98.29%, але зупинився пізніше, під час підготовки
+PlantUML: у сесії PowerShell раннера не знайшлося `Get-FileHash`. У workflow обчислення
+SHA-256 замінено прямим викликом .NET; еталонна сума й відмова при розбіжності збережені.
+Цей блок із workflow перевірено окремо у Windows PowerShell 5.1 з вимкненим автозавантаженням
+модулів: справжній JAR прийнято, неправильну суму відхилено. Локальна перевірка всіх
+діаграм із цим JAR і `--strict` пройшла. Це виправлення середовища CI, а не зміна поведінки
+`PostgresStore.flush` чи тестів.
+
 ### 5.3. R-3 · `template_service._generate` — @asyakozulina
 
 Заповнює @asyakozulina у PR R-3.
