@@ -12,5 +12,5 @@ def _label(kind: str, name: str) -> str:
 
 
 def demo() -> str:
-    """Виклик із трьома аргументами функції, яка приймає два, — TypeError під час виконання."""
-    return _label("slot", "A-101", "extra")
+    """Виправлено: виклик із двома аргументами."""
+    return _label("slot", "A-101")
