@@ -35,7 +35,60 @@ def _withdraw_stale_slots(rec: TemplateRec, intervals: set, now: datetime) -> tu
     return withdrawn, retained
 
 
+def _template_slot(rec: TemplateRec, candidate) -> SlotRec | None:
+    """Слот цього шаблону з тим самим інтервалом — активний чи знятий раніше."""
+    return next(
+        (
+            s
+            for s in store.slots.values()
+            if s.template_id == rec.id
+            and s.starts_at == candidate.starts_at
+            and s.ends_at == candidate.ends_at
+        ),
+        None,
+    )
+
+
+def _overlap_conflicts(resource_id: uuid.UUID, candidate) -> list[TemplateConflict]:
+    """Конфлікти «slot_overlap» з активними слотами ресурсу, що перетинають кандидата."""
+    clashes = [
+        s
+        for s in store.slots.values()
+        if s.is_active
+        and s.resource_id == resource_id
+        and s.starts_at < candidate.ends_at
+        and candidate.starts_at < s.ends_at
+    ]
+    local = candidate.starts_at.astimezone(KYIV)
+    return [
+        TemplateConflict(
+            code="slot_overlap",
+            day=local.date(),
+            start_local=local.time(),
+            conflicting_slot_id=s.id,
+        )
+        for s in sorted(clashes, key=lambda slot: (slot.starts_at, str(slot.id)))
+    ]
+
+
+def _publish(rec: TemplateRec, candidate, same: SlotRec | None) -> bool:
+    """Повертає знятий слот у розклад або створює новий; True — якщо створено новий."""
+    if same is not None:
+        same.is_active = True
+        return False
+    slot = SlotRec(
+        uuid.uuid4(),
+        rec.resource_id,
+        candidate.starts_at,
+        candidate.ends_at,
+        template_id=rec.id,
+    )
+    store.slots[slot.id] = slot
+    return True
+
+
 def _generate(rec: TemplateRec, now: datetime) -> TemplateOut:
+    """Узгоджує слоти шаблону з горизонтом: знімає зайві, створює нові, звітує конфлікти."""
     candidates, calendar_conflicts = generate_occurrences(rec.pattern, now, HORIZON, KYIV)
     intervals = {(c.starts_at, c.ends_at) for c in candidates}
     withdrawn, retained = _withdraw_stale_slots(rec, intervals, now)
@@ -45,50 +98,14 @@ def _generate(rec: TemplateRec, now: datetime) -> TemplateOut:
     ]
     created = 0
     for candidate in candidates:
-        same = next(
-            (
-                s
-                for s in store.slots.values()
-                if s.template_id == rec.id
-                and s.starts_at == candidate.starts_at
-                and s.ends_at == candidate.ends_at
-            ),
-            None,
-        )
+        same = _template_slot(rec, candidate)
         if same is not None and same.is_active:
             continue
-        clashes = [
-            s
-            for s in store.slots.values()
-            if s.is_active
-            and s.resource_id == rec.resource_id
-            and s.starts_at < candidate.ends_at
-            and candidate.starts_at < s.ends_at
-        ]
-        if clashes:
-            local = candidate.starts_at.astimezone(KYIV)
-            conflicts.extend(
-                TemplateConflict(
-                    code="slot_overlap",
-                    day=local.date(),
-                    start_local=local.time(),
-                    conflicting_slot_id=s.id,
-                )
-                for s in sorted(clashes, key=lambda slot: (slot.starts_at, str(slot.id)))
-            )
+        overlaps = _overlap_conflicts(rec.resource_id, candidate)
+        if overlaps:
+            conflicts.extend(overlaps)
             continue
-        if same is not None:
-            same.is_active = True
-        else:
-            slot = SlotRec(
-                uuid.uuid4(),
-                rec.resource_id,
-                candidate.starts_at,
-                candidate.ends_at,
-                template_id=rec.id,
-            )
-            store.slots[slot.id] = slot
-            created += 1
+        created += _publish(rec, candidate, same)
     return TemplateOut(
         id=rec.id,
         resource_id=rec.resource_id,
