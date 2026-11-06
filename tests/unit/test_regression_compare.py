@@ -71,7 +71,8 @@ def test_test_that_was_already_skipped_is_not_a_regression():
     assert rc.report(before, dict(before))[1] is True
 
 
-def test_cli_reports_and_sets_the_exit_code(tmp_path, capsys):
+def test_cli_reports_and_sets_the_exit_code(tmp_path, capsys, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     before, after = tmp_path / "before.xml", tmp_path / "after.xml"
     before.write_text(junit(a__one="passed", a__two="passed"), encoding="utf-8")
     after.write_text(junit(a__one="passed", a__two="passed"), encoding="utf-8")
@@ -101,7 +102,10 @@ def test_cli_rejects_symlink_to_external_xml(tmp_path, monkeypatch):
     working.mkdir()
     outside = tmp_path / "outside.xml"
     outside.write_text(junit(a__one="passed"), encoding="utf-8")
-    (working / "linked.xml").symlink_to(outside)
+    try:
+        (working / "linked.xml").symlink_to(outside)
+    except (OSError, NotImplementedError):
+        pytest.skip("Symbolic links are not available on this runner")
     monkeypatch.chdir(working)
     with pytest.raises(SystemExit) as error:
         rc.main(["linked.xml", "linked.xml"])
