@@ -63,6 +63,33 @@ def operation_id(route: APIRoute) -> str:
     return route.name
 
 
+def _problem_ref() -> dict[str, str]:
+    """Посилання на схему Problem — новий словник щоразу, щоб операції не ділили об'єкт."""
+    return {"$ref": "#/components/schemas/Problem"}
+
+
+def _catalog_response(code: ErrorCode, status: int) -> dict[str, Any]:
+    """Опис відповіді з каталогу помилок без поля `model`, яке розуміє лише FastAPI."""
+    response = problem_responses(code)[status]
+    response.pop("model")
+    return response
+
+
+def _document_unavailable(operation: dict[str, Any]) -> None:
+    """Кожна захищена операція може відповісти 503 TRANSIENT_CONFLICT (сховище зайняте)."""
+    response = _catalog_response(ErrorCode.TRANSIENT_CONFLICT, 503)
+    response["content"]["application/json"]["schema"] = _problem_ref()
+    operation.setdefault("responses", {})["503"] = response
+
+
+def _use_problem_media_type(operation: dict[str, Any]) -> None:
+    """Відповіді 4xx і 5xx — `application/problem+json`, як їх і повертає обробник помилок."""
+    for status, response in operation.get("responses", {}).items():
+        content = response.get("content", {})
+        if status[0] in "45" and "application/json" in content:
+            content[PROBLEM_MEDIA_TYPE] = content.pop("application/json")
+
+
 def custom_openapi(app: FastAPI) -> dict[str, Any]:
     """Генерує специфікацію й виставляє `application/problem+json` для відповідей 4xx/5xx.
 
@@ -84,12 +111,7 @@ def custom_openapi(app: FastAPI) -> dict[str, Any]:
     for path_item in schema.get("paths", {}).values():
         for method, operation in path_item.items():
             if operation.get("security"):
-                response = problem_responses(ErrorCode.TRANSIENT_CONFLICT)[503]
-                response.pop("model")
-                response["content"]["application/json"]["schema"] = {
-                    "$ref": "#/components/schemas/Problem"
-                }
-                operation.setdefault("responses", {})["503"] = response
+                _document_unavailable(operation)
                 if method in {"post", "put", "patch", "delete"}:
                     csrf_error = problem_responses(ErrorCode.CSRF_FAILED)[403]
                     csrf_error.pop("model")
@@ -112,10 +134,7 @@ def custom_openapi(app: FastAPI) -> dict[str, Any]:
                             "schema": {"type": "string", "minLength": 43, "maxLength": 43},
                         }
                     )
-            for status, response in operation.get("responses", {}).items():
-                content = response.get("content", {})
-                if status[0] in "45" and "application/json" in content:
-                    content[PROBLEM_MEDIA_TYPE] = content.pop("application/json")
+            _use_problem_media_type(operation)
     app.openapi_schema = schema
     return schema
 
