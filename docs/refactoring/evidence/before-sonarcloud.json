@@ -1,0 +1,143 @@
+{
+  "recorded_at": "2026-11-06T12:23:53+02:00",
+  "baseline": {
+    "tag": "v0.1.0",
+    "analysis_key": "3ade4593-180f-4e37-9e68-c7737894ea3b",
+    "analysis_date": "2026-11-05T14:16:09+0000",
+    "measures": {
+      "reliability_rating": "5.0",
+      "duplicated_lines_density": "0.0",
+      "cognitive_complexity": "1532",
+      "bugs": "1",
+      "vulnerabilities": "3",
+      "sqale_index": "0",
+      "sqale_rating": "1.0",
+      "security_rating": "5.0",
+      "ncloc": "10210",
+      "code_smells": "0"
+    },
+    "commit_short": "783b757",
+    "commit_url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/commit/783b757ec4cb46ded290fa407a7eded38e98c750"
+  },
+  "configuration_observed_now": {
+    "profiles": [
+      {
+        "key": "AaF0XMOyF1KaAz-ccIDN",
+        "name": "Sonar way core",
+        "language": "js",
+        "activeRuleCount": 249
+      },
+      {
+        "key": "AaF0XMOyF1KaAz-ccIDQ",
+        "name": "Sonar way core",
+        "language": "py",
+        "activeRuleCount": 300
+      }
+    ],
+    "python_S3776_active": false,
+    "S3776_active_rule_query_total": 0,
+    "quality_gate": {
+      "name": "Sonar way",
+      "conditions": [
+        {
+          "id": 35,
+          "metric": "new_security_rating",
+          "op": "GT",
+          "error": "1"
+        },
+        {
+          "id": 36,
+          "metric": "new_reliability_rating",
+          "op": "GT",
+          "error": "1"
+        },
+        {
+          "id": 37,
+          "metric": "new_maintainability_rating",
+          "op": "GT",
+          "error": "1"
+        },
+        {
+          "id": 38,
+          "metric": "new_coverage",
+          "op": "LT",
+          "error": "80"
+        },
+        {
+          "id": 39,
+          "metric": "new_duplicated_lines_density",
+          "op": "GT",
+          "error": "3"
+        },
+        {
+          "id": 76287,
+          "metric": "new_security_hotspots_reviewed",
+          "op": "LT",
+          "error": "100"
+        }
+      ]
+    },
+    "new_code_period": [
+      {
+        "key": "sonar.leak.period",
+        "value": "previous_version",
+        "parentOrigin": "INSTANCE"
+      }
+    ],
+    "reported_analysis_version": "not provided",
+    "leak_period_date": "2026-10-25T18:45:46+0000"
+  },
+  "screenshots": {
+    "captured_at": "2026-11-06",
+    "note": "Current UI captured before R-2; historical v0.1.0 metrics above come from API history, not these current screenshots.",
+    "main_commit_short": "a44e314",
+    "main_commit_url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/commit/a44e31413d780f3141a49991d1b66f3e12020c4d"
+  },
+  "sources": {
+    "analyses": "https://sonarcloud.io/api/project_analyses/search?project=ukma-fin-ssdm-2026_SSDM_12",
+    "history": "https://sonarcloud.io/api/measures/search_history?component=ukma-fin-ssdm-2026_SSDM_12&metrics=code_smells,sqale_rating,sqale_index,duplicated_lines_density,reliability_rating,security_rating,cognitive_complexity,ncloc&from=2026-11-05&to=2026-11-06",
+    "profiles": "https://sonarcloud.io/api/qualityprofiles/search?organization=ukma-fin-ssdm-2026&project=ukma-fin-ssdm-2026_SSDM_12",
+    "S3776": "https://sonarcloud.io/api/rules/search?qprofile=AaF0XMOyF1KaAz-ccIDQ&activation=true&rule_key=python:S3776",
+    "gate": "https://sonarcloud.io/api/qualitygates/show?organization=ukma-fin-ssdm-2026&id=9",
+    "new_code_period": "https://sonarcloud.io/api/settings/values?component=ukma-fin-ssdm-2026_SSDM_12&keys=sonar.leak.period",
+    "component": "https://sonarcloud.io/api/components/show?component=ukma-fin-ssdm-2026_SSDM_12"
+  },
+  "current_open_issues": [
+    {
+      "key": "AaF0YmGQ7GRUxAPzGZBX",
+      "rule": "pythonsecurity:S8705",
+      "type": "VULNERABILITY",
+      "severity": "MAJOR",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:scripts/check_architecture.py",
+      "line": 150,
+      "message": "Command Argument Injection via faulty LLM-supplied CLI arguments in check_architecture.plantuml_syntax_errors()"
+    },
+    {
+      "key": "AaF0YmGI7GRUxAPzGZBW",
+      "rule": "python:S930",
+      "type": "BUG",
+      "severity": "BLOCKER",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/main.py",
+      "line": 77,
+      "message": "Remove this unexpected named argument 'summary'."
+    },
+    {
+      "key": "AaF0YmGD7GRUxAPzGZBU",
+      "rule": "pythonsecurity:S8707",
+      "type": "VULNERABILITY",
+      "severity": "MAJOR",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/openapi_export.py",
+      "line": 71,
+      "message": "Path Traversal via faulty LLM-supplied CLI arguments in openapi_export.write_artifacts()"
+    },
+    {
+      "key": "AaF0YmGH7GRUxAPzGZBV",
+      "rule": "secrets:S8217",
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/errors.py",
+      "line": 182,
+      "message": "Make sure this Bearer Authentication token gets revoked, changed, and removed from the code."
+    }
+  ]
+}
