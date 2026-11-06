@@ -403,12 +403,12 @@ python scripts/regression_compare.py before.xml after.xml
 
 | Доказ | Стан |
 |---|---|
-| SHA і JUnit XML на `v0.1.0` | Потрібно додати посилання на артефакт CI |
-| SHA і JUnit XML після R-1–R-4 | Потрібно додати посилання на артефакт CI |
-| Вивід `regression_compare.py` на цих двох XML | Потрібно додати фактичний лог та exit code |
-| Результат повного CI з PostgreSQL | Потрібно додати конкретний успішний run |
+| SHA і JUnit XML на `v0.1.0` | SHA тегу: `783b757ec4cb46ded290fa407a7eded38e98c750` (§0); JUnit XML для цього стану не знайдено серед перевірених артефактів |
+| SHA і JUnit XML після R-1–R-4 | Успішний CI [PR #288, коміт `accfe449`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830): **833 passed, 1 skipped, 1 warning**, покриття **98,30%**; JUnit XML не входить до завантаженого артефакту `api-coverage` ([артефакт 13506483216](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830/artifacts/13506483216)) |
+| Вивід `regression_compare.py` на двох ревізіях | Ще не виконано: для порівняння бракує JUnit XML з `v0.1.0` і стану після рефакторингу |
+| Результат CI з PostgreSQL | [Успішний run #42227926830](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830): job `build` завершено `success`; кроки `Verify PostgreSQL integration test prerequisites` і `Run API tests with branch coverage` — `success`. Це підтверджує CI на PR #288, але не порівняння двох ревізій |
 
-**Висновок про відсутність регресії між `v0.1.0` і станом після
+**Зібрано підтвердження успішного CI після рефакторингу**, однак **висновок про відсутність регресії між `v0.1.0` і станом після
 рефакторингу поки не заявляється:** без двох зафіксованих JUnit XML
 і результату їхнього порівняння він був би неперевіреним.
 
