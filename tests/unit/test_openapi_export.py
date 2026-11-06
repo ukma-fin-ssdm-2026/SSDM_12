@@ -54,9 +54,27 @@ def test_check_modified_file_reports_diff_without_changing_it(fake_app, tmp_path
 
 def test_cli_generate_then_check_and_drift(fake_app, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("api.main.create_app", lambda: fake_app)
+    monkeypatch.setattr(exporter, "REPO_ROOT", tmp_path)
     args = ["--out-dir", str(tmp_path)]
     assert exporter.main(args) == 0
     assert exporter.main([*args, "--check"]) == 0
     (tmp_path / exporter.ERRORS_NAME).write_text("changed", encoding="utf-8")
     assert exporter.main([*args, "--check"]) == 1
     assert "[FAIL]" in capsys.readouterr().out
+
+
+@pytest.mark.req("QA-13")
+@pytest.mark.parametrize("outside", ["..", "../elsewhere", "/"])
+def test_cli_refuses_an_output_directory_outside_the_repository(
+    fake_app, tmp_path, monkeypatch, capsys, outside
+):
+    project = tmp_path / "repo"
+    project.mkdir()
+    monkeypatch.setattr("api.main.create_app", lambda: fake_app)
+    monkeypatch.setattr(exporter, "REPO_ROOT", project)
+    monkeypatch.chdir(project)
+    with pytest.raises(SystemExit) as exit_info:
+        exporter.main(["--out-dir", outside])
+    assert exit_info.value.code == 2
+    assert "всередині репозиторію" in capsys.readouterr().err
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["repo"]

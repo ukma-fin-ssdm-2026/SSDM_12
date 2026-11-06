@@ -462,17 +462,19 @@ def test_plantuml_syntax_check_runs_java_and_filters_its_noise(repo, monkeypatch
     def fake_run(command, **kwargs):
         calls.append((command, kwargs))
         return SimpleNamespace(
-            returncode=calls[-1][0][2] == "broken.jar",
+            returncode=calls[-1][0][2].endswith("broken.jar"),
             stdout="Error line 2 in file: component.puml\n\n",
             stderr="Picked up JAVA_TOOL_OPTIONS: -Dx=y\n",
         )
 
     monkeypatch.setattr(subprocess, "run", fake_run)
+    for jar in ("plantuml.jar", "broken.jar"):
+        (repo / jar).write_bytes(b"PK")
     code, out = run(repo, monkeypatch, capsys, "--plantuml", "plantuml.jar")
     assert code == 0
     assert "[ ok ] Синтаксис PlantUML (--check-syntax)\n" in out
     command, kwargs = calls[0]
-    assert command[:4] == ["java", "-jar", "plantuml.jar", "--check-syntax"]
+    assert command[:4] == ["java", "-jar", str((repo / "plantuml.jar").resolve()), "--check-syntax"]
     assert [Path(p).name for p in command[4:]] == [
         "component.puml",
         "data-model.puml",
@@ -498,3 +500,18 @@ def test_missing_decisions_readme_crashes_the_ai_section_check(repo, monkeypatch
     (repo / ARCH / "decisions" / "README.md").unlink()
     with pytest.raises(FileNotFoundError):
         run(repo, monkeypatch, capsys)
+
+
+@pytest.mark.req("QA-13")
+@pytest.mark.parametrize("value", ["-version", "missing.jar", "README.md"])
+def test_plantuml_argument_must_be_an_existing_jar_file(repo, monkeypatch, capsys, value):
+    """Після `fix(security)`: значення --plantuml не потрапляє в `java -jar`, доки не перевірене."""
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("java не мав запускатися")
+
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    with pytest.raises(SystemExit) as exit_info:
+        run(repo, monkeypatch, capsys, f"--plantuml={value}")
+    assert exit_info.value.code == 2
+    assert "очікується наявний файл *.jar" in capsys.readouterr().err

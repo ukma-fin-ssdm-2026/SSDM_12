@@ -95,6 +95,19 @@ def check_artifacts(app: FastAPI, out_dir: Path = DOCS_API) -> list[str]:
     return problems
 
 
+def output_directory(value: str) -> Path:
+    """Тип аргументу --out-dir: каталог лише всередині репозиторію, абсолютним шляхом.
+
+    Без перевірки `--out-dir ../..` створив би каталоги й переписав файли поза репозиторієм
+    (SonarQube Cloud: Path Traversal). `resolve()` прибирає `..` і символьні посилання до
+    порівняння, тож обійти перевірку відносним шляхом не вийде.
+    """
+    path = Path(value).resolve()
+    if not path.is_relative_to(REPO_ROOT):
+        raise argparse.ArgumentTypeError(f"--out-dir має бути всередині репозиторію {REPO_ROOT}")
+    return path
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI `scripts/export_openapi.py`: записати файли або з `--check` порівняти їх із кодом.
 
@@ -108,9 +121,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--out-dir",
-        type=Path,
+        type=output_directory,
         default=DOCS_API,
-        help="куди записати файли (за замовчуванням docs/api/)",
+        help="куди записати файли всередині репозиторію (за замовчуванням docs/api/)",
     )
     args = parser.parse_args(argv)
 

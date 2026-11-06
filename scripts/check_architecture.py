@@ -146,7 +146,8 @@ def diagram_problems(pumls):
 
 def plantuml_syntax_errors(jar, pumls):
     """Перевірка 2 за --plantuml: рядки помилок `--check-syntax`, якщо PlantUML їх знайшов."""
-    # Команда фіксована, аргументи — шлях до jar і шляхи файлів репозиторію; shell не використовується.
+    # Команда фіксована; jar перевірено типом plantuml_jar, решта — шляхи файлів репозиторію;
+    # shell не використовується.
     run = subprocess.run(  # nosec B603 B607  # noqa: S603
         ["java", "-jar", jar, "--check-syntax", *map(str, pumls)],  # noqa: S607
         capture_output=True,
@@ -364,6 +365,19 @@ def report_author_slots(report, slots, *, strict):
         print(f"       {s}")
 
 
+def plantuml_jar(value):
+    """Тип аргументу --plantuml: наявний файл *.jar, повернений абсолютним шляхом.
+
+    Цей шлях потрапляє в команду `java -jar` і виконується (SonarQube Cloud: Command Argument
+    Injection). Абсолютний шлях не може почитатися з «-», тож не стане опцією java, а перевірка
+    файлу й розширення відсікає довільні значення ще до запуску процесу.
+    """
+    path = Path(value).resolve()
+    if path.suffix != ".jar" or not path.is_file():
+        raise argparse.ArgumentTypeError(f"очікується наявний файл *.jar, отримано «{value}»")
+    return str(path)
+
+
 def requirement_ids():
     """Оголошені ID вимог і перелік FR, а за ним NFR — у порядку рядків прямої матриці."""
     defined, _ = req.collect_definitions(req.load())
@@ -409,7 +423,11 @@ def report_summary(report, counts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
+    parser.add_argument(
+        "--plantuml",
+        type=plantuml_jar,
+        help="шлях до plantuml.jar для перевірки синтаксису діаграм",
+    )
     parser.add_argument(
         "--strict",
         action="store_true",
