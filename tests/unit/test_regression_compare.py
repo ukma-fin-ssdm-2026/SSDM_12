@@ -83,3 +83,26 @@ def test_cli_reports_and_sets_the_exit_code(tmp_path, capsys):
     with pytest.raises(SystemExit) as exit_info:
         rc.main([str(before), str(after)])
     assert exit_info.value.code == 2
+
+
+def test_cli_rejects_path_outside_working_directory(tmp_path, monkeypatch):
+    working = tmp_path / "working"
+    working.mkdir()
+    outside = tmp_path / "outside.xml"
+    outside.write_text(junit(a__one="passed"), encoding="utf-8")
+    monkeypatch.chdir(working)
+    with pytest.raises(SystemExit) as error:
+        rc.main([str(outside), str(outside)])
+    assert error.value.code == 2
+
+
+def test_cli_rejects_symlink_to_external_xml(tmp_path, monkeypatch):
+    working = tmp_path / "working"
+    working.mkdir()
+    outside = tmp_path / "outside.xml"
+    outside.write_text(junit(a__one="passed"), encoding="utf-8")
+    (working / "linked.xml").symlink_to(outside)
+    monkeypatch.chdir(working)
+    with pytest.raises(SystemExit) as error:
+        rc.main(["linked.xml", "linked.xml"])
+    assert error.value.code == 2
