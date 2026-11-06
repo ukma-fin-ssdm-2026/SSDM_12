@@ -14,9 +14,12 @@ from api.stubs.store import SlotRec, TemplateRec, store
 from unislot.availability.domain.templates import WeeklyPattern, generate_occurrences
 
 
-def _generate(rec: TemplateRec, now: datetime) -> TemplateOut:
-    candidates, calendar_conflicts = generate_occurrences(rec.pattern, now, HORIZON, KYIV)
-    intervals = {(c.starts_at, c.ends_at) for c in candidates}
+def _withdraw_stale_slots(rec: TemplateRec, intervals: set, now: datetime) -> tuple[int, int]:
+    """Знімає майбутні слоти шаблону, яких немає в новому розкладі; заброньовані лишає.
+
+    Слот без жодного бронювання видаляється; слот з історією бронювань лише деактивується,
+    щоб бронювання не втратило свій слот. Повертає (знято, лишено заброньованих).
+    """
     withdrawn = retained = 0
     referenced = {b.slot_id for b in store.bookings.values()}
     for slot in list(store.slots.values()):
@@ -29,6 +32,13 @@ def _generate(rec: TemplateRec, now: datetime) -> TemplateOut:
             slot.is_active = False
             if slot.id not in referenced:
                 del store.slots[slot.id]
+    return withdrawn, retained
+
+
+def _generate(rec: TemplateRec, now: datetime) -> TemplateOut:
+    candidates, calendar_conflicts = generate_occurrences(rec.pattern, now, HORIZON, KYIV)
+    intervals = {(c.starts_at, c.ends_at) for c in candidates}
+    withdrawn, retained = _withdraw_stale_slots(rec, intervals, now)
     conflicts = [
         TemplateConflict(code=c.code, day=c.day, start_local=c.start_local)
         for c in calendar_conflicts
