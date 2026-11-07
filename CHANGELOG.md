@@ -13,6 +13,33 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-06
+
+### Refactoring
+
+- Перевірка архітектурних артефактів (`scripts/check_architecture.py`): 260-рядкову `main`
+  розкладено на 20 функцій-перевірок і клас `Report` — *Replace Function with Command*,
+  *Remove Parameter*, *Extract Method*. Вивід і коди виходу ті самі — їх фіксують 16
+  характеризаційних тестів; когнітивна складність `main` 146 → 5 (#283).
+- Збереження в PostgreSQL (`PostgresStore.flush`): порядок таблиць названо константою, а
+  видалення, вставки, скасування outbox і аудит винесено в окремі функції — *Extract
+  Constant*, *Extract Method*. Набір і порядок SQL-операцій ті самі; складність 34 → 0
+  (#284).
+- Генерація слотів тижневого шаблону (`template_service._generate`): зняття застарілих
+  слотів, пошук слота, перетини й публікація — окремі функції — *Extract Method*; складність
+  33 → 8 (#286).
+- Документація OpenAPI (`custom_openapi`): правила 503, CSRF і медіатипу помилок — окремі
+  функції, методи зміни — константа `UNSAFE_METHODS` — *Extract Method*, *Replace Magic
+  Literal with Constant*. Специфікація та сама байт у байт; складність 25 → 11 (#290).
+
+### Security
+
+- `scripts/check_architecture.py --plantuml` приймає лише наявний файл `*.jar`: раніше значення
+  без перевірки потрапляло в `java -jar` (знахідка SonarQube Cloud «Command Argument
+  Injection», #‹PR S-2/S-3›).
+- `scripts/export_openapi.py --out-dir` пише лише всередині репозиторію: раніше `../..`
+  створював каталоги й переписував файли поза ним (знахідка «Path Traversal», #‹PR S-2/S-3›).
+
 ## [0.1.0] - 2026-11-05
 
 Перша записана версія. Номера раніше не було: за умовою Лаб 8 поточний стан записано як `0.1.0`, а
@@ -41,5 +68,6 @@
 - Перевірки місткості в `update_resource` винесено у дві функції зі збереженням порядку
   перевірок — *Extract Method* ×2; когнітивна складність 11 → 4 (Лаб 8, цикл 1, #196).
 
-[Unreleased]: https://github.com/ukma-fin-ssdm-2026/SSDM_12/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ukma-fin-ssdm-2026/SSDM_12/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ukma-fin-ssdm-2026/SSDM_12/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ukma-fin-ssdm-2026/SSDM_12/releases/tag/v0.1.0
