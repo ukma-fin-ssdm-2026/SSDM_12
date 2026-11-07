@@ -425,7 +425,29 @@ python scripts/regression_compare.py before.xml after.xml
 
 ## 7. Реліз 0.1.1
 
-Заповнює @DziubakPavlo (Менеджер релізу) після створення тегу `v0.1.1`.
+Веде @DziubakPavlo (Менеджер релізу, статут §2.6).
+
+- **Чому PATCH.** Від `v0.1.0` у `main` лише `refactor:` (поведінка та сама) і
+  `fix(security):` (виправлення без зміни контракту) — обидва дають PATCH; `feat:` немає.
+  `0.1.0 → 0.1.1`. Версія контракту API (`API_VERSION` = `1.0.0-alpha.1`) не змінилася:
+  `export_openapi.py --check` доводить, що контракт той самий (`docs/api/api-design.md` §4.9).
+- **Де записано номер:** `pyproject.toml` (`[project].version`), заголовок
+  `## [0.1.1] - 2026-11-06` у `CHANGELOG.md`, анотований тег `v0.1.1`. Узгодженість перевіряє
+  `python scripts/release.py check` на кожен PR (крок CI «Check release metadata (Lab 8)»), а
+  workflow релізу — ще й теги.
+- **Коміт релізу:** a507533 `chore(release): 0.1.0 → 0.1.1 [REFACTOR]`.
+- **Тег:** `git show v0.1.1` — анотований, автор @dysett, повідомлення —
+  розділ журналу. https://github.com/ukma-fin-ssdm-2026/SSDM_12/releases/tag/v0.1.1.
+- **GitHub Release:** https://github.com/ukma-fin-ssdm-2026/SSDM_12/releases/tag/v0.1.1.
+- **Перевірка:**
+
+  ```bash
+  git fetch --tags
+  git cat-file -t v0.1.1                                  # tag — отже анотований
+  python scripts/release.py version                        # 0.1.1
+  git show v0.1.1:CHANGELOG.md | grep -m1 '^## \[0'        # ## [0.1.1] - ‹дата›
+  python scripts/release.py check --tags <(git tag --list 'v*')
+  ```
 
 ---
 
@@ -476,7 +498,29 @@ python scripts/regression_compare.py before.xml after.xml
 
 ### Бонус 3. Автоматизований реліз за Conventional Commits — @DziubakPavlo
 
-Не заявлено.
+- **Інструмент:** commitizen 4.19.3 (`cz_conventional_commits`) — аналог semantic-release для
+  Python; вбудовані правила: `feat` → MINOR, `fix`/`refactor`/`perf` → PATCH, несумісна зміна
+  → MAJOR, а поки версія 0.y.z — MINOR (`major_version_zero = true` у `pyproject.toml`).
+  `refactor:` дає PATCH без жодних додаткових правил.
+- **Конвеєр:** `.github/workflows/release.yml`.
+  1. `prepare` (ручний запуск) — commitizen і `scripts/release.py` незалежно рахують наступну
+     версію з комітів від останнього тегу; якщо відповіді різні — зупинка. Далі оновлює
+     `pyproject.toml` і `CHANGELOG.md` і пушить гілку `release/v0.1.1`.
+  2. PR із цієї гілки — звичайний: рецензія, `build`, Quality Gate.
+  3. `publish` (push у `main`) — перевіряє, що версія відповідає правилам від попереднього
+     тегу, створює анотований тег `v0.1.1` і GitHub Release з розділом журналу.
+- **Чому два кроки, а не один.** `main` захищено ruleset-ом: бот не може пушити туди коміт із
+  версією. Тому коміт релізу проходить ту саму рецензію, що й код, а бот створює лише тег і
+  реліз.
+- **Чому журнал пише не commitizen.** Його шаблон дає `## v0.1.1 (дата)`, а курс вимагає Keep a
+  Changelog `## [0.1.1] - дата` з категорією `Refactoring`. Тому commitizen рахує версію, а
+  `scripts/release.py changelog` переносить розділ `Unreleased` (або чернетку з комітів) у
+  формат KaC; 23 тести (`tests/unit/test_release.py`, QA-19) фіксують і правила приросту, і
+  формат.
+- **Докази:** прогін `prepare` — ‹посилання› («scripts/release.py — 0.1.1, commitizen — 0.1.1»);
+  PR релізу — ‹посилання›; **прогін `publish`, який створив реліз Лаб 8** — ‹посилання›;
+  перший запуск `publish` — реліз `0.1.0` при злитті PR ‹#› — ‹посилання›.
+- **Пояснено у відео:** @DziubakPavlo, Лаб 8.
 
 ---
 
