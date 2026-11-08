@@ -183,6 +183,7 @@ ID не змінено: це ті самі QA-xx і THR-xx, що й у джер�
 | QA-17 | `scripts/check_source_inventory.py` | Перевірка SHA-256-інвентарю вихідних файлів виявляє зміну вмісту, додавання та видалення файлів; однакові інвентарі не мають розбіжностей | контроль цілісності вихідних файлів (Лаб 6) | — |
 | QA-18 | [`sonarcloud-report.md`](../refactoring/sonarcloud-report.md) §5, R-1 | `scripts/check_architecture.py` дає той самий вивід і код виходу до й після рефакторингу: кожна з 12 перевірок і обидві гілки кожної зафіксовані характеризаційними тестами | безпечний рефакторинг модуля без тестів (Лаб 8, бонус 2) | — |
 | QA-19 | [`CHANGELOG.md`](../../CHANGELOG.md), `scripts/release.py` | Номер версії однаковий у `pyproject.toml`, першому релізі `CHANGELOG.md` і тегу `vX.Y.Z`; журнал — за Keep a Changelog; `refactor`, `fix` і `perf` дають PATCH, `feat` — MINOR, несумісна зміна — MAJOR (поки 0.y.z — MINOR) | керування релізами й журнал змін (Лаб 8, ПРН11) | — |
+| QA-20 | [`sonarcloud-report.md`](../refactoring/sonarcloud-report.md) §6, `scripts/regression_compare.py` | Регресійне порівняння двох прогонів pytest: зниклий тест, тест, що проходив і впав чи пропущений, або будь-яке падіння «після» — порушення; нові тести лише перелічуються | доказ незмінної поведінки після рефакторингу (Лаб 8) | — |
 
 
 | THR-09 | [`threat-model.md`](../architecture/threat-model.md) | журнал доступу не містить ідентифікаторів зі шляху запиту (CWE-532) | C-002, C-003 | — |
@@ -201,7 +202,7 @@ ID не змінено: це ті самі QA-xx і THR-xx, що й у джер�
 | PERF-002 | той самий нативний профіль: по 100 різних слотів, 100 × 201; три p95 405,386–487,696 мс; із ключем — 367,581–403,618 мс | обидва варіанти пройшли локальні 600 мс у трьох нативних прогонах; результати не є виміром Render; load-run поза pytest | повтор нативного профілю (TC-061); звіт `implementation/performance-completion.md` |
 | SEC-003 | крок CI «Scan for secrets with detect-secrets» на кожен PR; хук pre-commit локально | властивість репозиторію, а не поведінка коду: pytest її не виміряє | сканування всієї історії `main` — Лаб 10 (TC-066) |
 | MAINT-001 | крок CI «Run API tests with branch coverage»: поріг 90% для `api` і `unislot`; доменний модуль бронювання — 100% (`docs/testing/lab06/coverage.json`) | метрика покриття, а не поведінка: її вимірює coverage.py, а не окремий тест | діє з Лаб 6 |
-| MAINT-002 | SonarCloud Automatic Analysis (`.sonarcloud.properties`), звіт `docs/refactoring/sonarcloud-report.md` | рейтинг зовнішнього сервісу, а не поведінка коду | Лаб 8: звіт «до й після» (TC-071) |
+| MAINT-002 | SonarCloud Automatic Analysis (`.sonarcloud.properties`), [звіт «до й після»](../refactoring/sonarcloud-report.md#34-maint-002-і-tc-071) і [вимір `v0.1.1`](../refactoring/evidence/after-sonarcloud.json): Security Rating E | рейтинг зовнішнього сервісу, а не поведінка коду | TC-071: потрібен рейтинг A, його не досягнуто |
 | PORT-001 | не перевіряється | потрібен окремий замір повного старту з чистого клону; фізичний ПК іншого учасника не є вимогою викладача | Лаб 10 (TC-073) |
 
 ## 8. Локальний етап реалізації після #240

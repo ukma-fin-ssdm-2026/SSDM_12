@@ -123,11 +123,11 @@ class Report:
 
 def missing_artifacts(pumls, adrs):
     """Перевірка 1: обов'язкові документи, щонайменше 3 діаграми й 2–3 ADR."""
-    missing = [str(p) for p in DOCS.values() if not p.is_file()]
+    missing = [p.as_posix() for p in DOCS.values() if not p.is_file()]
     if len(pumls) < 3:
-        missing.append(f"{UML}/ — діаграм {len(pumls)}, потрібно щонайменше 3")
+        missing.append(f"{UML.as_posix()}/ — діаграм {len(pumls)}, потрібно щонайменше 3")
     if not 2 <= len(adrs) <= 3:
-        missing.append(f"{DECISIONS}/ — ADR {len(adrs)}, завдання вимагає 2–3")
+        missing.append(f"{DECISIONS.as_posix()}/ — ADR {len(adrs)}, завдання вимагає 2–3")
     return missing
 
 
@@ -146,7 +146,8 @@ def diagram_problems(pumls):
 
 def plantuml_syntax_errors(jar, pumls):
     """Перевірка 2 за --plantuml: рядки помилок `--check-syntax`, якщо PlantUML їх знайшов."""
-    # Команда фіксована, аргументи — шлях до jar і шляхи файлів репозиторію; shell не використовується.
+    # Команда фіксована; jar перевірено типом plantuml_jar, решта — шляхи файлів репозиторію;
+    # shell не використовується.
     run = subprocess.run(  # nosec B603 B607  # noqa: S603
         ["java", "-jar", jar, "--check-syntax", *map(str, pumls)],  # noqa: S607
         capture_output=True,
@@ -243,7 +244,7 @@ def unknown_references(files, arch_defined, defined):
     for path in (p for p in files if p.is_file()):
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             bad_refs += [
-                f"{path}:{lineno}: {found}"
+                f"{path.as_posix()}:{lineno}: {found}"
                 for found in ID_PATTERN.findall(line)
                 if not is_declared(found, arch_defined, defined)
             ]
@@ -330,7 +331,7 @@ FENCE = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
 def ai_section_problems(adrs):
     """Перевірка 11: розділ «Використання ШІ» поза блоками коду й посилання з README."""
     problems = [
-        str(p)
+        p.as_posix()
         for p in list(DOCS.values()) + adrs + [DECISIONS / "README.md"]
         if "## Використання ШІ" not in FENCE.sub("", p.read_text(encoding="utf-8"))
     ]
@@ -347,7 +348,7 @@ SLOT = re.compile(r"‹(?![\s…]*›)")
 def author_slots(adrs):
     """Перевірка 12: незаповнені місця для автора «‹…›» у документах і ADR."""
     return [
-        f"{p}:{n}: {ln.strip()[:70]}"
+        f"{p.as_posix()}:{n}: {ln.strip()[:70]}"
         for p in list(DOCS.values()) + adrs
         for n, ln in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
         if SLOT.search(ln)
@@ -362,6 +363,19 @@ def report_author_slots(report, slots, *, strict):
     print(f"[warn] Місця для автора ‹…› не заповнено: {len(slots)} (з --strict це порушення)")
     for s in slots:
         print(f"       {s}")
+
+
+def plantuml_jar(value):
+    """Тип аргументу --plantuml: наявний файл *.jar, повернений абсолютним шляхом.
+
+    Цей шлях потрапляє в команду `java -jar` і виконується (SonarQube Cloud: Command Argument
+    Injection). Абсолютний шлях не може почитатися з «-», тож не стане опцією java, а перевірка
+    файлу й розширення відсікає довільні значення ще до запуску процесу.
+    """
+    path = Path(value).resolve()
+    if path.suffix != ".jar" or not path.is_file():
+        raise argparse.ArgumentTypeError(f"очікується наявний файл *.jar, отримано «{value}»")
+    return str(path)
 
 
 def requirement_ids():
@@ -409,7 +423,11 @@ def report_summary(report, counts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--plantuml", help="шлях до plantuml.jar для перевірки синтаксису діаграм")
+    parser.add_argument(
+        "--plantuml",
+        type=plantuml_jar,
+        help="шлях до plantuml.jar для перевірки синтаксису діаграм",
+    )
     parser.add_argument(
         "--strict",
         action="store_true",

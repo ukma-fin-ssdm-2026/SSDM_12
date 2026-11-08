@@ -20,6 +20,23 @@ from api.stubs.store import StubStore
 
 LOCK_KEY = 7120001
 POOL_SIZE = 32
+# Таблиці дельти в порядку зовнішніх ключів: батьківські перед дочірніми. Вставки й оновлення
+# ідуть у цьому порядку, видалення — у зворотному, щоб жоден рядок не лишився без батька.
+FLUSH_ORDER = (
+    "users",
+    "roles",
+    "resources",
+    "templates",
+    "policies",
+    "current_policy",
+    "slots",
+    "blocks",
+    "bookings",
+    "idempotency",
+    "notifications",
+    "sessions",
+    "login_attempts",
+)
 
 
 class DatabaseLock:
@@ -136,66 +153,65 @@ class PostgresStore(StubStore):
         """Зберігає дельту; outbox і аудит комітяться разом із дією."""
         previous = type("Snapshot", (), before)
         old, new = codec.rows(previous), codec.rows(self)
-        names = (
-            "users",
-            "roles",
-            "resources",
-            "templates",
-            "policies",
-            "current_policy",
-            "slots",
-            "blocks",
-            "bookings",
-            "idempotency",
-            "notifications",
-            "sessions",
-            "login_attempts",
+        _delete_removed_rows(conn, old, new)
+        _write_changed_rows(conn, old, new)
+        _append_audit(conn, before["audit"], self.audit)
+
+
+def _primary_key_predicate(table, key):
+    """Умова WHERE за первинним ключем; складений ключ приходить кортежем."""
+    values = key if isinstance(key, tuple) else (key,)
+    return and_(*(column == value for column, value in zip(table.primary_key, values, strict=True)))
+
+
+def _delete_removed_rows(conn, old: dict, new: dict) -> None:
+    """Видаляє рядки, яких у новому знімку немає, — від дочірніх таблиць до батьківських."""
+    for name in reversed(FLUSH_ORDER):
+        table = getattr(tables, name)
+        for key in old[name].keys() - new[name].keys():
+            if name == "notifications":
+                raise ValueError("outbox records cannot be erased")
+            conn.execute(delete(table).where(_primary_key_predicate(table, key)))
+
+
+def _write_changed_rows(conn, old: dict, new: dict) -> None:
+    """Вставляє нові й оновлює змінені рядки; запис outbox після створення лише скасовується."""
+    for name in FLUSH_ORDER:
+        table = getattr(tables, name)
+        for key, row in new[name].items():
+            if row == old[name].get(key):
+                continue
+            if name == "notifications" and key in old[name]:
+                _cancel_pending_notification(conn, table, key, row)
+                continue
+            conn.execute(_upsert(table, row))
+
+
+def _cancel_pending_notification(conn, table, key, row: dict) -> None:
+    """Скасування не зачіпає вже доставлене: фільтр за статусом pending/sending — у SQL."""
+    if row["status"] == "cancelled":
+        conn.execute(
+            update(table)
+            .where(table.c.id == key, table.c.status.in_(["pending", "sending"]))
+            .values(status="cancelled", claim_token=None, locked_until=None)
         )
-        for name in reversed(names):
-            table = getattr(tables, name)
-            for key in old[name].keys() - new[name].keys():
-                if name == "notifications":
-                    raise ValueError("outbox records cannot be erased")
-                values = key if isinstance(key, tuple) else (key,)
-                predicate = and_(
-                    *(
-                        column == value
-                        for column, value in zip(table.primary_key, values, strict=True)
-                    )
-                )
-                conn.execute(delete(table).where(predicate))
-        for name in names:
-            table = getattr(tables, name)
-            for key, row in new[name].items():
-                if row == old[name].get(key):
-                    continue
-                if name == "notifications" and key in old[name]:
-                    if row["status"] == "cancelled":
-                        conn.execute(
-                            update(table)
-                            .where(table.c.id == key, table.c.status.in_(["pending", "sending"]))
-                            .values(status="cancelled", claim_token=None, locked_until=None)
-                        )
-                    continue
-                statement = insert(table).values(**row)
-                changed = {
-                    c.name: statement.excluded[c.name]
-                    for c in table.c
-                    if not c.primary_key and c.name in row
-                }
-                if changed:
-                    conn.execute(
-                        statement.on_conflict_do_update(
-                            index_elements=list(table.primary_key), set_=changed
-                        )
-                    )
-                else:
-                    conn.execute(
-                        statement.on_conflict_do_nothing(index_elements=list(table.primary_key))
-                    )
-        old_audit = before["audit"]
-        if self.audit[: len(old_audit)] != old_audit:
-            raise ValueError("audit history cannot be rewritten")
-        for entry in self.audit[len(old_audit) :]:
-            entry.setdefault("id", uuid.uuid4())
-            conn.execute(insert(tables.audit).values(**entry))
+
+
+def _upsert(table, row: dict):
+    """INSERT … ON CONFLICT: оновлює неключові стовпці рядка, а без них — нічого не робить."""
+    statement = insert(table).values(**row)
+    changed = {
+        c.name: statement.excluded[c.name] for c in table.c if not c.primary_key and c.name in row
+    }
+    if changed:
+        return statement.on_conflict_do_update(index_elements=list(table.primary_key), set_=changed)
+    return statement.on_conflict_do_nothing(index_elements=list(table.primary_key))
+
+
+def _append_audit(conn, old_audit: list, audit: list) -> None:
+    """Журнал аудиту лише доповнюється: переписаний префікс — помилка, а не оновлення."""
+    if audit[: len(old_audit)] != old_audit:
+        raise ValueError("audit history cannot be rewritten")
+    for entry in audit[len(old_audit) :]:
+        entry.setdefault("id", uuid.uuid4())
+        conn.execute(insert(tables.audit).values(**entry))

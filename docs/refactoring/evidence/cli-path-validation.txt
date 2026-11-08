@@ -1,0 +1,189 @@
+Lab 8 PR-7: CLI argument security validation
+Date: 2026-11-06 (Europe/Kyiv)
+Windows 10 build 19045; Python 3.13.13; PostgreSQL 16.14
+Base: fefa9b6 (merged PR #284)
+S-2: b9a547d; S-3: 9d295f4
+
+Baseline targeted: python -m pytest -q tests/unit/test_check_architecture.py tests/unit/test_openapi_export.py -> 21 passed
+Old R-1 characterization + new S-2 validation -> expected 1 failed, 15 passed; see cli-path-characterization-red.txt
+Updated characterization fixture + S-2 regression cases -> 19 passed
+Both changed test modules after S-3 -> 27 passed
+
+step1: python -m pytest -q --junitxml=<local evidence>/step1-junit.xml -o junit_family=legacy
+820 passed; 96 integration; 0 failures; 0 errors
+
+step2: python -m pytest -q --junitxml=<local evidence>/step2-junit.xml -o junit_family=legacy
+823 passed; 96 integration; 0 failures; 0 errors
+
+Final coverage command additionally used --cov=api --cov=unislot --cov-branch --cov-report=term --cov-report=json:<local evidence>/step2-coverage.json
+Combined branch coverage: 98.29%; required: 90%
+
+Direct CLI probes (no DATABASE_URL in child environment):
+reject invalid PlantUML -version
+Command: python scripts/check_architecture.py --plantuml=-version
+Expected exit: 2; actual: 2
+usage: check_architecture.py [-h] [--plantuml PLANTUML] [--strict]
+check_architecture.py: error: argument --plantuml: очікується наявний файл *.jar, отримано «-version»
+reject invalid PlantUML README.md
+Command: python scripts/check_architecture.py --plantuml=README.md
+Expected exit: 2; actual: 2
+usage: check_architecture.py [-h] [--plantuml PLANTUML] [--strict]
+check_architecture.py: error: argument --plantuml: очікується наявний файл *.jar, отримано «README.md»
+reject invalid PlantUML ../lab08-pr07-missing.jar
+Command: python scripts/check_architecture.py --plantuml=../lab08-pr07-missing.jar
+Expected exit: 2; actual: 2
+usage: check_architecture.py [-h] [--plantuml PLANTUML] [--strict]
+check_architecture.py: error: argument --plantuml: очікується наявний файл *.jar, отримано «../lab08-pr07-missing.jar»
+reject external output ..
+Command: python scripts/export_openapi.py --out-dir ..
+Expected exit: 2; actual: 2
+usage: export_openapi.py [-h] [--check] [--out-dir OUT_DIR]
+export_openapi.py: error: argument --out-dir: --out-dir має бути всередині репозиторію <repo>
+reject external output ../elsewhere
+Command: python scripts/export_openapi.py --out-dir ../elsewhere
+Expected exit: 2; actual: 2
+usage: export_openapi.py [-h] [--check] [--out-dir OUT_DIR]
+export_openapi.py: error: argument --out-dir: --out-dir має бути всередині репозиторію <repo>
+reject external output /
+Command: python scripts/export_openapi.py --out-dir /
+Expected exit: 2; actual: 2
+usage: export_openapi.py [-h] [--check] [--out-dir OUT_DIR]
+export_openapi.py: error: argument --out-dir: --out-dir має бути всередині репозиторію <repo>
+reject external output C:\Temp\x
+Command: python scripts/export_openapi.py --out-dir C:\Temp\x
+Expected exit: 2; actual: 2
+usage: export_openapi.py [-h] [--check] [--out-dir OUT_DIR]
+export_openapi.py: error: argument --out-dir: --out-dir має бути всередині репозиторію <repo>
+GitHub Pages output _site
+Command: python scripts/export_openapi.py --out-dir _site
+Expected exit: 0; actual: 0
+generated OpenAPI check
+Command: python scripts/export_openapi.py --check
+Expected exit: 0; actual: 0
+verified PlantUML jar, strict diagrams
+Command: python scripts/check_architecture.py --plantuml <verified PlantUML cache>\ci-hash-check\package\build\plantuml-1.2026.8.jar --strict
+Expected exit: 0; actual: 0
+_site/openapi-generated.yaml and _site/errors.html byte-identical to committed docs/api files.
+FastAPI get_openapi signature contains the summary parameter.
+
+Quality checks:
+.\.venv\Scripts\python.exe scripts/check_requirements.py
+Знайдено визначень: A 7, BN 3, C 5, FR 44, MAINT 2, OQ 4, PERF 2, PORT 1, R 6, REL 2, SEC 5, TC 73, US 14, USAB 1
+
+[ ok ] Дублікати визначень ID
+[ ok ] Посилання на неіснуючі ID
+[ ok ] Повнота полів NFR
+[ ok ] Числа, вписані в текст FR
+[ ok ] Критеріїв на історію (мінімум 3)
+[ ok ] Рядок RTM для кожної історії
+[info] FR, на які не посилається жодна історія: FR-015, FR-068
+[info] NFR, на які не посилається жодна історія: MAINT-001, MAINT-002, PORT-001, SEC-003
+
+Порушень немає.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/check_traceability.py
+Простежуваність «вимога ↔ тест» (Лаб 7)
+rtm.md: US 14, FR 44, NFR 13, похідних 17, винятків 6; тест-кейсів плану: 13; тестів: 426 у 58 файлах
+
+[ ok ] Файли тестів розбираються, мітки записано літералами
+[ ok ] Тести без жодної вимоги
+[ ok ] Мітки з ID, яких немає в rtm.md чи в плані
+[ ok ] Вимоги без жодного тесту і без винятку в rtm.md
+[ ok ] Винятки, на які вже є тест (приберіть виняток)
+[ ok ] Винятки без способу перевірки чи причини
+[ ok ] Стовпець «Тести» rtm.md: тест-кейси, яких немає в плані
+
+[info] Покрито тестами: 68 з 74 вимог; свідомих винятків: 6
+
+Порушень немає.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/release.py check
+[ ok ] Метадані релізу: pyproject.toml і CHANGELOG.md — 0.1.0
+EXIT=0
+.\.venv\Scripts\ruff.exe check src tests scripts
+All checks passed!
+EXIT=0
+.\.venv\Scripts\ruff.exe format --check src tests scripts
+160 files already formatted
+EXIT=0
+.\.venv\Scripts\bandit.exe -q -c pyproject.toml -r src scripts
+[manager]	WARNING	Test in comment: starts is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: only is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: the is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: local is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: API is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: with is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: no is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: shell is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: executable is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: module is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: port is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: is is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: an is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OS is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: assigned is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: integer is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OS is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: utility is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: own is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: Popen is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: PID is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: empty is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OpenAPI is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: placeholder is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: a is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: credential is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: empty is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OpenAPI is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: placeholder is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: a is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: credential is not a test name or id, ignoring
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:75
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:76
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:77
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:76
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:78
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:79
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:78
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:79
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:80
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:118
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:119
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:120
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:119
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:121
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:121
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:122
+EXIT=0
+.\.venv\Scripts\lint-imports.exe
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 118 files, 494 dependencies.
+-------------------------------------
+
+unislot modules do not import the REST API package (HLD 6, rule 1) KEPT
+Domain layers and platform errors stay free of web framework and ORM (HLD 6, 9)KEPT
+
+Contracts: 2 kept, 0 broken.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/export_openapi.py --check
+[ ok ] openapi-generated.yaml і errors.html збігаються з кодом.
+EXIT=0

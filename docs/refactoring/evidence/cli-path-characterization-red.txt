@@ -1,0 +1,169 @@
+..............F.                                                         [100%]
+================================== FAILURES ===================================
+_________ test_plantuml_syntax_check_runs_java_and_filters_its_noise __________
+
+self = ArgumentParser(prog='check_architecture.py', usage=None, description='Перевірка узгодженості архітектурних артефактів UniSlot (Лаб 3).', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+action = _StoreAction(option_strings=['--plantuml'], dest='plantuml', nargs=None, const=None, default=None, type=<function plan...ces=None, required=False, help='шлях до plantuml.jar для перевірки синтаксису діаграм', metavar=None, deprecated=False)
+arg_string = 'plantuml.jar'
+
+    def _get_value(self, action, arg_string):
+        type_func = self._registry_get('type', action.type, action.type)
+        if not callable(type_func):
+            msg = _('%r is not callable')
+            raise ArgumentError(action, msg % type_func)
+
+        # convert the value to the appropriate type
+        try:
+>           result = type_func(arg_string)
+                     ^^^^^^^^^^^^^^^^^^^^^
+
+<python>\Lib\argparse.py:2579:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = 'plantuml.jar'
+
+    def plantuml_jar(value):
+        """Тип аргументу --plantuml: наявний файл *.jar, повернений абсолютним шляхом.
+
+        Цей шлях потрапляє в команду `java -jar` і виконується (SonarQube Cloud: Command Argument
+        Injection). Абсолютний шлях не може почитатися з «-», тож не стане опцією java, а перевірка
+        файлу й розширення відсікає довільні значення ще до запуску процесу.
+        """
+        path = Path(value).resolve()
+        if path.suffix != ".jar" or not path.is_file():
+>           raise argparse.ArgumentTypeError(f"очікується наявний файл *.jar, отримано «{value}»")
+E           argparse.ArgumentTypeError: очікується наявний файл *.jar, отримано «plantuml.jar»
+
+<repo>\scripts\check_architecture.py:377: ArgumentTypeError
+
+During handling of the above exception, another exception occurred:
+
+self = ArgumentParser(prog='check_architecture.py', usage=None, description='Перевірка узгодженості архітектурних артефактів UniSlot (Лаб 3).', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+args = ['--plantuml', 'plantuml.jar']
+namespace = Namespace(plantuml=None, strict=False), intermixed = False
+
+    def _parse_known_args2(self, args, namespace, intermixed):
+        if args is None:
+            # args default to the system args
+            args = _sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
+
+        # default Namespace built from parser defaults
+        if namespace is None:
+            namespace = Namespace()
+
+        # add any action defaults that aren't present
+        for action in self._actions:
+            if action.dest is not SUPPRESS:
+                if not hasattr(namespace, action.dest):
+                    if action.default is not SUPPRESS:
+                        setattr(namespace, action.dest, action.default)
+
+        # add any parser defaults that aren't present
+        for dest in self._defaults:
+            if not hasattr(namespace, dest):
+                setattr(namespace, dest, self._defaults[dest])
+
+        # parse the arguments and exit if there are any errors
+        if self.exit_on_error:
+            try:
+>               namespace, args = self._parse_known_args(args, namespace, intermixed)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<python>\Lib\argparse.py:1965:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<python>\Lib\argparse.py:2216: in _parse_known_args
+    start_index = consume_optional(start_index)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<python>\Lib\argparse.py:2140: in consume_optional
+    take_action(action, args, option_string)
+<python>\Lib\argparse.py:2026: in take_action
+    argument_values = self._get_values(action, argument_strings)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<python>\Lib\argparse.py:2546: in _get_values
+    value = self._get_value(action, arg_string)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='check_architecture.py', usage=None, description='Перевірка узгодженості архітектурних артефактів UniSlot (Лаб 3).', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+action = _StoreAction(option_strings=['--plantuml'], dest='plantuml', nargs=None, const=None, default=None, type=<function plan...ces=None, required=False, help='шлях до plantuml.jar для перевірки синтаксису діаграм', metavar=None, deprecated=False)
+arg_string = 'plantuml.jar'
+
+    def _get_value(self, action, arg_string):
+        type_func = self._registry_get('type', action.type, action.type)
+        if not callable(type_func):
+            msg = _('%r is not callable')
+            raise ArgumentError(action, msg % type_func)
+
+        # convert the value to the appropriate type
+        try:
+            result = type_func(arg_string)
+
+        # ArgumentTypeErrors indicate errors
+        except ArgumentTypeError as err:
+            msg = str(err)
+>           raise ArgumentError(action, msg)
+E           argparse.ArgumentError: argument --plantuml: очікується наявний файл *.jar, отримано «plantuml.jar»
+
+<python>\Lib\argparse.py:2584: ArgumentError
+
+During handling of the above exception, another exception occurred:
+
+repo = WindowsPath('C:/Users/pdeny/AppData/Local/Temp/pytest-of-pdeny/pytest-18/test_plantuml_syntax_check_run0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000018742862DB0>
+capsys = <_pytest.capture.CaptureFixture object at 0x00000187428ABAD0>
+
+    def test_plantuml_syntax_check_runs_java_and_filters_its_noise(repo, monkeypatch, capsys):
+        calls = []
+
+        def fake_run(command, **kwargs):
+            calls.append((command, kwargs))
+            return SimpleNamespace(
+                returncode=calls[-1][0][2] == "broken.jar",
+                stdout="Error line 2 in file: component.puml\n\n",
+                stderr="Picked up JAVA_TOOL_OPTIONS: -Dx=y\n",
+            )
+
+        monkeypatch.setattr(subprocess, "run", fake_run)
+>       code, out = run(repo, monkeypatch, capsys, "--plantuml", "plantuml.jar")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<repo>\tests\unit\test_check_architecture.py:471:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<repo>\tests\unit\test_check_architecture.py:195: in run
+    code = check_architecture.main()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+<repo>\scripts\check_architecture.py:436: in main
+    args = parser.parse_args()
+           ^^^^^^^^^^^^^^^^^^^
+<python>\Lib\argparse.py:1926: in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<python>\Lib\argparse.py:1936: in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<python>\Lib\argparse.py:1967: in _parse_known_args2
+    self.error(str(err))
+<python>\Lib\argparse.py:2686: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='check_architecture.py', usage=None, description='Перевірка узгодженості архітектурних артефактів UniSlot (Лаб 3).', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'check_architecture.py: error: argument --plantuml: очікується наявний файл *.jar, отримано «plantuml.jar»\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+<python>\Lib\argparse.py:2673: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: check_architecture.py [-h] [--plantuml PLANTUML] [--strict]
+check_architecture.py: error: argument --plantuml: очікується наявний файл *.jar, отримано «plantuml.jar»
+=========================== short test summary info ===========================
+FAILED tests/unit/test_check_architecture.py::test_plantuml_syntax_check_runs_java_and_filters_its_noise
+1 failed, 15 passed in 2.04s

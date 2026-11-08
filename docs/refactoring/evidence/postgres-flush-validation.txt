@@ -1,0 +1,202 @@
+Lab 8 R-2: PostgresStore.flush regression evidence
+Date: 2026-11-06 (Europe/Kyiv)
+Environment: Windows 10 build 19045, Python 3.13.13, PostgreSQL 16.14
+Base: a44e31413d780f3141a49991d1b66f3e12020c4d
+Step 1: dac3564
+Step 2: f801861b8c64d5e428cb2e3b2ad220fd0c8059e0
+Tests tree: 017147ad247791d1c80b6b97b481a47ec237ba26
+git diff a44e314 -- tests: empty
+
+baseline
+Command: python -m pytest -q --junitxml=<local evidence>/baseline-junit.xml
+Total: 817 passed; integration: 96 passed; failures: 0; errors: 0
+local-snapshot\baseline-postgres.py PostgresStore::flush 34
+local-snapshot\baseline-postgres.py DatabaseLock::__exit__ 9
+local-snapshot\baseline-postgres.py DatabaseLock::__enter__ 7
+local-snapshot\baseline-postgres.py PostgresStore::__init__ 1
+local-snapshot\baseline-postgres.py DatabaseLock::_restore 1
+local-snapshot\baseline-postgres.py PostgresStore::resolve_session 0
+local-snapshot\baseline-postgres.py PostgresStore::reset 0
+local-snapshot\baseline-postgres.py PostgresStore::close 0
+local-snapshot\baseline-postgres.py DatabaseLock::__init__ 0
+
+
+step1
+Command: python -m pytest -q --junitxml=<local evidence>/step1-junit.xml
+Total: 817 passed; integration: 96 passed; failures: 0; errors: 0
+local-snapshot\step1-postgres.py PostgresStore::flush 32
+local-snapshot\step1-postgres.py DatabaseLock::__exit__ 9
+local-snapshot\step1-postgres.py DatabaseLock::__enter__ 7
+local-snapshot\step1-postgres.py _append_audit 2
+local-snapshot\step1-postgres.py PostgresStore::__init__ 1
+local-snapshot\step1-postgres.py DatabaseLock::_restore 1
+local-snapshot\step1-postgres.py PostgresStore::resolve_session 0
+local-snapshot\step1-postgres.py PostgresStore::reset 0
+local-snapshot\step1-postgres.py PostgresStore::close 0
+local-snapshot\step1-postgres.py DatabaseLock::__init__ 0
+
+
+step2
+Command: python -m pytest -q --junitxml=<local evidence>/step2-junit.xml --cov=api --cov=unislot --cov-branch --cov-report=term --cov-report=json:<local evidence>/step2-coverage.json -o junit_family=legacy
+Total: 817 passed; integration: 96 passed; failures: 0; errors: 0
+src\api\infrastructure\postgres.py _write_changed_rows 10
+src\api\infrastructure\postgres.py DatabaseLock::__exit__ 9
+src\api\infrastructure\postgres.py DatabaseLock::__enter__ 7
+src\api\infrastructure\postgres.py _delete_removed_rows 6
+src\api\infrastructure\postgres.py _upsert 4
+src\api\infrastructure\postgres.py _append_audit 2
+src\api\infrastructure\postgres.py _primary_key_predicate 1
+src\api\infrastructure\postgres.py _cancel_pending_notification 1
+src\api\infrastructure\postgres.py PostgresStore::__init__ 1
+src\api\infrastructure\postgres.py DatabaseLock::_restore 1
+src\api\infrastructure\postgres.py PostgresStore::resolve_session 0
+src\api\infrastructure\postgres.py PostgresStore::reset 0
+src\api\infrastructure\postgres.py PostgresStore::flush 0
+src\api\infrastructure\postgres.py PostgresStore::close 0
+src\api\infrastructure\postgres.py DatabaseLock::__init__ 0
+
+
+Branch coverage api + unislot: 98.29%; required: 90%
+Baseline and step1 emitted the existing JUnit record_property / xunit2 compatibility warning.
+Step2 used junit_family=legacy, preserving that property; no warnings.
+
+Quality checks:
+.\.venv\Scripts\python.exe scripts/check_requirements.py
+Знайдено визначень: A 7, BN 3, C 5, FR 44, MAINT 2, OQ 4, PERF 2, PORT 1, R 6, REL 2, SEC 5, TC 73, US 14, USAB 1
+
+[ ok ] Дублікати визначень ID
+[ ok ] Посилання на неіснуючі ID
+[ ok ] Повнота полів NFR
+[ ok ] Числа, вписані в текст FR
+[ ok ] Критеріїв на історію (мінімум 3)
+[ ok ] Рядок RTM для кожної історії
+[info] FR, на які не посилається жодна історія: FR-015, FR-068
+[info] NFR, на які не посилається жодна історія: MAINT-001, MAINT-002, PORT-001, SEC-003
+
+Порушень немає.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/check_traceability.py
+Простежуваність «вимога ↔ тест» (Лаб 7)
+rtm.md: US 14, FR 44, NFR 13, похідних 17, винятків 6; тест-кейсів плану: 13; тестів: 424 у 58 файлах
+
+[ ok ] Файли тестів розбираються, мітки записано літералами
+[ ok ] Тести без жодної вимоги
+[ ok ] Мітки з ID, яких немає в rtm.md чи в плані
+[ ok ] Вимоги без жодного тесту і без винятку в rtm.md
+[ ok ] Винятки, на які вже є тест (приберіть виняток)
+[ ok ] Винятки без способу перевірки чи причини
+[ ok ] Стовпець «Тести» rtm.md: тест-кейси, яких немає в плані
+
+[info] Покрито тестами: 68 з 74 вимог; свідомих винятків: 6
+
+Порушень немає.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/release.py check
+[ ok ] Метадані релізу: pyproject.toml і CHANGELOG.md — 0.1.0
+EXIT=0
+.\.venv\Scripts\ruff.exe check src tests scripts
+All checks passed!
+EXIT=0
+.\.venv\Scripts\ruff.exe format --check src tests scripts
+160 files already formatted
+EXIT=0
+.\.venv\Scripts\bandit.exe -q -c pyproject.toml -r src scripts
+[manager]	WARNING	Test in comment: starts is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: only is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: the is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: local is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: API is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: with is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: no is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: shell is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: executable is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: module is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: port is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: is is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: an is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OS is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: assigned is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: integer is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: fixed is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OS is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: utility is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: own is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: Popen is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: PID is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: empty is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OpenAPI is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: placeholder is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: a is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: credential is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: empty is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: OpenAPI is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: placeholder is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: not is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: a is not a test name or id, ignoring
+[manager]	WARNING	Test in comment: credential is not a test name or id, ignoring
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:75
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:76
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:77
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:76
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:78
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:79
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:78
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:79
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:80
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:118
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:119
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:120
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:119
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:121
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:121
+[tester]	WARNING	nosec encountered (B105), but no failed test on file src\api\routers\auth.py:122
+EXIT=0
+.\.venv\Scripts\lint-imports.exe
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 118 files, 494 dependencies.
+-------------------------------------
+
+unislot modules do not import the REST API package (HLD 6, rule 1) KEPT
+Domain layers and platform errors stay free of web framework and ORM (HLD 6, 9)KEPT
+
+Contracts: 2 kept, 0 broken.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/export_openapi.py --check
+[ ok ] openapi-generated.yaml і errors.html збігаються з кодом.
+EXIT=0
+.\.venv\Scripts\python.exe scripts/check_architecture.py --strict
+[ ok ] Обов'язкові артефакти Лаб 3
+[ ok ] Діаграми PlantUML (7 файлів)
+[skip] Синтаксис PlantUML: передайте --plantuml шлях/до/plantuml.jar
+[ ok ] Рядки матриці: заповненість і канонічні компоненти
+[ ok ] Кожна FR і NFR має рядок у матриці
+[ ok ] Кожен компонент HLD §4 (12) покриває вимогу
+[ ok ] Зворотна матриця збігається з прямою
+[ ok ] Посилання на неіснуючі ID
+[ ok ] Модель загроз (13 загроз)
+[ ok ] ADR (3)
+[ ok ] Сценарії атрибутів якості (4)
+[ ok ] Модель даних: PK, персональні дані, опис сутностей
+[ ok ] Розділ «Використання ШІ» і посилання з README
+[ ok ] Місця для автора ‹…› заповнено
+
+Вимог у матриці: 57 з 57 · компонентів: 12 · діаграм: 7 · ADR: 3 · загроз: 13 · QAS: 4
+Порушень немає.
+EXIT=0
