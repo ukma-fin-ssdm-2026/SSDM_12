@@ -240,3 +240,31 @@ jobs:
       # --strict: незаповнені місця «‹…›» у нотатках ШІ — порушення (статут §8.3).
       - name: Check architecture artifacts and diagram syntax (Lab 3)
         run: python scripts/check_architecture.py --plantuml "$env:PLANTUML_JAR" --strict
+
+  reliability:
+    name: reliability
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONIOENCODING: utf-8
+      UNISLOT_DATABASE_URL: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install test dependencies
+        run: |
+          python -m venv .venv
+          if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
+          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
+          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
+          .\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Test dependency installation failed' }
+      - name: Run reliability tests
+        run: |
+          .\.venv\Scripts\python.exe -m pytest -q tests/reliability
+          if ($LASTEXITCODE -ne 0) { throw 'Reliability tests failed' }
