@@ -176,27 +176,34 @@ jobs:
 
       # Use ASCII source and Unicode escapes for Windows PowerShell 5.1 scripts.
       # Literal placeholder markers containing only spaces or an ellipsis are allowed.
-      - name: Check author slots are filled in docs/api (Lab 4)
+      - name: Check author slots are filled in docs/api, docs/refactoring and CHANGELOG.md (Lab 4, Lab 8)
         run: |
           @'
           import re
           import sys
           from pathlib import Path
 
-          pattern = re.compile(r"\u2039(?![\s\u2026]*\u203a)")
+          # An unfilled slot is either a marker with words inside or a stub line
+          # "Zapovniuie @<user>" (Ukrainian, escaped below) left in the Lab 8 report.
+          pattern = re.compile(
+              r"\u2039(?![\s\u2026]*\u203a)|\u0417\u0430\u043f\u043e\u0432\u043d\u044e\u0454 @"
+          )
           matches = [
               f"{path.as_posix()}:{number}: {line.strip()}"
-              for path in sorted(Path("docs/api").glob("*.md"))
+              for path in sorted(
+                  [*Path("docs/api").glob("*.md"), *Path("docs/refactoring").glob("*.md"),
+                   Path("CHANGELOG.md")]
+              )
               for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
               if pattern.search(line)
           ]
           if matches:
               print("\n".join(matches))
-              print("::error::Fill author placeholders in docs/api before merging.")
+              print("::error::Fill author placeholders before merging.")
               sys.exit(1)
-          print("[ ok ] No unfilled author placeholders in docs/api.")
+          print("[ ok ] No unfilled author placeholders in docs/api, docs/refactoring, CHANGELOG.md.")
           '@ | .\.venv\Scripts\python.exe -
-          if ($LASTEXITCODE -ne 0) { throw 'Unfilled author placeholders in docs/api' }
+          if ($LASTEXITCODE -ne 0) { throw 'Unfilled author placeholders in docs' }
 
       - name: Set up Java for PlantUML
         uses: actions/setup-java@v4
