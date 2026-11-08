@@ -36,9 +36,9 @@
 
 - `scripts/check_architecture.py --plantuml` приймає лише наявний файл `*.jar`: раніше значення
   без перевірки потрапляло в `java -jar` (знахідка SonarQube Cloud «Command Argument
-  Injection», #‹PR S-2/S-3›).
+  Injection», #287).
 - `scripts/export_openapi.py --out-dir` пише лише всередині репозиторію: раніше `../..`
-  створював каталоги й переписував файли поза ним (знахідка «Path Traversal», #‹PR S-2/S-3›).
+  створював каталоги й переписував файли поза ним (знахідка «Path Traversal», #287).
 
 ## [0.1.0] - 2026-11-05
 
