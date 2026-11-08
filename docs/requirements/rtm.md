@@ -184,6 +184,7 @@ ID не змінено: це ті самі QA-xx і THR-xx, що й у джер�
 | QA-18 | [`sonarcloud-report.md`](../refactoring/sonarcloud-report.md) §5, R-1 | `scripts/check_architecture.py` дає той самий вивід і код виходу до й після рефакторингу: кожна з 12 перевірок і обидві гілки кожної зафіксовані характеризаційними тестами | безпечний рефакторинг модуля без тестів (Лаб 8, бонус 2) | — |
 | QA-19 | [`CHANGELOG.md`](../../CHANGELOG.md), `scripts/release.py` | Номер версії однаковий у `pyproject.toml`, першому релізі `CHANGELOG.md` і тегу `vX.Y.Z`; журнал — за Keep a Changelog; `refactor`, `fix` і `perf` дають PATCH, `feat` — MINOR, несумісна зміна — MAJOR (поки 0.y.z — MINOR) | керування релізами й журнал змін (Лаб 8, ПРН11) | — |
 | QA-20 | [`sonarcloud-report.md`](../refactoring/sonarcloud-report.md) §6, `scripts/regression_compare.py` | Регресійне порівняння двох прогонів pytest: зниклий тест, тест, що проходив і впав чи пропущений, або будь-яке падіння «після» — порушення; нові тести лише перелічуються | доказ незмінної поведінки після рефакторингу (Лаб 8) | — |
+| QA-21 | `scripts/check_readiness.py`, `tests/reliability/test_postgres_readiness.py` | Перевірка PostgreSQL через SELECT 1 має тайм-аут на спробу, обмежені повтори з full jitter та повертає окремі коди стану | Лаб 9, бонуси 1 і 2 | — |
 
 
 | THR-09 | [`threat-model.md`](../architecture/threat-model.md) | журнал доступу не містить ідентифікаторів зі шляху запиту (CWE-532) | C-002, C-003 | — |
