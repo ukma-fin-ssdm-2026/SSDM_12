@@ -331,7 +331,7 @@ TOKEN = os.environ.get("UNISLOT_MCP_TOKEN", "demo-student")
 | R-02 | логування, збереження першопричини, вузькі коди | `src/api/infrastructure/outbox.py` | `tests/reliability/test_dispatch_diagnostics.py` |
 | R-05 | guard clause | `src/api/infrastructure/unit_of_work.py` | — (страховка, `pragma: no cover`) |
 | R-07 | fallback-логіка (експоненційний відступ) | `scripts/run_worker.py` | `tests/reliability/test_worker_backoff.py` |
-| R-08 | fallback-логіка, вузький catch, логування | `src/api/main.py` | `tests/unit/test_startup_degradation.py` |
+| R-08 | fallback-логіка, вузький catch, логування | `src/api/main.py` | `tests/reliability/test_startup_degradation.py` |
 
 ### 4.1 R-01 → `_bounded_int()` і таблиця меж
 
