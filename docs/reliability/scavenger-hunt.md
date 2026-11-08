@@ -328,7 +328,7 @@ TOKEN = os.environ.get("UNISLOT_MCP_TOKEN", "demo-student")
 | Знахідка | Застосована техніка | Файл | Тест |
 |---|---|---|---|
 | R-01 | guard clause, перевірка входу, безпечне значення | `src/api/config.py` | `tests/reliability/test_config_env_validation.py` |
-| R-02 | логування, збереження першопричини, вузькі коди | `src/api/infrastructure/outbox.py` | `tests/unit/test_dispatch_diagnostics.py` |
+| R-02 | логування, збереження першопричини, вузькі коди | `src/api/infrastructure/outbox.py` | `tests/reliability/test_dispatch_diagnostics.py` |
 | R-05 | guard clause | `src/api/infrastructure/unit_of_work.py` | — (страховка, `pragma: no cover`) |
 | R-07 | fallback-логіка (експоненційний відступ) | `scripts/run_worker.py` | `tests/unit/test_worker_backoff.py` |
 | R-08 | fallback-логіка, вузький catch, логування | `src/api/main.py` | `tests/reliability/test_startup_degradation.py` |
