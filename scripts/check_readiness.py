@@ -53,6 +53,7 @@ def _postgres_conninfo() -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Виконує перевірку готовності PostgreSQL і повертає код завершення CLI."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--env-file", type=Path, help="Файл середовища в корені або підпапці проєкту"
