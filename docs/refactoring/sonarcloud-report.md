@@ -12,12 +12,12 @@ Conventional Commits. Ролі — статут §2.6.
 | | Цикл 1 (26.10) | Цикл 2 (`v0.1.0` → `v0.1.1`) |
 |---|---|---|
 | Стан «до» | гілка `pre-refactor` = `3d4c833` | тег `v0.1.0` = `783b757ec4cb46ded290fa407a7eded38e98c750` (#281) |
-| Стан «після» | `7474881` (після #196, #197) | тег `v0.1.1` = ‹SHA злиття релізного PR› |
+| Стан «після» | `7474881` (після #196, #197) | тег `v0.1.1` = `2939ff78789acf2ff305f6dab0778b8d19b2f446` (#292) |
 | Рефакторинги | 3 — усі @NykytaBabakov (агент Claude) | 4 — по одному від кожного учасника, §5 |
 | Найскладніша функція (когнітивна складність, локально) | 23 → 12 у `src/` (у `scripts/` лишалася `check_architecture.main` = 146) | 146 → 44 |
 | Функцій зі складністю > 15 (поріг правила S3776) | у `src/`: 1 → 0 | у `src/` і `scripts/`: 13 → 9 |
 | Регресія | 222 passed до і після | §6 |
-| Security Rating | E (див. §3 р. 1) | ‹до› → ‹після›, §3 |
+| Security Rating | E (див. §3 р. 1) | E → E, §3 |
 
 ---
 
@@ -32,7 +32,7 @@ Conventional Commits. Ролі — статут §2.6.
 | Quality Gate | `Sonar way`: на новому коді Security, Reliability і Maintainability Rating ≤ A; coverage ≥ 80%; duplicated lines ≤ 3%; reviewed security hotspots ≥ 100%. Це налаштовані умови; фактичний аналіз покриття через Automatic Analysis не налаштовано |
 | Період нового коду | `sonar.leak.period=previous_version`, успадковано від інстансу; поточний `leakPeriodDate=2026-10-25T18:45:46+0000`, версія аналізу — `not provided`. `pyproject.toml` із версією продукту не передає її автоматично аналізатору |
 | Коміт «до» (цикл 2) | `v0.1.0` → `783b757ec4cb46ded290fa407a7eded38e98c750`; аналіз `3ade4593-180f-4e37-9e68-c7737894ea3b`, 05.11.2026 16:16:09 за Києвом (14:16:09 UTC) |
-| Коміт «після» (цикл 2) | Заповнює @dysett: SHA тегу `v0.1.1` і дата аналізу з Activity |
+| Коміт «після» (цикл 2) | `v0.1.1` → `2939ff78789acf2ff305f6dab0778b8d19b2f446`; аналіз `a925e514-7837-4dcf-8be5-46e1e5afff91`, 07.11.2026 15:11:31 за Києвом (13:11:31 UTC) |
 
 **Чому «до» знімаємо заново.** Метрики циклу 1 (§4) зняті на `3d4c833` 26.10. Після нього
 в `main` прийшли PostgreSQL, паролі, вебінтерфейс, сповіщення й журнал аудиту (#243 —
@@ -45,20 +45,27 @@ Conventional Commits. Ролі — статут §2.6.
 Стовпець «До» відновлено 06.11.2026 з історії **Overall Code** гілки `main` саме для аналізу
 коміту тегу `v0.1.0`: `project_analyses/search` зв'язує дату з SHA, а
 `measures/search_history` повертає значення на цю дату. Сирі значення, ідентифікатор аналізу й
-посилання на API — [before-sonarcloud.json](evidence/before-sonarcloud.json). «Після»
-заповнюється в PR-13 після релізу `v0.1.1`. Скриншоти поточного стану до R-2 — §9;
-вони не видаються за скриншоти панелі на старому коміті.
+посилання на API — [before-sonarcloud.json](evidence/before-sonarcloud.json). Стовпець
+«Після» знято з **Overall Code** аналізу коміту релізного тегу `v0.1.1`; SHA, час,
+відповіді API та відкриті знахідки збережено в
+[after-sonarcloud.json](evidence/after-sonarcloud.json). Скриншоти до R-2 та на релізному
+коміті наведено в §9; перші не видаються за історичну панель на `v0.1.0`.
 
 | Показник | До (`v0.1.0`) | Після (`v0.1.1`) | Джерело в панелі |
 |---|---|---|---|
-| Code Smells (Maintainability issues) | 0 | Заповнює @dysett | Overview → Maintainability |
-| Maintainability Rating | A (`sqale_rating=1.0`) | Заповнює @dysett | Overview → Maintainability |
-| Technical Debt | 0 хв | Заповнює @dysett | Measures → Maintainability → Technical Debt |
-| Duplicated Lines (%) | 0.0% | Заповнює @dysett | Overview → Duplications |
-| Reliability Rating | E (`reliability_rating=5.0`), 1 bug | Заповнює @dysett | Overview → Reliability |
-| **Security Rating** | E (`security_rating=5.0`), 3 vulnerabilities | Заповнює @dysett | Overview → Security, §3 |
-| Довідково: Cognitive Complexity (сума) | 1532 | Заповнює @dysett | Measures → Complexity |
-| Довідково: Lines of Code | 10 210 | Заповнює @dysett | Overview |
+| Code Smells (Maintainability issues) | 0 | 0 | Overview → Maintainability |
+| Maintainability Rating | A (`sqale_rating=1.0`) | A (`sqale_rating=1.0`) | Overview → Maintainability |
+| Technical Debt | 0 хв | 0 хв | Measures → Maintainability → Technical Debt |
+| Duplicated Lines (%) | 0.0% | 0.0% | Overview → Duplications |
+| Reliability Rating | E (`reliability_rating=5.0`), 1 bug | E (`reliability_rating=5.0`), 1 bug | Overview → Reliability |
+| **Security Rating** | E (`security_rating=5.0`), 3 vulnerabilities | E (`security_rating=5.0`), 3 vulnerabilities | Overview → Security, §3 |
+| Довідково: Cognitive Complexity (сума) | 1532 | 1512 | Measures → Complexity |
+| Довідково: Lines of Code | 10 210 | 10 367 | Overview |
+
+Сума Cognitive Complexity у SonarQube знизилася на 20 пунктів, приблизно на 1,3%.
+Три показники, обрані в §2.1, залишилися без змін: Reliability — E, Technical Debt і
+Code Smells — нуль. Ці дані не підтверджують їхнього покращення. Значення SonarQube не
+ототожнюємо з окремим локальним виміром `complexipy` у §2.2.
 
 ### 2.1. Три показники, які покращуємо
 
@@ -126,6 +133,15 @@ complexipy src scripts --plain --sort desc --top 15
 FastAPI містить `summary`, генерація OpenAPI й API-тести проходять; ця знахідка не входить
 до Security Rating і її статус у цьому PR не змінено.
 
+**Після релізу `v0.1.1`**, аналіз `2939ff7` від 07.11.2026 15:11:31 за Києвом,
+панель усе ще показує **Security Rating E і три відкриті Security-знахідки** з тими
+самими ключами S-1, S-2 і S-3. Після PR #287 захисні зміни наявні в `main`, але
+SonarQube не позначив S-2 і S-3 закритими. Причину збереження цих сповіщень не
+встановлено: необхідні повторний огляд і рішення в панелі. Окрема Reliability-знахідка
+`python:S930` також лишається `Open`, тепер на `src/api/main.py:135`.
+[Стан API та ключі знахідок](evidence/after-sonarcloud.json),
+[скриншоти](#9-скриншоти-до-і-після).
+
 ### 3.2. Рішення щодо кожної знахідки
 
 - **S-1 — висновок огляду: хибне спрацювання щодо витоку приватного секрету.** Поле `action`
@@ -139,13 +155,15 @@ FastAPI містить `summary`, генерація OpenAPI й API-тести �
   позначити знахідку `False Positive` з підготовленим
   [коментарем](evidence/sonar-s1-false-positive-comment.md). Зміна статусу не заявляється
   виконаною.
-- **S-2 — виправлено в коді гілки PR-7.** `plantuml_jar` приймає лише наявний файл із
+- **S-2 — захисну перевірку з PR-7 злито в #287, знахідка в SonarQube досі `Open`.**
+  `plantuml_jar` приймає лише наявний файл із
   розширенням `.jar` і повертає абсолютний шлях. Значення `-version`, неіснуючий JAR і
   не-JAR відхиляються `argparse` з кодом 2 до виклику Java; це перевіряє
   `test_plantuml_argument_must_be_an_existing_jar_file`. Це перевірка форми аргументу,
   а не довіри до вмісту будь-якого JAR: у CI артефакт окремо перевіряється за закріпленою
   SHA-256 перед виконанням.
-- **S-3 — виправлено в коді гілки PR-7.** `output_directory` канонізує аргумент через
+- **S-3 — захисну перевірку з PR-7 злито в #287, знахідка в SonarQube досі `Open`.**
+  `output_directory` канонізує аргумент через
   `resolve()` і вимагає `is_relative_to(REPO_ROOT)`. Батьківський каталог, стороння гілка
   та корінь диска відхиляються з кодом 2 до створення застосунку чи запису файлів.
   `test_cli_refuses_an_output_directory_outside_the_repository` також перевіряє, що
@@ -154,7 +172,7 @@ FastAPI містить `summary`, генерація OpenAPI й API-тести �
 
 Обидві зміни — `fix(security)`, оскільки змінюють дозволені аргументи CLI. Скрипт релізу
 `scripts/release.py::_category` відносить такі коміти до `Security`; фактичний запис у
-`CHANGELOG.md` сформує релізний PR-11. Версію продукту й журнал у цьому PR не змінено.
+`CHANGELOG.md` сформував релізний PR #292.
 
 **Характеризаційний тест R-1.** Після першого виправлення зі старим файлом тестів отримано
 `1 failed, 15 passed`: `test_plantuml_syntax_check_runs_java_and_filters_its_noise` передавав
@@ -192,16 +210,14 @@ FastAPI містить `summary`, генерація OpenAPI й API-тести �
 
 ### 3.4. MAINT-002 і TC-071
 
-**Security Rating A на `main` поки не підтверджено:** останній перевірений аналіз `fefa9b6`
-має E. Виправлення S-2/S-3 у цій гілці перевірено тестами, але стан знахідок на `main`
-потрібно повторно зняти після злиття й нового аналізу. S-1 потребує рішення в панелі.
-Стовпці «Після» і кінцевий висновок MAINT-002 заповнюються в PR-13 після `v0.1.1`.
+**MAINT-002 / TC-071 не досягнуто:** потрібен Security Rating A, тоді як релізний
+аналіз `2939ff7` показує E. Обидва вимірювання й звіт до/після збережено, але це не
+замінює необхідного рейтингу. S-1, S-2 і S-3 залишаються відкритими в панелі й потребують
+подальшого розгляду; стан `False Positive` чи `Fixed` цим PR не змінюється.
 
-Виняток MAINT-002 у `rtm.md` §7 збережено: рейтинг зовнішнього сервісу не стає pytest-тестом
-навіть при досягненні A. Після підтвердження результату потрібно оновити посилання на
-вимірювання у стовпці «Чим перевіряється зараз». TC-071 вимагає обох звітів; готовність
-остаточного «після» цим PR не заявляється. Issue #277 охоплює PR-7 і PR-13 та лишається
-відкритим до завершення цих вимірювань.
+Виняток MAINT-002 у `rtm.md` §7 збережено: рейтинг зовнішнього сервісу не є pytest-тестом.
+У стовпці поточного способу перевірки додано посилання на релізний вимір. Issue #277
+залишається відкритим для розв'язання відкритих знахідок і вимоги рейтингу A.
 
 ---
 
@@ -475,7 +491,20 @@ python scripts/regression_compare.py before.xml after.xml
 панелі: Cognitive Complexity 1532, ncloc 10 210 (у поточному аналізі — 1512 і 10 263).
 Відповідність SHA, дати й чисел перевіряється за
 [before-sonarcloud.json](evidence/before-sonarcloud.json), де також є джерела API.
-Скриншоти `after-*.png` і метрики релізу `v0.1.1` додаються в PR-13.
+
+Панель **після** знято 07.11.2026, коли Summary показувала останній аналіз коміту
+`2939ff7` з тегу `v0.1.1`:
+
+- [after-overview.jpg](img/after-overview.jpg) — Overall Code, SHA `2939ff78`, Security E,
+  Reliability E, Maintainability A, 0,0% дублювання та Quality Gate Passed.
+- [after-security.jpg](img/after-security.jpg) — фільтр Security і загальна кількість
+  трьох відкритих знахідок.
+- [after-issues.jpg](img/after-issues.jpg) — кількість чотирьох відкритих знахідок
+  Security і Reliability та верхня частина списку.
+- [after-measures.jpg](img/after-measures.jpg) — Cognitive Complexity 1512.
+
+Первинні значення, аналіз на SHA тегу й усі чотири ключі знахідок —
+[after-sonarcloud.json](evidence/after-sonarcloud.json). Знімки збережено у форматі JPEG.
 
 ---
 
@@ -490,7 +519,24 @@ python scripts/regression_compare.py before.xml after.xml
 
 ### Бонус 1. Quality Gate як обов'язкова перевірка PR — @dysett
 
-Не заявлено.
+- **Налаштування:** активний [ruleset `main-protection`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/rules/23189404)
+  вимагає `build` і `SonarCloud Code Analysis` для `main`;
+  [скриншот](img/ruleset-required-checks.jpg).
+- **RED:** демонстраційний [PR #289](https://github.com/ukma-fin-ssdm-2026/SSDM_12/pull/289),
+  коміт [`3969c24`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/commit/3969c244d8c28e22d165b1846d4079e95250f3c8),
+  викликав функцію з двома параметрами із зайвим аргументом (`python:S930`).
+  [Build пройшов](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42220630576/job/127901487519),
+  а [обов'язковий Quality Gate впав](https://github.com/ukma-fin-ssdm-2026/SSDM_12/runs/127901656779):
+  Reliability Rating нового коду — E замість потрібного A. Кнопка злиття була неактивною,
+  [скриншот](img/qg-blocked.jpg); окремою умовою злиття також була рецензія.
+- **GREEN:** коміт [`1932688`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/commit/193268852a92f184de97c4c72d9f8763786245fd)
+  прибрав зайвий аргумент; [Quality Gate пройшов](https://github.com/ukma-fin-ssdm-2026/SSDM_12/runs/127910778413),
+  [build пройшов](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42223375578/job/127910627201),
+  [скриншот](img/qg-passed.jpg). PR #289 закрито без злиття демонстраційного файлу.
+- **Значення перевірки:** порушення порогу Quality Gate є самостійною перешкодою для злиття,
+  навіть коли `build` зелений. Зелений Quality Gate оцінює умови нового коду і сам по собі
+  не підтверджує Security Rating A для всього коду (§3.4).
+- **Відео:** пояснення бонусу заплановано у відео Лаб 8 @dysett; посилання ще не додано.
 
 ### Бонус 2. Характеризаційні тести до рефакторингу — @NykytaBabakov
 
@@ -540,4 +586,7 @@ python scripts/regression_compare.py before.xml after.xml
 - **Додано в PR-7:** чернетки обох виправлень і тестів із пакета команди — Claude; застосування,
   звірка, локальні прогони, перевірка CLI та заповнення §3 із фактичних даних — Codex.
   Очікуване падіння характеризаційного тесту збережено; зміни його очікувань пояснено явно.
-- **Не заповнено цим PR:** результати релізу `v0.1.1`, стовпець «Після», висновки §10.
+- **Додано в PR-13:** Codex зібрав і зіставив відкриті дані SonarQube для коміту тегу
+  `v0.1.1`, зберіг скриншоти панелі та фактичні RED/GREEN перевірки PR #289 і доповнив
+  §0–§3, §9 та бонус 1. Значення E і відкриті знахідки наведено без зміни статусу в панелі.
+  Відео й підсумкові висновки §10 мають окремих відповідальних.

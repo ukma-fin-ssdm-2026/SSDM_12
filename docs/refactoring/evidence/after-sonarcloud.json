@@ -1,0 +1,71 @@
+{
+  "recorded_at": "2026-11-07T15:22:29+02:00",
+  "release": {
+    "tag": "v0.1.1",
+    "analysis_key": "a925e514-7837-4dcf-8be5-46e1e5afff91",
+    "analysis_date": "2026-11-07T13:11:31+0000",
+    "measures": {
+      "reliability_rating": "5.0",
+      "duplicated_lines_density": "0.0",
+      "cognitive_complexity": "1512",
+      "bugs": "1",
+      "vulnerabilities": "3",
+      "sqale_index": "0",
+      "sqale_rating": "1.0",
+      "security_rating": "5.0",
+      "ncloc": "10367",
+      "code_smells": "0"
+    },
+    "commit_short": "2939ff7",
+    "commit_url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/commit/2939ff78789acf2ff305f6dab0778b8d19b2f446"
+  },
+  "open_issues": [
+    {
+      "key": "AaF0YmGQ7GRUxAPzGZBX",
+      "rule": "pythonsecurity:S8705",
+      "status": "OPEN",
+      "type": "VULNERABILITY",
+      "severity": "MAJOR",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:scripts/check_architecture.py",
+      "line": 151,
+      "message": "Command Argument Injection via faulty LLM-supplied CLI arguments in check_architecture.plantuml_syntax_errors()"
+    },
+    {
+      "key": "AaF0YmGI7GRUxAPzGZBW",
+      "rule": "python:S930",
+      "status": "OPEN",
+      "type": "BUG",
+      "severity": "BLOCKER",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/main.py",
+      "line": 135,
+      "message": "Remove this unexpected named argument 'summary'."
+    },
+    {
+      "key": "AaF0YmGD7GRUxAPzGZBU",
+      "rule": "pythonsecurity:S8707",
+      "status": "OPEN",
+      "type": "VULNERABILITY",
+      "severity": "MAJOR",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/openapi_export.py",
+      "line": 71,
+      "message": "Path Traversal via faulty LLM-supplied CLI arguments in openapi_export.write_artifacts()"
+    },
+    {
+      "key": "AaF0YmGH7GRUxAPzGZBV",
+      "rule": "secrets:S8217",
+      "status": "OPEN",
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "component": "ukma-fin-ssdm-2026_SSDM_12:src/api/errors.py",
+      "line": 182,
+      "message": "Make sure this Bearer Authentication token gets revoked, changed, and removed from the code."
+    }
+  ],
+  "sources": {
+    "analyses": "https://sonarcloud.io/api/project_analyses/search?project=ukma-fin-ssdm-2026_SSDM_12&ps=15",
+    "history": "https://sonarcloud.io/api/measures/search_history?component=ukma-fin-ssdm-2026_SSDM_12&metrics=code_smells%2Csqale_rating%2Csqale_index%2Cduplicated_lines_density%2Creliability_rating%2Csecurity_rating%2Cncloc%2Ccognitive_complexity%2Cbugs%2Cvulnerabilities&ps=30",
+    "issues": "https://sonarcloud.io/api/issues/search?componentKeys=ukma-fin-ssdm-2026_SSDM_12&resolved=false&ps=100",
+    "summary": "https://sonarcloud.io/summary/overall?id=ukma-fin-ssdm-2026_SSDM_12&branch=main"
+  },
+  "limitations": "Issue status is a point-in-time observation. Quality Gate on new code and ratings on overall code are separate; no coverage data was imported into SonarQube Cloud."
+}
