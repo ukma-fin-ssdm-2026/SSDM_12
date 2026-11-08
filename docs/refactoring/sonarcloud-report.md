@@ -551,7 +551,7 @@ python scripts/regression_compare.py before.xml after.xml
   git fetch --tags
   git cat-file -t v0.1.1                                  # tag — отже анотований
   python scripts/release.py version                        # 0.1.1
-  git show v0.1.1:CHANGELOG.md | grep -m1 '^## \[0'        # ## [0.1.1] - ‹дата›
+  git show v0.1.1:CHANGELOG.md | grep -m1 '^## \[0'        # ## [0.1.1] - 2026-11-06
   python scripts/release.py check --tags <(git tag --list 'v*')
   ```
 
