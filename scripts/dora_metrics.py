@@ -995,6 +995,22 @@ def safe_output(path: Path) -> Path:
     return target
 
 
+def write_report(path: Path, content: str) -> None:
+    """Записує звіт у дозволеному каталозі без переходу за symlink файлу."""
+    target = safe_output(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target = safe_output(target)
+
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW
+    try:
+        fd = os.open(target, flags, 0o600)
+    except OSError as error:
+        raise ApiError(f"не вдалося відкрити файл: {path}: {error}") from error
+
+    with os.fdopen(fd, "w", encoding="utf-8") as stream:
+        stream.write(content)
+
+
 def unique_prefix(shas: Iterable[str], minimum: int = SHORT_SHA) -> int:
     """Найкоротша довжина префікса (не менше minimum), за якої всі SHA різні — як у git."""
     values = set(shas)
@@ -1016,9 +1032,7 @@ def save_dataset(path: Path, runs: Sequence[Run], meta: dict) -> None:
         data = asdict(run)
         data["sha"] = run.sha[:length]
         payload["runs"].append(data)
-    target = safe_output(path)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    write_report(path, json.dumps(payload, ensure_ascii=False, indent=1) + "\n")
 
 
 def load_dataset(path: Path) -> tuple[list[Run], dict]:
@@ -1097,16 +1111,12 @@ def main(argv: list[str] | None = None, *, transport: Callable[[str], object] | 
             meta["title"] = args.title
         result = compute(runs, since, until, step_pattern=args.step_pattern)
         if args.out:
-            target = safe_output(args.out)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(render(result, meta), encoding="utf-8")
+            write_report(args.out, render(result, meta))
         if args.json:
-            target = safe_output(args.json)
-            target.parent.mkdir(parents=True, exist_ok=True)
             payload = {"meta": meta, "metrics": {k: v for k, v in result.items() if k != "rows"}}
-            target.write_text(
+            write_report(
+                args.json,
                 json.dumps(payload, ensure_ascii=False, indent=1, default=str) + "\n",
-                encoding="utf-8",
             )
     except (ApiError, re.error, KeyError, ValueError) as error:
         print(f"Помилка: {error}", file=sys.stderr)

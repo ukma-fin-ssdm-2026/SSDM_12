@@ -447,3 +447,71 @@ def test_cli_refuses_to_write_outside_the_repository(tmp_path, monkeypatch):
     dm.save_dataset(tmp_path / "d.json", [run(1, 0)], meta)
     assert dm.main(["--from-dataset", "d.json", "--out", "../outside.md"]) == 2
     assert not (tmp_path.parent / "outside.md").exists()
+
+@pytest.mark.parametrize("option", ["--out", "--json"])
+def test_cli_rejects_output_path_traversal(tmp_path, monkeypatch, option):
+    monkeypatch.chdir(tmp_path)
+    meta = {
+        "repo": "a/b",
+        "branch": "main",
+        "event": "push",
+        "workflows": ["CI"],
+        "since": dm.iso(WEEK[0]),
+        "until": dm.iso(WEEK[1]),
+    }
+    dm.save_dataset(tmp_path / "d.json", [run(1, 0)], meta)
+
+    target = tmp_path.parent / "outside-dora-test.json"
+    assert dm.main([
+        "--from-dataset", "d.json",
+        option, "../outside-dora-test.json",
+    ]) == 2
+    assert not target.exists()
+
+
+def test_dataset_rejects_path_traversal(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(dm.ApiError):
+        dm.save_dataset(tmp_path / "../outside-dora-test.json", [], {})
+
+
+def test_loading_dataset_rejects_path_traversal(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(dm.ApiError):
+        dm.load_dataset(tmp_path / "../outside-dora-test.json")
+
+
+def test_output_rejects_symlink_escape(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    outside = tmp_path.parent
+    (tmp_path / "external").symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(dm.ApiError):
+        dm.safe_output(tmp_path / "external" / "outside-dora-test.json")
+
+
+def test_write_report_rejects_symlink_inserted_after_validation(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    outside = tmp_path.parent / f"{tmp_path.name}-outside-report.txt"
+    outside.write_text("original", encoding="utf-8")
+
+    target = tmp_path / "report.txt"
+    original_safe_output = dm.safe_output
+    calls = 0
+
+    def insert_symlink(path):
+        nonlocal calls
+        result = original_safe_output(path)
+        calls += 1
+        if calls == 2:
+            target.symlink_to(outside)
+        return result
+
+    monkeypatch.setattr(dm, "safe_output", insert_symlink)
+
+    try:
+        with pytest.raises(dm.ApiError):
+            dm.write_report(target, "changed")
+        assert outside.read_text(encoding="utf-8") == "original"
+    finally:
+        outside.unlink(missing_ok=True)
