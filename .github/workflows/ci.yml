@@ -63,14 +63,16 @@ jobs:
       # Версії закріплено: інакше згенерована специфікація залежала б від машини.
       # pip-audit знайшов 4 вразливості в самому pip 26.0.1, який ставить python -m venv
       # (PYSEC-2026-196, -2875, -2876, -3721). Усі виправлені у 26.2 — звідси нижня межа.
-      - name: Install API dependencies (Lab 4)
+      # Lab 10, bonus 2: the runner is persistent, so the environment is built once per
+      # dependency set (key = Python + pip spec + requirements files) and reused while the
+      # key is unchanged. Cache lives outside the workspace, separately for push and PR runs.
+      - name: Install API dependencies (Lab 4; cached venv, Lab 10)
+        env:
+          PYTHONIOENCODING: utf-8
+          EVENT: ${{ github.event_name }}
         run: |
-          python -m venv .venv
-          if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
-          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
-          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
-          .\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
-          if ($LASTEXITCODE -ne 0) { throw 'API dependency installation failed' }
+          python scripts/ci_venv.py --requirements requirements-testing.txt --pip "pip>=26.2" --root "$env:RUNNER_TOOL_CACHE\ssdm12-venv" --scope $env:EVENT --github-env
+          if ($LASTEXITCODE -ne 0) { throw 'Cached virtual environment is not ready' }
 
       - name: Verify PostgreSQL integration test prerequisites
         env:
@@ -90,7 +92,7 @@ jobs:
           print(version)
           if " 16." not in version:
               raise SystemExit("PostgreSQL 16 binaries required for integration tests")
-          '@ | .\.venv\Scripts\python.exe -
+          '@ | & "$env:VENV_DIR\Scripts\python.exe" -
           if ($LASTEXITCODE -ne 0) { throw 'Install PostgreSQL 16 or configure UNISLOT_POSTGRES_BIN on the runner' }
 
       # Lab 5 quality gates (charter 11.2). Static checks run before tests: they take seconds
@@ -98,17 +100,17 @@ jobs:
       # and .secrets.baseline; the same tools run locally in .pre-commit-config.yaml.
       - name: Lint with Ruff (Lab 5)
         run: |
-          .\.venv\Scripts\ruff.exe check src tests scripts --output-format=github
+          & "$env:VENV_DIR\Scripts\ruff.exe" check src tests scripts --output-format=github
           if ($LASTEXITCODE -ne 0) { throw 'Ruff found violations: run ruff check --fix locally' }
 
       - name: Check formatting with Ruff (Lab 5)
         run: |
-          .\.venv\Scripts\ruff.exe format --check src tests scripts
+          & "$env:VENV_DIR\Scripts\ruff.exe" format --check src tests scripts
           if ($LASTEXITCODE -ne 0) { throw 'Unformatted files: run ruff format src tests scripts' }
 
       - name: Security scan with Bandit (Lab 5)
         run: |
-          .\.venv\Scripts\bandit.exe -c pyproject.toml -r src scripts
+          & "$env:VENV_DIR\Scripts\bandit.exe" -c pyproject.toml -r src scripts
           if ($LASTEXITCODE -ne 0) { throw 'Bandit reported a security issue' }
 
       # Every tracked file is checked against the audited baseline: a new secret fails the
@@ -118,7 +120,7 @@ jobs:
         run: |
           $files = git ls-files
           if ($LASTEXITCODE -ne 0) { throw 'git ls-files failed' }
-          .\.venv\Scripts\detect-secrets-hook.exe --baseline .secrets.baseline $files
+          & "$env:VENV_DIR\Scripts\detect-secrets-hook.exe" --baseline .secrets.baseline $files
           $code = $LASTEXITCODE
           if ($code -eq 3) {
             Write-Host '::warning title=Secrets baseline::Line numbers are out of date; run detect-secrets scan --baseline .secrets.baseline and commit it'
@@ -126,16 +128,16 @@ jobs:
           }
           if ($code -ne 0) { throw 'Potential secret found: remove it, or audit a false positive in .secrets.baseline' }
 
-      # Audits the packages installed in .venv (application, test and analysis tools, pip)
+      # Audits the packages installed in the cached venv (application, test and analysis tools, pip)
       # and the MCP server dependencies. An accepted risk is passed as --ignore-vuln <ID>
       # together with a justification in docs/code-quality/static-analysis.md.
       - name: Audit dependencies with pip-audit (Lab 5)
         env:
           PYTHONIOENCODING: utf-8
         run: |
-          .\.venv\Scripts\pip-audit.exe --progress-spinner off
-          if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package installed in .venv' }
-          .\.venv\Scripts\pip-audit.exe --progress-spinner off -r requirements-mcp.txt
+          & "$env:VENV_DIR\Scripts\pip-audit.exe" --progress-spinner off
+          if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package installed in the venv' }
+          & "$env:VENV_DIR\Scripts\pip-audit.exe" --progress-spinner off -r requirements-mcp.txt
           if ($LASTEXITCODE -ne 0) { throw 'Vulnerable package in requirements-mcp.txt' }
 
       # Architecture fitness function (HLD 6): contracts in .importlinter.
@@ -144,14 +146,14 @@ jobs:
           PYTHONPATH: src
           PYTHONIOENCODING: utf-8
         run: |
-          .\.venv\Scripts\lint-imports.exe
+          & "$env:VENV_DIR\Scripts\lint-imports.exe"
           if ($LASTEXITCODE -ne 0) { throw 'Import contract broken: see HLD section 6' }
 
       # The build job remains the required PR check on the existing Windows runner.
       # Lab6 measured baseline supports a 90% gate over both api and unislot.
       - name: Run API tests with branch coverage
         run: |
-          .\.venv\Scripts\python.exe scripts/run_lab06.py
+          & "$env:VENV_DIR\Scripts\python.exe" scripts/run_lab06.py
           if ($LASTEXITCODE -ne 0) { throw 'API tests or coverage gate failed' }
 
       - name: Upload API coverage report
@@ -171,7 +173,7 @@ jobs:
       # Code-First: fail if the committed API docs differ from the generated files.
       - name: Check OpenAPI is generated from code (Lab 4)
         run: |
-          .\.venv\Scripts\python.exe scripts/export_openapi.py --check
+          & "$env:VENV_DIR\Scripts\python.exe" scripts/export_openapi.py --check
           if ($LASTEXITCODE -ne 0) { throw 'API docs differ from code. Run python scripts/export_openapi.py' }
 
       # Use ASCII source and Unicode escapes for Windows PowerShell 5.1 scripts.
@@ -202,7 +204,7 @@ jobs:
               print("::error::Fill author placeholders before merging.")
               sys.exit(1)
           print("[ ok ] No unfilled author placeholders in docs/api, docs/refactoring, CHANGELOG.md.")
-          '@ | .\.venv\Scripts\python.exe -
+          '@ | & "$env:VENV_DIR\Scripts\python.exe" -
           if ($LASTEXITCODE -ne 0) { throw 'Unfilled author placeholders in docs' }
 
       - name: Set up Java for PlantUML
@@ -256,15 +258,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Install test dependencies
+      # Lab 10, bonus 2: the same cached environment as in build (same key, same scope).
+      - name: Install test dependencies (cached venv, Lab 10)
+        env:
+          EVENT: ${{ github.event_name }}
         run: |
-          python -m venv .venv
-          if ($LASTEXITCODE -ne 0) { throw 'Virtual environment creation failed' }
-          .\.venv\Scripts\python.exe -m pip install --upgrade "pip>=26.2"
-          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
-          .\.venv\Scripts\python.exe -m pip install -r requirements-testing.txt
-          if ($LASTEXITCODE -ne 0) { throw 'Test dependency installation failed' }
+          python scripts/ci_venv.py --requirements requirements-testing.txt --pip "pip>=26.2" --root "$env:RUNNER_TOOL_CACHE\ssdm12-venv" --scope $env:EVENT --github-env
+          if ($LASTEXITCODE -ne 0) { throw 'Cached virtual environment is not ready' }
       - name: Run reliability tests
         run: |
-          .\.venv\Scripts\python.exe -m pytest -q tests/reliability
+          & "$env:VENV_DIR\Scripts\python.exe" -m pytest -q tests/reliability
           if ($LASTEXITCODE -ne 0) { throw 'Reliability tests failed' }
