@@ -168,14 +168,26 @@ def inside_repo(path: Path, *, must_exist: bool = False) -> Path:
     return target
 
 
-def run_suite(number: int, junit: Path, extra: list[str]) -> Repetition:
+def run_suite(number: int, junit: Path) -> Repetition:
     """Один повтор: окремий процес pytest із PYTHONHASHSEED = номер повтору."""
     env = dict(os.environ, PYTHONHASHSEED=str(number))
-    args = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
     started = time.monotonic()
+
     completed = subprocess.run(  # noqa: S603  # nosec B603
-        [*args, f"--junitxml={junit}", *extra], env=env, check=False
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            f"--junitxml={junit}",
+        ],
+        env=env,
+        check=False,
+        shell=False,
     )
+
     seconds = time.monotonic() - started
     results = outcomes(junit.read_text(encoding="utf-8")) if junit.is_file() else {}
     return Repetition(number, results, completed.returncode, seconds)
@@ -189,7 +201,6 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--from-junit", type=Path, nargs="+", help="готові JUnit XML")
     parser.add_argument("--out-dir", type=Path, default=Path("reports/flaky"))
     parser.add_argument("--commit", help="SHA для заголовка звіту")
-    parser.add_argument("pytest_args", nargs="*", help="додаткові аргументи pytest після --")
     args = parser.parse_args(argv)
     try:
         out_dir = inside_repo(args.out_dir)
@@ -204,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
             for number in range(1, args.repetitions + 1):
                 print(f"[flaky] повтор {number} з {args.repetitions}", flush=True)
                 junit = out_dir / f"run-{number}.xml"
-                reps.append(run_suite(number, junit, args.pytest_args))
+                reps.append(run_suite(number, junit))
         verdict = analyze(reps)
     except ValueError as error:
         print(f"Помилка: {error}", file=sys.stderr)

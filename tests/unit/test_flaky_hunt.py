@@ -76,26 +76,42 @@ def test_one_repetition_cannot_be_compared():
 def test_each_repetition_gets_its_own_hash_seed_and_junit_file(tmp_path, monkeypatch):
     seen = []
 
-    def fake_run(args, env, check):
-        junit_path = Path(next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1])
-        seen.append((env["PYTHONHASHSEED"], junit_path.name, args[-1]))
+    def fake_run(args, env, check, shell):
+        assert shell is False
+        assert len(args) == 7
+        assert args[1:6] == [
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+        ]
+
+        junit_path = Path(
+            next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1]
+        )
+
+        seen.append((env["PYTHONHASHSEED"], junit_path.name))
         junit_path.write_text(junit(a__one="passed"), encoding="utf-8")
         return subprocess.CompletedProcess(args, 0)
 
     monkeypatch.setattr(fh.subprocess, "run", fake_run)
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
-    assert fh.main(["--repetitions", "3", "--out-dir", "out", "--", "-k", "smoke"]) == 0
+
+    assert fh.main(["--repetitions", "3", "--out-dir", "out"]) == 0
+
     assert seen == [
-        ("1", "run-1.xml", "smoke"),
-        ("2", "run-2.xml", "smoke"),
-        ("3", "run-3.xml", "smoke"),
+        ("1", "run-1.xml"),
+        ("2", "run-2.xml"),
+        ("3", "run-3.xml"),
     ]
+
     assert (tmp_path / "out" / "report.md").is_file()
 
 
 def test_missing_junit_after_a_crash_counts_as_an_empty_collection(tmp_path, monkeypatch):
-    def fake_run(args, env, check):
+    def fake_run(args, env, check, shell):
         if env["PYTHONHASHSEED"] == "1":
             Path(args[-1].split("=", 1)[1]).write_text(junit(a__one="passed"), encoding="utf-8")
         return subprocess.CompletedProcess(args, 0 if env["PYTHONHASHSEED"] == "1" else 4)
@@ -112,7 +128,7 @@ def test_missing_junit_after_a_crash_counts_as_an_empty_collection(tmp_path, mon
 def test_broken_environment_is_never_reported_as_clean(tmp_path, monkeypatch):
     # Every repetition fails before collecting a single test (e.g. a missing dependency
     # in conftest.py): there is nothing to compare, so "no flaky tests" would be a lie.
-    def fake_run(args, env, check):
+    def fake_run(args, env, check, shell):
         return subprocess.CompletedProcess(args, 4)
 
     monkeypatch.setattr(fh.subprocess, "run", fake_run)
@@ -148,3 +164,18 @@ def test_cli_rejects_unsafe_or_insufficient_input(tmp_path, monkeypatch, argv):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "r1.xml").write_text(junit(a__one="passed"), encoding="utf-8")
     assert fh.main(argv) == 2
+
+
+def test_cli_rejects_arbitrary_pytest_arguments():
+    with pytest.raises(SystemExit) as exc_info:
+        fh.main([
+            "--repetitions",
+            "2",
+            "--out-dir",
+            "reports/flaky",
+            "--",
+            "-k",
+            "smoke",
+        ])
+
+    assert exc_info.value.code == 2
