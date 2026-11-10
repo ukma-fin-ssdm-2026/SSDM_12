@@ -116,3 +116,20 @@
 /scripts/release.py                        @DziubakPavlo @NykytaBabakov
 /tests/unit/test_release.py                @DziubakPavlo @NykytaBabakov
 /requirements-release.txt                  @DziubakPavlo @NykytaBabakov
+# Lab 10: CI/CD analytics - documentation owner, DORA analyst, data analyst, improvement designer.
+/docs/ci-cd/                               @NykytaBabakov @asyakozulina
+/docs/ci-cd/metrics-raw.md                 @dysett @NykytaBabakov
+/docs/ci-cd/evidence/                      @dysett @asyakozulina
+/docs/ci-cd/dora-auto.md                   @asyakozulina @NykytaBabakov
+/docs/ci-cd/dora-auto.json                 @asyakozulina @NykytaBabakov
+/scripts/dora_metrics.py                   @asyakozulina @NykytaBabakov
+/tests/unit/test_dora_metrics.py           @asyakozulina @NykytaBabakov
+/scripts/ci_venv.py                        @DziubakPavlo @dysett
+/tests/unit/test_ci_venv.py                @DziubakPavlo @dysett
+/scripts/flaky_hunt.py                     @DziubakPavlo @asyakozulina
+/tests/unit/test_flaky_hunt.py             @DziubakPavlo @asyakozulina
+/.github/workflows/flaky-hunt.yml          @DziubakPavlo @asyakozulina
+/.github/workflows/release-image.yml       @NykytaBabakov @DziubakPavlo
+/Dockerfile                                @NykytaBabakov @dysett
+/.dockerignore                             @NykytaBabakov @dysett
+/Labs/Lab10/                               @NykytaBabakov @dysett
