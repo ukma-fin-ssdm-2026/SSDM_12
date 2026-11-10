@@ -1,0 +1,46 @@
+[
+ {
+  "row": 40,
+  "databaseId": 40672926847,
+  "number": 305,
+  "headSha": "580dbf8",
+  "attempts": [
+   {
+    "run_attempt": 1,
+    "conclusion": "failure",
+    "run_started_at": "2026-10-28T10:32:26Z",
+    "updated_at": "2026-10-28T10:42:30Z",
+    "triggering_actor": "asyakozulina"
+   },
+   {
+    "run_attempt": 2,
+    "conclusion": "success",
+    "run_started_at": "2026-10-28T17:32:56Z",
+    "updated_at": "2026-10-28T17:38:23Z",
+    "triggering_actor": "NykytaBabakov"
+   }
+  ]
+ },
+ {
+  "row": 56,
+  "databaseId": 41328893623,
+  "number": 357,
+  "headSha": "8305b69",
+  "attempts": [
+   {
+    "run_attempt": 1,
+    "conclusion": "failure",
+    "run_started_at": "2026-11-01T16:56:44Z",
+    "updated_at": "2026-11-01T17:06:48Z",
+    "triggering_actor": "asyakozulina"
+   },
+   {
+    "run_attempt": 2,
+    "conclusion": "failure",
+    "run_started_at": "2026-11-01T17:19:22Z",
+    "updated_at": "2026-11-01T17:29:27Z",
+    "triggering_actor": "NykytaBabakov"
+   }
+  ]
+ }
+]
