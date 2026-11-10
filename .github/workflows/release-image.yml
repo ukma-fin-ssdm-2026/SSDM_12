@@ -1,0 +1,87 @@
+name: Release image
+
+# Lab 10, bonus 5: after every GREEN run of CI on main, build the application's container
+# image, check that it starts (GET /health), and publish it to GitHub Container Registry
+# tagged with the full commit SHA. Under this definition a deployment = a published image.
+# One job on one runner (course rule). GITHUB_TOKEN with packages: write is enough.
+# workflow_run always runs the workflow file from main, and we only build commits that
+# were pushed to main and passed CI - no code from pull requests reaches this job.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-image
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: publish
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
+    steps:
+      - name: Checkout the commit that CI tested
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      # Image names must be lowercase: ukma-fin-ssdm-2026/SSDM_12 -> .../ssdm_12.
+      - name: Compute the image name and the product version
+        run: |
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Build the image
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${SHA}" \
+            --label "org.opencontainers.image.version=${VERSION}" \
+            --tag "${IMAGE}:${SHA}" .
+
+      # Post-deployment verification before publishing: the container must answer /health.
+      - name: Smoke test - the container starts and answers GET /health
+        run: |
+          docker run --detach --name smoke --publish 8000:8000 "${IMAGE}:${SHA}"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:8000/health; then
+              echo
+              echo "Healthy after ${attempt} s"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs smoke
+          exit 1
+
+      - name: Log in to ghcr.io with GITHUB_TOKEN
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${TOKEN}" | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Push the image tagged with the commit SHA
+        run: |
+          docker push "${IMAGE}:${SHA}"
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "${IMAGE}:${SHA}")
+          package="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pkgs/container/${IMAGE##*/}"
+          {
+            echo "### Image published"
+            echo ""
+            echo "- Image: \`${IMAGE}:${SHA}\`"
+            echo "- Digest: \`${digest}\`"
+            echo "- Version: ${VERSION}"
+            echo "- CI run: ${CI_RUN_URL}"
+            echo "- Package: ${package}"
+          } >> "$GITHUB_STEP_SUMMARY"

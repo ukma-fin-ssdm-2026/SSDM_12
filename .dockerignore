@@ -1,0 +1,27 @@
+# Build context for the release image (Dockerfile copies only requirements.txt and src/).
+# Excluding the rest keeps the context small and secrets and local data out of the build.
+.git
+.github
+.venv
+venv
+env
+.env
+.env.*
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.hypothesis
+.coverage
+.coverage.*
+coverage*.xml
+htmlcov
+pgdata
+reports
+_site
+docs
+tests
+Labs
+migrations
+scripts
