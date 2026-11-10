@@ -87,9 +87,7 @@ def test_each_repetition_gets_its_own_hash_seed_and_junit_file(tmp_path, monkeyp
             "no:cacheprovider",
         ]
 
-        junit_path = Path(
-            next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1]
-        )
+        junit_path = Path(next(a for a in args if a.startswith("--junitxml=")).split("=", 1)[1])
 
         seen.append((env["PYTHONHASHSEED"], junit_path.name))
         junit_path.write_text(junit(a__one="passed"), encoding="utf-8")
@@ -168,14 +166,16 @@ def test_cli_rejects_unsafe_or_insufficient_input(tmp_path, monkeypatch, argv):
 
 def test_cli_rejects_arbitrary_pytest_arguments():
     with pytest.raises(SystemExit) as exc_info:
-        fh.main([
-            "--repetitions",
-            "2",
-            "--out-dir",
-            "reports/flaky",
-            "--",
-            "-k",
-            "smoke",
-        ])
+        fh.main(
+            [
+                "--repetitions",
+                "2",
+                "--out-dir",
+                "reports/flaky",
+                "--",
+                "-k",
+                "smoke",
+            ]
+        )
 
     assert exc_info.value.code == 2
