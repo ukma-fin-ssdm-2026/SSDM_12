@@ -1,0 +1,174 @@
+{
+ "meta": {
+  "repo": "ukma-fin-ssdm-2026/SSDM_12",
+  "branch": "main",
+  "event": "push",
+  "workflows": [
+   "CI"
+  ],
+  "since": "2026-10-19T00:00:00Z",
+  "until": "2026-11-09T00:00:00Z",
+  "collected_at": "2026-11-10T16:19:34Z",
+  "api_calls": 446,
+  "command": "python scripts/dora_metrics.py --since 2026-10-19 --until 2026-11-09 --repo ukma-fin-ssdm-2026/SSDM_12 --branch main --event push --workflow CI --transport gh --dataset docs/ci-cd/evidence/dora-dataset.json --out docs/ci-cd/dora-auto.md --json docs/ci-cd/dora-auto.json"
+ },
+ "metrics": {
+  "window": {
+   "since": "2026-10-19T00:00:00Z",
+   "until": "2026-11-09T00:00:00Z",
+   "days": 21.0
+  },
+  "counts": {
+   "runs": 104,
+   "green": 96,
+   "red": 6,
+   "cancelled": 2,
+   "other": 0,
+   "completed": 104
+  },
+  "deployment_frequency": {
+   "per_week": 32.0,
+   "per_day": 4.571428571428571,
+   "level": [
+    "на вимогу (кілька разів на день)",
+    16.2
+   ]
+  },
+  "lead_time": {
+   "changes": 104,
+   "mean_hours": 5.384885149572649,
+   "median_hours": 1.5555555555555556,
+   "p90_hours": 12.151666666666667,
+   "level": [
+    "менше доби",
+    24.4
+   ],
+   "buckets": {
+    "менше години": 37,
+    "менше доби": 65,
+    "від доби до тижня": 2,
+    "від тижня до місяця": 0,
+    "від місяця до шести місяців": 0,
+    "понад шість місяців": 0
+   },
+   "own_run_not_green": 8,
+   "queue_share": 0.02150437899688557,
+   "execution_share": 0.01789890486637326,
+   "median_branch_min": 2.216666666666667,
+   "median_review_min": 56.833333333333336,
+   "mean_branch_min": 101.6625,
+   "mean_review_min": 185.35897435897434,
+   "median_queue_min": 0.05,
+   "median_execution_min": 5.358333333333333,
+   "mean_queue_min": 6.947916666666667,
+   "mean_execution_min": 5.78301282051282
+  },
+  "change_fail_rate": {
+   "percent": 5.769230769230769,
+   "percent_without_cancelled": 5.882352941176471,
+   "level": [
+    "4–8 %",
+    36.2
+   ]
+  },
+  "recovery": {
+   "count": 6,
+   "mean_min": 316.28055555555557,
+   "median_min": 123.88333333333333,
+   "level": [
+    "менше доби",
+    56.5
+   ],
+   "pairs": [
+    [
+     "2026-10-24T18:45:48Z",
+     "2026-10-24T20:20:07Z"
+    ],
+    [
+     "2026-10-26T21:45:23Z",
+     "2026-10-27T10:15:00Z"
+    ],
+    [
+     "2026-10-26T21:55:25Z",
+     "2026-10-27T10:15:00Z"
+    ],
+    [
+     "2026-11-01T17:29:26Z",
+     "2026-11-01T19:43:32Z"
+    ],
+    [
+     "2026-11-01T21:00:02Z",
+     "2026-11-01T22:06:26Z"
+    ],
+    [
+     "2026-11-06T13:54:09Z",
+     "2026-11-06T15:47:49Z"
+    ]
+   ],
+   "incidents": 5,
+   "incident_median_min": 113.66666666666667,
+   "incident_mean_min": 231.61999999999998
+  },
+  "attempts": {
+   "count": 106,
+   "red": 8,
+   "completed": 106,
+   "cfr_percent": 7.547169811320755,
+   "recovery_count": 8,
+   "recovery_median_min": 145.425,
+   "recovery_mean_min": 308.7875
+  },
+  "telemetry": {
+   "success_rate": 92.3076923076923,
+   "return_to_green_median_min": 123.88333333333333,
+   "duration_median_min": 5.358333333333333,
+   "duration_p90_min": 10.0,
+   "queue_median_min": 0.05,
+   "queue_p90_min": 8.683333333333334
+  },
+  "reruns": [
+   {
+    "run": 40672926847,
+    "sha": "580dbf8",
+    "pull": 213,
+    "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40672926847",
+    "attempts": [
+     {
+      "number": 1,
+      "conclusion": "failure",
+      "started_at": "2026-10-28T10:32:26Z",
+      "completed_at": "2026-10-28T10:42:29Z"
+     },
+     {
+      "number": 2,
+      "conclusion": "success",
+      "started_at": "2026-10-28T17:32:56Z",
+      "completed_at": "2026-10-28T17:38:21Z"
+     }
+    ],
+    "green_without_code_change": true
+   },
+   {
+    "run": 41328893623,
+    "sha": "8305b69",
+    "pull": 241,
+    "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41328893623",
+    "attempts": [
+     {
+      "number": 1,
+      "conclusion": "failure",
+      "started_at": "2026-11-01T16:56:44Z",
+      "completed_at": "2026-11-01T17:06:47Z"
+     },
+     {
+      "number": 2,
+      "conclusion": "failure",
+      "started_at": "2026-11-01T17:19:22Z",
+      "completed_at": "2026-11-01T17:29:26Z"
+     }
+    ],
+    "green_without_code_change": false
+   }
+  ]
+ }
+}

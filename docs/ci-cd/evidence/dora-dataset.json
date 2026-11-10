@@ -1,0 +1,3908 @@
+{
+ "meta": {
+  "repo": "ukma-fin-ssdm-2026/SSDM_12",
+  "branch": "main",
+  "event": "push",
+  "workflows": [
+   "CI"
+  ],
+  "since": "2026-10-19T00:00:00Z",
+  "until": "2026-11-09T00:00:00Z",
+  "collected_at": "2026-11-10T16:19:34Z",
+  "api_calls": 446
+ },
+ "runs": [
+  {
+   "id": 39265692484,
+   "workflow": "CI",
+   "sha": "4f0b4f0",
+   "created_at": "2026-10-19T14:04:41Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-19T14:04:41Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-19T14:13:22Z",
+       "completed_at": "2026-10-19T14:23:01Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-19T14:23:02Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39265692484",
+   "event": "push",
+   "pull": {
+    "number": 133,
+    "created_at": "2026-10-19T07:23:23Z",
+    "merged_at": "2026-10-19T14:04:38Z",
+    "first_commit_at": "2026-10-19T07:21:36Z",
+    "changed_lines": 258
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39271395143,
+   "workflow": "CI",
+   "sha": "526eb9f",
+   "created_at": "2026-10-19T14:42:33Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-19T14:42:33Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-19T14:42:36Z",
+       "completed_at": "2026-10-19T14:44:06Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-19T14:44:07Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39271395143",
+   "event": "push",
+   "pull": {
+    "number": 134,
+    "created_at": "2026-10-19T14:02:42Z",
+    "merged_at": "2026-10-19T14:42:30Z",
+    "first_commit_at": "2026-10-19T13:24:44Z",
+    "changed_lines": 82
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39274189575,
+   "workflow": "CI",
+   "sha": "170fd85",
+   "created_at": "2026-10-19T15:01:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-19T15:01:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-19T15:01:05Z",
+       "completed_at": "2026-10-19T15:02:34Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-19T15:02:35Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39274189575",
+   "event": "push",
+   "pull": {
+    "number": 136,
+    "created_at": "2026-10-19T14:51:06Z",
+    "merged_at": "2026-10-19T15:00:59Z",
+    "first_commit_at": "2026-10-19T14:50:45Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39274254041,
+   "workflow": "CI",
+   "sha": "e286df0",
+   "created_at": "2026-10-19T15:01:28Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-19T15:01:28Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-19T15:02:37Z",
+       "completed_at": "2026-10-19T15:04:01Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-19T15:04:01Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39274254041",
+   "event": "push",
+   "pull": {
+    "number": 138,
+    "created_at": "2026-10-19T14:55:14Z",
+    "merged_at": "2026-10-19T15:01:25Z",
+    "first_commit_at": "2026-10-19T14:55:03Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39298553141,
+   "workflow": "CI",
+   "sha": "c3badd6",
+   "created_at": "2026-10-19T17:57:43Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-19T17:57:43Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-19T17:57:46Z",
+       "completed_at": "2026-10-19T18:00:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-19T18:00:08Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39298553141",
+   "event": "push",
+   "pull": {
+    "number": 139,
+    "created_at": "2026-10-19T15:42:14Z",
+    "merged_at": "2026-10-19T17:57:40Z",
+    "first_commit_at": "2026-10-19T14:50:02Z",
+    "changed_lines": 76
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39421790350,
+   "workflow": "CI",
+   "sha": "67ced02",
+   "created_at": "2026-10-20T12:22:46Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-20T12:22:46Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-20T12:22:49Z",
+       "completed_at": "2026-10-20T12:24:31Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-20T12:24:32Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39421790350",
+   "event": "push",
+   "pull": {
+    "number": 141,
+    "created_at": "2026-10-19T22:47:07Z",
+    "merged_at": "2026-10-20T12:22:43Z",
+    "first_commit_at": "2026-10-19T22:44:53Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39423402607,
+   "workflow": "CI",
+   "sha": "a1e371e",
+   "created_at": "2026-10-20T12:35:09Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-20T12:35:09Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-20T12:35:12Z",
+       "completed_at": "2026-10-20T12:36:44Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-20T12:36:45Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39423402607",
+   "event": "push",
+   "pull": {
+    "number": 143,
+    "created_at": "2026-10-20T12:30:30Z",
+    "merged_at": "2026-10-20T12:35:06Z",
+    "first_commit_at": "2026-10-20T08:45:49Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39490827542,
+   "workflow": "CI",
+   "sha": "ab43317",
+   "created_at": "2026-10-20T20:18:20Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-20T20:18:20Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-20T20:21:06Z",
+       "completed_at": "2026-10-20T20:32:37Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-20T20:32:38Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39490827542",
+   "event": "push",
+   "pull": {
+    "number": 144,
+    "created_at": "2026-10-20T19:32:51Z",
+    "merged_at": "2026-10-20T20:18:17Z",
+    "first_commit_at": "2026-10-20T19:24:28Z",
+    "changed_lines": 26
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39493186229,
+   "workflow": "CI",
+   "sha": "97ffd59",
+   "created_at": "2026-10-20T20:34:52Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-20T20:34:52Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-20T20:34:54Z",
+       "completed_at": "2026-10-20T20:36:52Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-20T20:36:52Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39493186229",
+   "event": "push",
+   "pull": {
+    "number": 145,
+    "created_at": "2026-10-20T19:41:26Z",
+    "merged_at": "2026-10-20T20:34:49Z",
+    "first_commit_at": "2026-10-20T19:41:08Z",
+    "changed_lines": 10
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39625878630,
+   "workflow": "CI",
+   "sha": "6593b35",
+   "created_at": "2026-10-21T15:27:36Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-21T15:27:36Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-21T15:27:39Z",
+       "completed_at": "2026-10-21T15:29:30Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-21T15:29:31Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39625878630",
+   "event": "push",
+   "pull": {
+    "number": 160,
+    "created_at": "2026-10-21T12:33:13Z",
+    "merged_at": "2026-10-21T15:27:33Z",
+    "first_commit_at": "2026-10-21T11:20:07Z",
+    "changed_lines": 267
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39663686908,
+   "workflow": "CI",
+   "sha": "74354bb",
+   "created_at": "2026-10-21T19:40:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-21T19:40:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-21T19:40:30Z",
+       "completed_at": "2026-10-21T19:42:11Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-21T19:42:12Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39663686908",
+   "event": "push",
+   "pull": {
+    "number": 161,
+    "created_at": "2026-10-21T15:51:19Z",
+    "merged_at": "2026-10-21T19:40:24Z",
+    "first_commit_at": "2026-10-21T15:50:23Z",
+    "changed_lines": 256
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39800385722,
+   "workflow": "CI",
+   "sha": "a62cc94",
+   "created_at": "2026-10-22T14:58:05Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-22T14:58:05Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-22T14:58:07Z",
+       "completed_at": "2026-10-22T15:00:15Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-22T15:06:05Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39800385722",
+   "event": "push",
+   "pull": {
+    "number": 163,
+    "created_at": "2026-10-22T09:00:57Z",
+    "merged_at": "2026-10-22T14:58:02Z",
+    "first_commit_at": "2026-10-22T09:00:19Z",
+    "changed_lines": 651
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39823938572,
+   "workflow": "CI",
+   "sha": "b78feee",
+   "created_at": "2026-10-22T17:34:45Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-22T17:34:45Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-22T17:34:47Z",
+       "completed_at": "2026-10-22T17:37:04Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-22T17:37:05Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39823938572",
+   "event": "push",
+   "pull": {
+    "number": 165,
+    "created_at": "2026-10-22T16:59:00Z",
+    "merged_at": "2026-10-22T17:34:42Z",
+    "first_commit_at": "2026-10-22T16:46:05Z",
+    "changed_lines": 152
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39827162970,
+   "workflow": "CI",
+   "sha": "da75cf1",
+   "created_at": "2026-10-22T17:57:22Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-22T17:57:22Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-22T17:57:25Z",
+       "completed_at": "2026-10-22T17:59:37Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-22T17:59:38Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39827162970",
+   "event": "push",
+   "pull": {
+    "number": 164,
+    "created_at": "2026-10-22T11:11:51Z",
+    "merged_at": "2026-10-22T17:57:19Z",
+    "first_commit_at": "2026-10-22T08:52:34Z",
+    "changed_lines": 206
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39846476437,
+   "workflow": "CI",
+   "sha": "565b7de",
+   "created_at": "2026-10-22T20:10:09Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-22T20:10:09Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-22T20:10:13Z",
+       "completed_at": "2026-10-22T20:13:48Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-22T20:13:48Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39846476437",
+   "event": "push",
+   "pull": {
+    "number": 162,
+    "created_at": "2026-10-21T21:50:23Z",
+    "merged_at": "2026-10-22T20:10:06Z",
+    "first_commit_at": "2026-10-21T21:30:54Z",
+    "changed_lines": 60
+   },
+   "commit_at": null
+  },
+  {
+   "id": 39951245358,
+   "workflow": "CI",
+   "sha": "6bd4e61",
+   "created_at": "2026-10-23T12:09:45Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-23T12:09:45Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-23T12:09:48Z",
+       "completed_at": "2026-10-23T12:14:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-23T12:14:07Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/39951245358",
+   "event": "push",
+   "pull": {
+    "number": 166,
+    "created_at": "2026-10-23T11:58:59Z",
+    "merged_at": "2026-10-23T12:09:18Z",
+    "first_commit_at": "2026-10-23T11:58:29Z",
+    "changed_lines": 245
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40000314421,
+   "workflow": "CI",
+   "sha": "733c9c7",
+   "created_at": "2026-10-23T18:04:34Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-23T18:04:34Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-23T18:04:37Z",
+       "completed_at": "2026-10-23T18:09:25Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-23T18:09:26Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40000314421",
+   "event": "push",
+   "pull": {
+    "number": 167,
+    "created_at": "2026-10-23T17:05:48Z",
+    "merged_at": "2026-10-23T18:04:31Z",
+    "first_commit_at": "2026-10-23T16:53:42Z",
+    "changed_lines": 36
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40033342527,
+   "workflow": "CI",
+   "sha": "8e32210",
+   "created_at": "2026-10-23T22:23:55Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-23T22:23:55Z",
+     "conclusion": "cancelled",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-23T22:24:22Z",
+       "completed_at": "2026-10-23T22:25:35Z",
+       "conclusion": "cancelled",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-23T22:25:36Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40033342527",
+   "event": "push",
+   "pull": {
+    "number": 171,
+    "created_at": "2026-10-23T18:07:18Z",
+    "merged_at": "2026-10-23T22:23:52Z",
+    "first_commit_at": "2026-10-23T18:07:15Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40033350632,
+   "workflow": "CI",
+   "sha": "8dcd402",
+   "created_at": "2026-10-23T22:23:59Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-23T22:23:59Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-23T22:25:37Z",
+       "completed_at": "2026-10-23T22:28:51Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-23T22:28:52Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40033350632",
+   "event": "push",
+   "pull": {
+    "number": 177,
+    "created_at": "2026-10-23T19:20:47Z",
+    "merged_at": "2026-10-23T22:23:56Z",
+    "first_commit_at": "2026-10-23T18:49:20Z",
+    "changed_lines": 71
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40039930933,
+   "workflow": "CI",
+   "sha": "0e780a4",
+   "created_at": "2026-10-23T23:29:04Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-23T23:29:04Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-24T05:37:49Z",
+       "completed_at": "2026-10-24T05:41:38Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-24T05:41:39Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40039930933",
+   "event": "push",
+   "pull": {
+    "number": 178,
+    "created_at": "2026-10-23T22:13:33Z",
+    "merged_at": "2026-10-23T23:29:01Z",
+    "first_commit_at": "2026-10-23T22:13:23Z",
+    "changed_lines": 176
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40121428266,
+   "workflow": "CI",
+   "sha": "a62a61d",
+   "created_at": "2026-10-24T18:35:45Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-24T18:35:45Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-24T18:35:48Z",
+       "completed_at": "2026-10-24T18:45:48Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-24T18:45:49Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40121428266",
+   "event": "push",
+   "pull": {
+    "number": 179,
+    "created_at": "2026-10-24T09:17:03Z",
+    "merged_at": "2026-10-24T18:35:41Z",
+    "first_commit_at": "2026-10-24T09:04:55Z",
+    "changed_lines": 44
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40129009139,
+   "workflow": "CI",
+   "sha": "1f3a10f",
+   "created_at": "2026-10-24T20:16:04Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-24T20:16:04Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-24T20:16:07Z",
+       "completed_at": "2026-10-24T20:20:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-24T20:20:08Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40129009139",
+   "event": "push",
+   "pull": {
+    "number": 180,
+    "created_at": "2026-10-24T19:07:22Z",
+    "merged_at": "2026-10-24T20:16:02Z",
+    "first_commit_at": "2026-10-24T18:58:38Z",
+    "changed_lines": 18
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40132551372,
+   "workflow": "CI",
+   "sha": "79f21d7",
+   "created_at": "2026-10-24T21:03:46Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-24T21:03:46Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-24T21:03:48Z",
+       "completed_at": "2026-10-24T21:07:24Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-24T21:07:24Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40132551372",
+   "event": "push",
+   "pull": {
+    "number": 181,
+    "created_at": "2026-10-24T20:42:37Z",
+    "merged_at": "2026-10-24T21:03:43Z",
+    "first_commit_at": "2026-10-24T20:42:03Z",
+    "changed_lines": 420
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40197810390,
+   "workflow": "CI",
+   "sha": "e9d322a",
+   "created_at": "2026-10-25T13:29:05Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-25T13:29:05Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-25T13:29:07Z",
+       "completed_at": "2026-10-25T13:32:41Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-25T13:32:42Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40197810390",
+   "event": "push",
+   "pull": {
+    "number": 182,
+    "created_at": "2026-10-25T09:28:21Z",
+    "merged_at": "2026-10-25T13:29:00Z",
+    "first_commit_at": "2026-10-24T20:33:15Z",
+    "changed_lines": 89
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40213887363,
+   "workflow": "CI",
+   "sha": "eae0c2a",
+   "created_at": "2026-10-25T16:54:05Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-25T16:54:05Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-25T16:54:07Z",
+       "completed_at": "2026-10-25T16:57:40Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-25T16:57:40Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40213887363",
+   "event": "push",
+   "pull": {
+    "number": 184,
+    "created_at": "2026-10-25T14:09:33Z",
+    "merged_at": "2026-10-25T16:54:02Z",
+    "first_commit_at": "2026-10-25T14:08:38Z",
+    "changed_lines": 930
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40216825730,
+   "workflow": "CI",
+   "sha": "4eeb1ad",
+   "created_at": "2026-10-25T17:30:48Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-25T17:30:48Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-25T17:31:50Z",
+       "completed_at": "2026-10-25T17:35:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-25T17:35:08Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40216825730",
+   "event": "push",
+   "pull": {
+    "number": 186,
+    "created_at": "2026-10-25T16:03:37Z",
+    "merged_at": "2026-10-25T17:30:45Z",
+    "first_commit_at": "2026-10-25T16:02:52Z",
+    "changed_lines": 195
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40218752006,
+   "workflow": "CI",
+   "sha": "a3ba69f",
+   "created_at": "2026-10-25T17:55:02Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-25T17:55:02Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-25T17:55:04Z",
+       "completed_at": "2026-10-25T17:59:06Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-25T17:59:07Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40218752006",
+   "event": "push",
+   "pull": {
+    "number": 188,
+    "created_at": "2026-10-25T17:39:16Z",
+    "merged_at": "2026-10-25T17:54:59Z",
+    "first_commit_at": "2026-10-25T17:38:10Z",
+    "changed_lines": 266
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40223925440,
+   "workflow": "CI",
+   "sha": "3d4c833",
+   "created_at": "2026-10-25T19:00:19Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-25T19:00:19Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-25T19:00:21Z",
+       "completed_at": "2026-10-25T19:05:00Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-25T19:05:01Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40223925440",
+   "event": "push",
+   "pull": {
+    "number": 190,
+    "created_at": "2026-10-25T18:22:19Z",
+    "merged_at": "2026-10-25T19:00:16Z",
+    "first_commit_at": "2026-10-25T18:17:44Z",
+    "changed_lines": 1592
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40306059649,
+   "workflow": "CI",
+   "sha": "5f0f6c8",
+   "created_at": "2026-10-26T10:16:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T10:16:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T10:18:35Z",
+       "completed_at": "2026-10-26T10:22:09Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T10:22:10Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40306059649",
+   "event": "push",
+   "pull": {
+    "number": 191,
+    "created_at": "2026-10-25T22:24:07Z",
+    "merged_at": "2026-10-26T10:15:59Z",
+    "first_commit_at": "2026-10-25T22:13:03Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40307896144,
+   "workflow": "CI",
+   "sha": "94b7444",
+   "created_at": "2026-10-26T10:30:07Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T10:30:07Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T10:30:09Z",
+       "completed_at": "2026-10-26T10:33:54Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T10:33:54Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40307896144",
+   "event": "push",
+   "pull": {
+    "number": 198,
+    "created_at": "2026-10-26T10:09:48Z",
+    "merged_at": "2026-10-26T10:30:04Z",
+    "first_commit_at": "2026-10-26T10:09:29Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40358646006,
+   "workflow": "CI",
+   "sha": "a7fda3d",
+   "created_at": "2026-10-26T16:23:26Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T16:23:26Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T16:23:29Z",
+       "completed_at": "2026-10-26T16:27:42Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T16:27:43Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40358646006",
+   "event": "push",
+   "pull": {
+    "number": 200,
+    "created_at": "2026-10-26T15:00:06Z",
+    "merged_at": "2026-10-26T16:23:23Z",
+    "first_commit_at": "2026-10-26T14:51:18Z",
+    "changed_lines": 107
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40360542408,
+   "workflow": "CI",
+   "sha": "e46b6c1",
+   "created_at": "2026-10-26T16:35:16Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T16:35:16Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T16:36:19Z",
+       "completed_at": "2026-10-26T16:40:03Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T16:40:04Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40360542408",
+   "event": "push",
+   "pull": {
+    "number": 196,
+    "created_at": "2026-10-26T10:05:53Z",
+    "merged_at": "2026-10-26T16:35:12Z",
+    "first_commit_at": "2026-10-26T09:40:58Z",
+    "changed_lines": 505
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40364688090,
+   "workflow": "CI",
+   "sha": "7474881",
+   "created_at": "2026-10-26T17:01:21Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T17:01:21Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T17:01:24Z",
+       "completed_at": "2026-10-26T17:05:33Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T17:05:33Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40364688090",
+   "event": "push",
+   "pull": {
+    "number": 197,
+    "created_at": "2026-10-26T10:09:35Z",
+    "merged_at": "2026-10-26T17:01:17Z",
+    "first_commit_at": "2026-10-26T10:08:45Z",
+    "changed_lines": 15
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40365800955,
+   "workflow": "CI",
+   "sha": "107e3e2",
+   "created_at": "2026-10-26T17:08:23Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T17:08:23Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T17:08:25Z",
+       "completed_at": "2026-10-26T17:12:05Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T17:12:05Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40365800955",
+   "event": "push",
+   "pull": {
+    "number": 202,
+    "created_at": "2026-10-26T16:03:35Z",
+    "merged_at": "2026-10-26T17:08:20Z",
+    "first_commit_at": "2026-10-26T16:03:02Z",
+    "changed_lines": 944
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40389968461,
+   "workflow": "CI",
+   "sha": "870df7a",
+   "created_at": "2026-10-26T19:48:06Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T19:48:06Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T21:35:22Z",
+       "completed_at": "2026-10-26T21:45:23Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T21:45:23Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40389968461",
+   "event": "push",
+   "pull": {
+    "number": 206,
+    "created_at": "2026-10-26T19:27:38Z",
+    "merged_at": "2026-10-26T19:48:03Z",
+    "first_commit_at": "2026-10-26T19:19:03Z",
+    "changed_lines": 15421
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40406446508,
+   "workflow": "CI",
+   "sha": "d849b5f",
+   "created_at": "2026-10-26T21:41:20Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-26T21:41:20Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-26T21:45:24Z",
+       "completed_at": "2026-10-26T21:55:25Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-26T21:55:25Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40406446508",
+   "event": "push",
+   "pull": {
+    "number": 207,
+    "created_at": "2026-10-26T19:37:35Z",
+    "merged_at": "2026-10-26T21:41:17Z",
+    "first_commit_at": "2026-10-26T19:20:05Z",
+    "changed_lines": 120
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40486381885,
+   "workflow": "CI",
+   "sha": "6a627b7",
+   "created_at": "2026-10-27T10:10:06Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-27T10:10:06Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-27T10:10:09Z",
+       "completed_at": "2026-10-27T10:15:00Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-27T10:15:01Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40486381885",
+   "event": "push",
+   "pull": {
+    "number": 209,
+    "created_at": "2026-10-26T22:55:03Z",
+    "merged_at": "2026-10-27T10:10:03Z",
+    "first_commit_at": "2026-10-26T22:51:42Z",
+    "changed_lines": 782
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40521931175,
+   "workflow": "CI",
+   "sha": "7fce2fa",
+   "created_at": "2026-10-27T14:31:32Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-27T14:31:32Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-27T14:31:35Z",
+       "completed_at": "2026-10-27T14:41:46Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-27T14:41:47Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40521931175",
+   "event": "push",
+   "pull": {
+    "number": 210,
+    "created_at": "2026-10-27T13:40:13Z",
+    "merged_at": "2026-10-27T14:31:29Z",
+    "first_commit_at": "2026-10-27T13:38:18Z",
+    "changed_lines": 157
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40589120728,
+   "workflow": "CI",
+   "sha": "fe7a841",
+   "created_at": "2026-10-27T21:43:17Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-27T21:43:17Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-27T21:44:15Z",
+       "completed_at": "2026-10-27T21:47:39Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-27T21:47:40Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40589120728",
+   "event": "push",
+   "pull": {
+    "number": 212,
+    "created_at": "2026-10-27T21:15:01Z",
+    "merged_at": "2026-10-27T21:43:14Z",
+    "first_commit_at": "2026-10-27T19:57:05Z",
+    "changed_lines": 81
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40672926847,
+   "workflow": "CI",
+   "sha": "580dbf8",
+   "created_at": "2026-10-28T10:32:26Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-28T10:32:26Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T10:32:29Z",
+       "completed_at": "2026-10-28T10:42:29Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T10:42:30Z"
+    },
+    {
+     "number": 2,
+     "started_at": "2026-10-28T17:32:56Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T17:33:01Z",
+       "completed_at": "2026-10-28T17:38:21Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T17:38:23Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40672926847",
+   "event": "push",
+   "pull": {
+    "number": 213,
+    "created_at": "2026-10-27T22:14:24Z",
+    "merged_at": "2026-10-28T10:32:23Z",
+    "first_commit_at": "2026-10-27T22:09:55Z",
+    "changed_lines": 858
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40741470453,
+   "workflow": "CI",
+   "sha": "4494a77",
+   "created_at": "2026-10-28T18:03:05Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-28T18:03:05Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T18:03:08Z",
+       "completed_at": "2026-10-28T18:07:46Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T18:07:46Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40741470453",
+   "event": "push",
+   "pull": {
+    "number": 214,
+    "created_at": "2026-10-28T17:53:34Z",
+    "merged_at": "2026-10-28T18:03:03Z",
+    "first_commit_at": "2026-10-28T17:22:48Z",
+    "changed_lines": 11
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40766730778,
+   "workflow": "CI",
+   "sha": "f1f06ae",
+   "created_at": "2026-10-28T20:49:47Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-28T20:49:47Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T20:49:49Z",
+       "completed_at": "2026-10-28T20:53:53Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T20:53:54Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40766730778",
+   "event": "push",
+   "pull": {
+    "number": 215,
+    "created_at": "2026-10-28T20:41:09Z",
+    "merged_at": "2026-10-28T20:49:44Z",
+    "first_commit_at": "2026-10-28T20:25:12Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40771659773,
+   "workflow": "CI",
+   "sha": "ab22467",
+   "created_at": "2026-10-28T21:24:17Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-28T21:24:17Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T21:24:19Z",
+       "completed_at": "2026-10-28T21:28:02Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T21:28:03Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40771659773",
+   "event": "push",
+   "pull": {
+    "number": 216,
+    "created_at": "2026-10-28T21:09:32Z",
+    "merged_at": "2026-10-28T21:24:14Z",
+    "first_commit_at": "2026-10-28T21:07:11Z",
+    "changed_lines": 8
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40776727760,
+   "workflow": "CI",
+   "sha": "21e1c30",
+   "created_at": "2026-10-28T22:01:47Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-28T22:01:47Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-28T22:01:50Z",
+       "completed_at": "2026-10-28T22:08:08Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-28T22:08:08Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40776727760",
+   "event": "push",
+   "pull": {
+    "number": 217,
+    "created_at": "2026-10-28T21:43:39Z",
+    "merged_at": "2026-10-28T22:01:44Z",
+    "first_commit_at": "2026-10-28T21:37:26Z",
+    "changed_lines": 2738
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40872612185,
+   "workflow": "CI",
+   "sha": "79e7212",
+   "created_at": "2026-10-29T12:21:42Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T12:21:42Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T12:21:45Z",
+       "completed_at": "2026-10-29T12:25:57Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T12:25:58Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40872612185",
+   "event": "push",
+   "pull": {
+    "number": 228,
+    "created_at": "2026-10-29T11:36:52Z",
+    "merged_at": "2026-10-29T12:21:39Z",
+    "first_commit_at": "2026-10-29T11:36:40Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40901208780,
+   "workflow": "CI",
+   "sha": "23fca0b",
+   "created_at": "2026-10-29T15:24:19Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T15:24:19Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T15:24:23Z",
+       "completed_at": "2026-10-29T15:29:06Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T15:29:07Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40901208780",
+   "event": "push",
+   "pull": {
+    "number": 229,
+    "created_at": "2026-10-29T14:20:19Z",
+    "merged_at": "2026-10-29T15:24:16Z",
+    "first_commit_at": "2026-10-29T14:01:26Z",
+    "changed_lines": 275
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40920857909,
+   "workflow": "CI",
+   "sha": "3eaa582",
+   "created_at": "2026-10-29T17:23:26Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T17:23:26Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T17:23:29Z",
+       "completed_at": "2026-10-29T17:27:21Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T17:27:21Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40920857909",
+   "event": "push",
+   "pull": {
+    "number": 231,
+    "created_at": "2026-10-29T15:53:25Z",
+    "merged_at": "2026-10-29T17:23:23Z",
+    "first_commit_at": "2026-10-29T15:53:04Z",
+    "changed_lines": 138
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40940367993,
+   "workflow": "CI",
+   "sha": "4567041",
+   "created_at": "2026-10-29T19:28:16Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T19:28:16Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T19:28:18Z",
+       "completed_at": "2026-10-29T19:31:57Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T19:31:58Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40940367993",
+   "event": "push",
+   "pull": {
+    "number": 230,
+    "created_at": "2026-10-29T15:47:41Z",
+    "merged_at": "2026-10-29T19:28:13Z",
+    "first_commit_at": "2026-10-29T15:42:44Z",
+    "changed_lines": 865
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40941948739,
+   "workflow": "CI",
+   "sha": "883ef7a",
+   "created_at": "2026-10-29T19:38:42Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T19:38:42Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T19:40:54Z",
+       "completed_at": "2026-10-29T19:45:01Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T19:45:02Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40941948739",
+   "event": "push",
+   "pull": {
+    "number": 232,
+    "created_at": "2026-10-29T17:59:09Z",
+    "merged_at": "2026-10-29T19:38:38Z",
+    "first_commit_at": "2026-10-29T17:58:33Z",
+    "changed_lines": 250
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40955619997,
+   "workflow": "CI",
+   "sha": "9aff984",
+   "created_at": "2026-10-29T21:11:22Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T21:11:22Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T21:14:00Z",
+       "completed_at": "2026-10-29T21:18:24Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T21:18:25Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40955619997",
+   "event": "push",
+   "pull": {
+    "number": 235,
+    "created_at": "2026-10-29T20:31:27Z",
+    "merged_at": "2026-10-29T21:11:19Z",
+    "first_commit_at": "2026-10-29T20:31:06Z",
+    "changed_lines": 476
+   },
+   "commit_at": null
+  },
+  {
+   "id": 40958507122,
+   "workflow": "CI",
+   "sha": "536bbbd",
+   "created_at": "2026-10-29T21:31:28Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-29T21:31:28Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-29T21:31:31Z",
+       "completed_at": "2026-10-29T21:36:29Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-29T21:36:30Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/40958507122",
+   "event": "push",
+   "pull": {
+    "number": 234,
+    "created_at": "2026-10-29T20:28:40Z",
+    "merged_at": "2026-10-29T21:31:25Z",
+    "first_commit_at": "2026-10-29T20:28:09Z",
+    "changed_lines": 246
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41024873395,
+   "workflow": "CI",
+   "sha": "3276d9c",
+   "created_at": "2026-10-30T08:12:13Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-30T08:12:13Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-30T08:12:15Z",
+       "completed_at": "2026-10-30T08:16:02Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-30T08:16:02Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41024873395",
+   "event": "push",
+   "pull": {
+    "number": 236,
+    "created_at": "2026-10-29T21:58:02Z",
+    "merged_at": "2026-10-30T08:12:10Z",
+    "first_commit_at": "2026-10-29T21:28:08Z",
+    "changed_lines": 136
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41064123667,
+   "workflow": "CI",
+   "sha": "be350c1",
+   "created_at": "2026-10-30T13:32:41Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-30T13:32:41Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-30T13:32:43Z",
+       "completed_at": "2026-10-30T13:36:27Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-30T13:36:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41064123667",
+   "event": "push",
+   "pull": {
+    "number": 237,
+    "created_at": "2026-10-30T09:31:38Z",
+    "merged_at": "2026-10-30T13:32:37Z",
+    "first_commit_at": "2026-10-30T08:49:30Z",
+    "changed_lines": 190
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41127041780,
+   "workflow": "CI",
+   "sha": "ab15aac",
+   "created_at": "2026-10-30T20:55:34Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-30T20:55:34Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-30T20:55:36Z",
+       "completed_at": "2026-10-30T21:00:17Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-30T21:00:18Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41127041780",
+   "event": "push",
+   "pull": {
+    "number": 238,
+    "created_at": "2026-10-30T14:48:12Z",
+    "merged_at": "2026-10-30T20:55:31Z",
+    "first_commit_at": "2026-10-30T14:47:55Z",
+    "changed_lines": 122
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41127205611,
+   "workflow": "CI",
+   "sha": "7e384d2",
+   "created_at": "2026-10-30T20:56:51Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-10-30T20:56:51Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-10-30T21:00:20Z",
+       "completed_at": "2026-10-30T21:04:48Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-10-30T21:04:49Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41127205611",
+   "event": "push",
+   "pull": {
+    "number": 239,
+    "created_at": "2026-10-30T15:16:06Z",
+    "merged_at": "2026-10-30T20:56:48Z",
+    "first_commit_at": "2026-10-30T15:15:54Z",
+    "changed_lines": 22
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41328893623,
+   "workflow": "CI",
+   "sha": "8305b69",
+   "created_at": "2026-11-01T16:56:44Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T16:56:44Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T16:56:47Z",
+       "completed_at": "2026-11-01T17:06:47Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T17:06:48Z"
+    },
+    {
+     "number": 2,
+     "started_at": "2026-11-01T17:19:22Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T17:19:26Z",
+       "completed_at": "2026-11-01T17:29:26Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T17:29:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41328893623",
+   "event": "push",
+   "pull": {
+    "number": 241,
+    "created_at": "2026-11-01T15:45:35Z",
+    "merged_at": "2026-11-01T16:56:41Z",
+    "first_commit_at": "2026-11-01T15:43:23Z",
+    "changed_lines": 25
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41342668859,
+   "workflow": "CI",
+   "sha": "8a9a5e9",
+   "created_at": "2026-11-01T19:37:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T19:37:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T19:37:30Z",
+       "completed_at": "2026-11-01T19:43:32Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T19:43:33Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41342668859",
+   "event": "push",
+   "pull": {
+    "number": 243,
+    "created_at": "2026-11-01T18:31:29Z",
+    "merged_at": "2026-11-01T19:37:24Z",
+    "first_commit_at": "2026-11-01T08:30:07Z",
+    "changed_lines": 21490
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41349664662,
+   "workflow": "CI",
+   "sha": "745ee27",
+   "created_at": "2026-11-01T20:59:49Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T20:59:49Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T20:59:52Z",
+       "completed_at": "2026-11-01T21:00:02Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T21:00:03Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41349664662",
+   "event": "push",
+   "pull": {
+    "number": 246,
+    "created_at": "2026-11-01T20:51:54Z",
+    "merged_at": "2026-11-01T20:59:46Z",
+    "first_commit_at": "2026-11-01T20:31:47Z",
+    "changed_lines": 109
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41354651591,
+   "workflow": "CI",
+   "sha": "11620ee",
+   "created_at": "2026-11-01T21:57:45Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T21:57:45Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T21:59:35Z",
+       "completed_at": "2026-11-01T22:06:26Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T22:06:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41354651591",
+   "event": "push",
+   "pull": {
+    "number": 247,
+    "created_at": "2026-11-01T21:43:18Z",
+    "merged_at": "2026-11-01T21:57:43Z",
+    "first_commit_at": "2026-11-01T21:43:11Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41357096256,
+   "workflow": "CI",
+   "sha": "0087e4c",
+   "created_at": "2026-11-01T22:25:57Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T22:25:57Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T22:32:01Z",
+       "completed_at": "2026-11-01T22:37:52Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T22:37:53Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41357096256",
+   "event": "push",
+   "pull": {
+    "number": 248,
+    "created_at": "2026-11-01T21:45:50Z",
+    "merged_at": "2026-11-01T22:25:55Z",
+    "first_commit_at": "2026-11-01T21:45:43Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41357709534,
+   "workflow": "CI",
+   "sha": "7dcd4e0",
+   "created_at": "2026-11-01T22:33:15Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-01T22:33:15Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-01T22:38:58Z",
+       "completed_at": "2026-11-01T22:44:55Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-01T22:44:55Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41357709534",
+   "event": "push",
+   "pull": {
+    "number": 249,
+    "created_at": "2026-11-01T22:14:48Z",
+    "merged_at": "2026-11-01T22:33:13Z",
+    "first_commit_at": "2026-11-01T22:14:20Z",
+    "changed_lines": 135
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41366559373,
+   "workflow": "CI",
+   "sha": "caf9260",
+   "created_at": "2026-11-02T00:19:49Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T00:19:49Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T00:19:52Z",
+       "completed_at": "2026-11-02T00:27:22Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T00:27:23Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41366559373",
+   "event": "push",
+   "pull": {
+    "number": 250,
+    "created_at": "2026-11-02T00:07:10Z",
+    "merged_at": "2026-11-02T00:19:47Z",
+    "first_commit_at": "2026-11-02T00:05:44Z",
+    "changed_lines": 8
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41438257276,
+   "workflow": "CI",
+   "sha": "0eb38b4",
+   "created_at": "2026-11-02T11:37:13Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T11:37:13Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T11:37:16Z",
+       "completed_at": "2026-11-02T11:44:41Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T11:44:41Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41438257276",
+   "event": "push",
+   "pull": {
+    "number": 253,
+    "created_at": "2026-11-02T07:50:02Z",
+    "merged_at": "2026-11-02T11:37:10Z",
+    "first_commit_at": "2026-11-02T07:47:38Z",
+    "changed_lines": 1164
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41463470621,
+   "workflow": "CI",
+   "sha": "832106b",
+   "created_at": "2026-11-02T14:35:55Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T14:35:55Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T14:35:59Z",
+       "completed_at": "2026-11-02T14:43:04Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T14:43:05Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41463470621",
+   "event": "push",
+   "pull": {
+    "number": 255,
+    "created_at": "2026-11-02T14:22:55Z",
+    "merged_at": "2026-11-02T14:35:52Z",
+    "first_commit_at": "2026-11-02T14:17:05Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41472197100,
+   "workflow": "CI",
+   "sha": "1e34eaf",
+   "created_at": "2026-11-02T15:30:10Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T15:30:10Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T15:30:13Z",
+       "completed_at": "2026-11-02T15:36:52Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T15:36:52Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41472197100",
+   "event": "push",
+   "pull": {
+    "number": 256,
+    "created_at": "2026-11-02T15:12:41Z",
+    "merged_at": "2026-11-02T15:30:07Z",
+    "first_commit_at": "2026-11-02T15:11:19Z",
+    "changed_lines": 54
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41482686673,
+   "workflow": "CI",
+   "sha": "1151841",
+   "created_at": "2026-11-02T16:33:48Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T16:33:48Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T16:33:51Z",
+       "completed_at": "2026-11-02T16:42:16Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T16:42:17Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41482686673",
+   "event": "push",
+   "pull": {
+    "number": 257,
+    "created_at": "2026-11-02T16:19:04Z",
+    "merged_at": "2026-11-02T16:33:45Z",
+    "first_commit_at": "2026-11-02T16:16:13Z",
+    "changed_lines": 32
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41508273407,
+   "workflow": "CI",
+   "sha": "74a06d3",
+   "created_at": "2026-11-02T19:15:40Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T19:15:40Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T19:15:43Z",
+       "completed_at": "2026-11-02T19:22:14Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T19:22:14Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41508273407",
+   "event": "push",
+   "pull": {
+    "number": 258,
+    "created_at": "2026-11-02T17:13:33Z",
+    "merged_at": "2026-11-02T19:15:38Z",
+    "first_commit_at": "2026-11-02T17:12:13Z",
+    "changed_lines": 84
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41508404120,
+   "workflow": "CI",
+   "sha": "a5e6a33",
+   "created_at": "2026-11-02T19:16:31Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T19:16:31Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T19:22:16Z",
+       "completed_at": "2026-11-02T19:28:38Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T19:28:39Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41508404120",
+   "event": "push",
+   "pull": {
+    "number": 259,
+    "created_at": "2026-11-02T19:07:59Z",
+    "merged_at": "2026-11-02T19:16:28Z",
+    "first_commit_at": "2026-11-02T19:06:11Z",
+    "changed_lines": 33
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41518197646,
+   "workflow": "CI",
+   "sha": "a7fb1b7",
+   "created_at": "2026-11-02T20:19:42Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T20:19:42Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T20:21:30Z",
+       "completed_at": "2026-11-02T20:28:25Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T20:28:25Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41518197646",
+   "event": "push",
+   "pull": {
+    "number": 260,
+    "created_at": "2026-11-02T19:52:30Z",
+    "merged_at": "2026-11-02T20:19:39Z",
+    "first_commit_at": "2026-11-02T19:48:36Z",
+    "changed_lines": 65
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41525221548,
+   "workflow": "CI",
+   "sha": "551f3a9",
+   "created_at": "2026-11-02T21:06:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T21:06:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T21:11:11Z",
+       "completed_at": "2026-11-02T21:17:37Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T21:17:37Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41525221548",
+   "event": "push",
+   "pull": {
+    "number": 261,
+    "created_at": "2026-11-02T20:18:38Z",
+    "merged_at": "2026-11-02T21:06:00Z",
+    "first_commit_at": "2026-11-02T20:16:50Z",
+    "changed_lines": 645
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41526217736,
+   "workflow": "CI",
+   "sha": "2f1f8ca",
+   "created_at": "2026-11-02T21:12:29Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-02T21:12:29Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-02T21:20:12Z",
+       "completed_at": "2026-11-02T21:27:42Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-02T21:27:43Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41526217736",
+   "event": "push",
+   "pull": {
+    "number": 262,
+    "created_at": "2026-11-02T20:49:57Z",
+    "merged_at": "2026-11-02T21:12:26Z",
+    "first_commit_at": "2026-11-02T20:47:29Z",
+    "changed_lines": 71
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41611915703,
+   "workflow": "CI",
+   "sha": "674ee82",
+   "created_at": "2026-11-03T09:32:59Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T09:32:59Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T09:33:02Z",
+       "completed_at": "2026-11-03T09:44:11Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T09:44:12Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41611915703",
+   "event": "push",
+   "pull": {
+    "number": 263,
+    "created_at": "2026-11-02T22:19:26Z",
+    "merged_at": "2026-11-03T09:32:56Z",
+    "first_commit_at": "2026-11-02T22:18:41Z",
+    "changed_lines": 154
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41693752299,
+   "workflow": "CI",
+   "sha": "83b3143",
+   "created_at": "2026-11-03T18:25:58Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T18:25:58Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T18:26:00Z",
+       "completed_at": "2026-11-03T18:31:49Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T18:31:50Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41693752299",
+   "event": "push",
+   "pull": {
+    "number": 264,
+    "created_at": "2026-11-03T13:47:07Z",
+    "merged_at": "2026-11-03T18:25:54Z",
+    "first_commit_at": "2026-10-29T07:45:16Z",
+    "changed_lines": 152
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41693831323,
+   "workflow": "CI",
+   "sha": "946e179",
+   "created_at": "2026-11-03T18:26:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T18:26:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T18:31:53Z",
+       "completed_at": "2026-11-03T18:37:16Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T18:37:16Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41693831323",
+   "event": "push",
+   "pull": {
+    "number": 265,
+    "created_at": "2026-11-03T15:24:07Z",
+    "merged_at": "2026-11-03T18:26:23Z",
+    "first_commit_at": "2026-11-03T15:22:41Z",
+    "changed_lines": 48
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41709884786,
+   "workflow": "CI",
+   "sha": "642c667",
+   "created_at": "2026-11-03T20:09:06Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T20:09:06Z",
+     "conclusion": "cancelled",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T20:21:45Z",
+       "completed_at": "2026-11-03T20:25:04Z",
+       "conclusion": "cancelled",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T20:25:05Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41709884786",
+   "event": "push",
+   "pull": {
+    "number": 266,
+    "created_at": "2026-11-03T19:19:39Z",
+    "merged_at": "2026-11-03T20:09:03Z",
+    "first_commit_at": "2026-11-03T19:19:05Z",
+    "changed_lines": 52
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41715167472,
+   "workflow": "CI",
+   "sha": "28a9509",
+   "created_at": "2026-11-03T20:43:21Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T20:43:21Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T20:43:34Z",
+       "completed_at": "2026-11-03T20:51:28Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T20:51:28Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41715167472",
+   "event": "push",
+   "pull": {
+    "number": 267,
+    "created_at": "2026-11-03T20:05:45Z",
+    "merged_at": "2026-11-03T20:43:18Z",
+    "first_commit_at": "2026-11-03T20:05:23Z",
+    "changed_lines": 76
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41722544775,
+   "workflow": "CI",
+   "sha": "638458e",
+   "created_at": "2026-11-03T21:31:19Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-03T21:31:19Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-03T21:31:22Z",
+       "completed_at": "2026-11-03T21:39:19Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-03T21:39:19Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41722544775",
+   "event": "push",
+   "pull": {
+    "number": 268,
+    "created_at": "2026-11-03T20:55:23Z",
+    "merged_at": "2026-11-03T21:31:16Z",
+    "first_commit_at": "2026-11-03T20:52:13Z",
+    "changed_lines": 91
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41820111782,
+   "workflow": "CI",
+   "sha": "b7a99e5",
+   "created_at": "2026-11-04T11:20:33Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-04T11:20:33Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-04T11:20:36Z",
+       "completed_at": "2026-11-04T11:27:36Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-04T11:27:37Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41820111782",
+   "event": "push",
+   "pull": {
+    "number": 269,
+    "created_at": "2026-11-04T11:00:11Z",
+    "merged_at": "2026-11-04T11:20:30Z",
+    "first_commit_at": "2026-11-04T10:47:11Z",
+    "changed_lines": 18
+   },
+   "commit_at": null
+  },
+  {
+   "id": 41823102786,
+   "workflow": "CI",
+   "sha": "543515a",
+   "created_at": "2026-11-04T11:42:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-04T11:42:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-04T11:42:30Z",
+       "completed_at": "2026-11-04T11:49:26Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-04T11:49:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/41823102786",
+   "event": "push",
+   "pull": {
+    "number": 270,
+    "created_at": "2026-11-04T11:34:07Z",
+    "merged_at": "2026-11-04T11:42:25Z",
+    "first_commit_at": "2026-11-04T11:32:42Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42043340844,
+   "workflow": "CI",
+   "sha": "783b757",
+   "created_at": "2026-11-05T14:16:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-05T14:16:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-05T14:16:06Z",
+       "completed_at": "2026-11-05T14:21:11Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-05T14:21:12Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42043340844",
+   "event": "push",
+   "pull": {
+    "number": 281,
+    "created_at": "2026-11-04T20:13:44Z",
+    "merged_at": "2026-11-05T14:16:00Z",
+    "first_commit_at": "2026-11-04T19:52:51Z",
+    "changed_lines": 895
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42060998475,
+   "workflow": "CI",
+   "sha": "2d2470e",
+   "created_at": "2026-11-05T16:03:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-05T16:03:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-05T16:03:31Z",
+       "completed_at": "2026-11-05T16:10:55Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-05T16:10:59Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42060998475",
+   "event": "push",
+   "pull": {
+    "number": 282,
+    "created_at": "2026-11-05T11:14:33Z",
+    "merged_at": "2026-11-05T16:03:24Z",
+    "first_commit_at": "2026-11-05T10:54:04Z",
+    "changed_lines": 515
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42119058147,
+   "workflow": "CI",
+   "sha": "a44e314",
+   "created_at": "2026-11-05T22:09:36Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-05T22:09:36Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-05T22:09:39Z",
+       "completed_at": "2026-11-05T22:17:36Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-05T22:17:37Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42119058147",
+   "event": "push",
+   "pull": {
+    "number": 283,
+    "created_at": "2026-11-05T20:44:10Z",
+    "merged_at": "2026-11-05T22:09:34Z",
+    "first_commit_at": "2026-11-05T19:05:10Z",
+    "changed_lines": 914
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42210333306,
+   "workflow": "CI",
+   "sha": "fefa9b6",
+   "created_at": "2026-11-06T11:27:02Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T11:27:02Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T11:28:39Z",
+       "completed_at": "2026-11-06T11:37:05Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T11:37:06Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42210333306",
+   "event": "push",
+   "pull": {
+    "number": 284,
+    "created_at": "2026-11-06T10:33:00Z",
+    "merged_at": "2026-11-06T11:26:59Z",
+    "first_commit_at": "2026-11-06T10:22:32Z",
+    "changed_lines": 629
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42214995507,
+   "workflow": "CI",
+   "sha": "14dcd14",
+   "created_at": "2026-11-06T12:05:21Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T12:05:21Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T12:05:23Z",
+       "completed_at": "2026-11-06T12:14:41Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T12:14:41Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42214995507",
+   "event": "push",
+   "pull": {
+    "number": 286,
+    "created_at": "2026-11-06T11:35:11Z",
+    "merged_at": "2026-11-06T12:05:18Z",
+    "first_commit_at": "2026-11-06T11:34:30Z",
+    "changed_lines": 125
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42218171302,
+   "workflow": "CI",
+   "sha": "f7aa787",
+   "created_at": "2026-11-06T12:30:22Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T12:30:22Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T12:46:45Z",
+       "completed_at": "2026-11-06T12:54:02Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T12:54:03Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42218171302",
+   "event": "push",
+   "pull": {
+    "number": 287,
+    "created_at": "2026-11-06T12:14:34Z",
+    "merged_at": "2026-11-06T12:30:19Z",
+    "first_commit_at": "2026-11-06T12:02:45Z",
+    "changed_lines": 622
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42228534948,
+   "workflow": "CI",
+   "sha": "bed8659",
+   "created_at": "2026-11-06T13:48:55Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T13:48:55Z",
+     "conclusion": "failure",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T13:52:33Z",
+       "completed_at": "2026-11-06T13:54:09Z",
+       "conclusion": "failure",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T13:54:10Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42228534948",
+   "event": "push",
+   "pull": {
+    "number": 290,
+    "created_at": "2026-11-06T13:35:33Z",
+    "merged_at": "2026-11-06T13:48:52Z",
+    "first_commit_at": "2026-11-06T13:05:15Z",
+    "changed_lines": 204
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42233893740,
+   "workflow": "CI",
+   "sha": "20e2873",
+   "created_at": "2026-11-06T14:26:13Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T14:26:13Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T15:41:13Z",
+       "completed_at": "2026-11-06T15:47:49Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T15:47:49Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42233893740",
+   "event": "push",
+   "pull": {
+    "number": 288,
+    "created_at": "2026-11-06T12:17:16Z",
+    "merged_at": "2026-11-06T14:26:09Z",
+    "first_commit_at": "2026-11-06T12:16:54Z",
+    "changed_lines": 212
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42248615755,
+   "workflow": "CI",
+   "sha": "50d402d",
+   "created_at": "2026-11-06T16:02:25Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-06T16:02:25Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-06T16:02:28Z",
+       "completed_at": "2026-11-06T16:09:16Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-06T16:09:16Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42248615755",
+   "event": "push",
+   "pull": {
+    "number": 291,
+    "created_at": "2026-11-06T14:30:06Z",
+    "merged_at": "2026-11-06T16:02:22Z",
+    "first_commit_at": "2026-11-06T14:29:54Z",
+    "changed_lines": 64
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42375248329,
+   "workflow": "CI",
+   "sha": "6c77287",
+   "created_at": "2026-11-07T13:04:09Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-07T13:04:09Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-07T13:04:12Z",
+       "completed_at": "2026-11-07T13:10:26Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-07T13:10:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42375248329",
+   "event": "push",
+   "pull": {
+    "number": 293,
+    "created_at": "2026-11-07T12:42:40Z",
+    "merged_at": "2026-11-07T13:04:07Z",
+    "first_commit_at": "2026-11-07T12:42:37Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42375820485,
+   "workflow": "CI",
+   "sha": "2939ff7",
+   "created_at": "2026-11-07T13:11:27Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-07T13:11:27Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-07T13:11:29Z",
+       "completed_at": "2026-11-07T13:18:10Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-07T13:18:10Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42375820485",
+   "event": "push",
+   "pull": {
+    "number": 292,
+    "created_at": "2026-11-06T19:46:17Z",
+    "merged_at": "2026-11-07T13:11:24Z",
+    "first_commit_at": "2026-11-06T19:15:40Z",
+    "changed_lines": 32
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42401975687,
+   "workflow": "CI",
+   "sha": "320038f",
+   "created_at": "2026-11-07T18:34:39Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-07T18:34:39Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-07T18:34:41Z",
+       "completed_at": "2026-11-07T18:42:54Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-07T18:42:54Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42401975687",
+   "event": "push",
+   "pull": {
+    "number": 295,
+    "created_at": "2026-11-07T14:42:37Z",
+    "merged_at": "2026-11-07T18:34:36Z",
+    "first_commit_at": "2026-11-07T14:35:10Z",
+    "changed_lines": 48
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42504815757,
+   "workflow": "CI",
+   "sha": "0390807",
+   "created_at": "2026-11-08T17:24:33Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T17:24:33Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T17:24:35Z",
+       "completed_at": "2026-11-08T17:31:29Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T17:31:30Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42504815757",
+   "event": "push",
+   "pull": {
+    "number": 294,
+    "created_at": "2026-11-07T13:26:01Z",
+    "merged_at": "2026-11-08T17:24:30Z",
+    "first_commit_at": "2026-11-07T13:25:15Z",
+    "changed_lines": 180
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42510364482,
+   "workflow": "CI",
+   "sha": "90936a1",
+   "created_at": "2026-11-08T18:30:44Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T18:30:44Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T18:33:19Z",
+       "completed_at": "2026-11-08T18:39:56Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T18:39:56Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42510364482",
+   "event": "push",
+   "pull": {
+    "number": 298,
+    "created_at": "2026-11-08T17:08:36Z",
+    "merged_at": "2026-11-08T18:30:41Z",
+    "first_commit_at": "2026-11-08T11:22:16Z",
+    "changed_lines": 438
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42514198771,
+   "workflow": "CI",
+   "sha": "82c2bd0",
+   "created_at": "2026-11-08T19:16:29Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T19:16:29Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T19:19:04Z",
+       "completed_at": "2026-11-08T19:25:35Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T19:25:35Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42514198771",
+   "event": "push",
+   "pull": {
+    "number": 296,
+    "created_at": "2026-11-08T10:49:34Z",
+    "merged_at": "2026-11-08T19:16:26Z",
+    "first_commit_at": "2026-11-08T10:48:53Z",
+    "changed_lines": 2
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42516240902,
+   "workflow": "CI",
+   "sha": "509b5ef",
+   "created_at": "2026-11-08T19:40:50Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T19:40:50Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T19:40:53Z",
+       "completed_at": "2026-11-08T19:47:34Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T19:47:34Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42516240902",
+   "event": "push",
+   "pull": {
+    "number": 297,
+    "created_at": "2026-11-08T16:21:56Z",
+    "merged_at": "2026-11-08T19:40:47Z",
+    "first_commit_at": "2026-11-08T16:20:32Z",
+    "changed_lines": 187
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42523613037,
+   "workflow": "CI",
+   "sha": "4dd3410",
+   "created_at": "2026-11-08T21:07:42Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T21:07:42Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T21:07:44Z",
+       "completed_at": "2026-11-08T21:09:24Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-08T21:09:26Z",
+       "completed_at": "2026-11-08T21:16:16Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T21:16:16Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42523613037",
+   "event": "push",
+   "pull": {
+    "number": 301,
+    "created_at": "2026-11-08T20:26:25Z",
+    "merged_at": "2026-11-08T21:07:39Z",
+    "first_commit_at": "2026-11-08T20:15:03Z",
+    "changed_lines": 30
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42528340612,
+   "workflow": "CI",
+   "sha": "4b2df3a",
+   "created_at": "2026-11-08T22:04:17Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T22:04:17Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T22:04:19Z",
+       "completed_at": "2026-11-08T22:05:46Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-08T22:05:49Z",
+       "completed_at": "2026-11-08T22:12:15Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T22:12:16Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42528340612",
+   "event": "push",
+   "pull": {
+    "number": 302,
+    "created_at": "2026-11-08T21:46:36Z",
+    "merged_at": "2026-11-08T22:04:14Z",
+    "first_commit_at": "2026-11-08T21:46:20Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42528892863,
+   "workflow": "CI",
+   "sha": "cac0fa5",
+   "created_at": "2026-11-08T22:10:29Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T22:10:29Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T22:12:17Z",
+       "completed_at": "2026-11-08T22:18:51Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T22:18:54Z",
+       "completed_at": "2026-11-08T22:20:23Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T22:20:24Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42528892863",
+   "event": "push",
+   "pull": {
+    "number": 303,
+    "created_at": "2026-11-08T21:50:29Z",
+    "merged_at": "2026-11-08T22:10:26Z",
+    "first_commit_at": "2026-11-08T21:50:13Z",
+    "changed_lines": 11
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42532371209,
+   "workflow": "CI",
+   "sha": "82aacea",
+   "created_at": "2026-11-08T22:52:18Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T22:52:18Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T22:54:38Z",
+       "completed_at": "2026-11-08T22:59:59Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T23:05:32Z",
+       "completed_at": "2026-11-08T23:06:42Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T23:06:42Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42532371209",
+   "event": "push",
+   "pull": {
+    "number": 305,
+    "created_at": "2026-11-08T22:16:53Z",
+    "merged_at": "2026-11-08T22:52:16Z",
+    "first_commit_at": "2026-11-08T22:16:48Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42532661541,
+   "workflow": "CI",
+   "sha": "cc8d363",
+   "created_at": "2026-11-08T22:56:00Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T22:56:00Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T23:06:44Z",
+       "completed_at": "2026-11-08T23:12:19Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T23:18:48Z",
+       "completed_at": "2026-11-08T23:19:56Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T23:19:56Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42532661541",
+   "event": "push",
+   "pull": {
+    "number": 307,
+    "created_at": "2026-11-08T22:21:52Z",
+    "merged_at": "2026-11-08T22:55:58Z",
+    "first_commit_at": "2026-11-08T22:21:35Z",
+    "changed_lines": 15
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42533406610,
+   "workflow": "CI",
+   "sha": "926b269",
+   "created_at": "2026-11-08T23:05:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T23:05:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T23:19:58Z",
+       "completed_at": "2026-11-08T23:21:04Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-08T23:23:41Z",
+       "completed_at": "2026-11-08T23:29:59Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T23:30:00Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42533406610",
+   "event": "push",
+   "pull": {
+    "number": 309,
+    "created_at": "2026-11-08T22:32:37Z",
+    "merged_at": "2026-11-08T23:05:01Z",
+    "first_commit_at": "2026-11-08T22:32:33Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42533716220,
+   "workflow": "CI",
+   "sha": "eaf6bcc",
+   "created_at": "2026-11-08T23:08:37Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T23:08:37Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-08T23:30:01Z",
+       "completed_at": "2026-11-08T23:37:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-08T23:37:09Z",
+       "completed_at": "2026-11-08T23:38:45Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-08T23:38:46Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42533716220",
+   "event": "push",
+   "pull": {
+    "number": 308,
+    "created_at": "2026-11-08T22:25:03Z",
+    "merged_at": "2026-11-08T23:08:34Z",
+    "first_commit_at": "2026-11-08T22:24:48Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42533867636,
+   "workflow": "CI",
+   "sha": "62ac45f",
+   "created_at": "2026-11-08T23:10:24Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T23:10:24Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T00:09:09Z",
+       "completed_at": "2026-11-09T00:10:41Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-08T23:45:55Z",
+       "completed_at": "2026-11-08T23:52:57Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T00:10:42Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42533867636",
+   "event": "push",
+   "pull": {
+    "number": 304,
+    "created_at": "2026-11-08T22:15:24Z",
+    "merged_at": "2026-11-08T23:10:21Z",
+    "first_commit_at": "2026-11-08T22:05:24Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42537157036,
+   "workflow": "CI",
+   "sha": "b950941",
+   "created_at": "2026-11-08T23:51:17Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-08T23:51:17Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-09T00:10:43Z",
+       "completed_at": "2026-11-09T00:17:08Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T00:17:10Z",
+       "completed_at": "2026-11-09T00:18:20Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T00:18:21Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42537157036",
+   "event": "push",
+   "pull": {
+    "number": 313,
+    "created_at": "2026-11-08T23:09:30Z",
+    "merged_at": "2026-11-08T23:51:14Z",
+    "first_commit_at": "2026-11-08T23:09:17Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42538950476,
+   "workflow": "CI",
+   "sha": "5f4f069",
+   "created_at": "2026-11-09T00:12:48Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-09T00:12:48Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T00:18:23Z",
+       "completed_at": "2026-11-09T00:19:34Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-09T00:19:36Z",
+       "completed_at": "2026-11-09T00:25:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T00:25:07Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42538950476",
+   "event": "push",
+   "pull": {
+    "number": 311,
+    "created_at": "2026-11-08T22:48:38Z",
+    "merged_at": "2026-11-09T00:12:46Z",
+    "first_commit_at": "2026-11-08T22:27:30Z",
+    "changed_lines": 212
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42608741779,
+   "workflow": "CI",
+   "sha": "9089cc7",
+   "created_at": "2026-11-09T11:24:03Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-09T11:24:03Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-09T11:24:06Z",
+       "completed_at": "2026-11-09T11:33:09Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T11:33:12Z",
+       "completed_at": "2026-11-09T11:35:23Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T11:35:23Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42608741779",
+   "event": "push",
+   "pull": {
+    "number": 315,
+    "created_at": "2026-11-09T08:13:33Z",
+    "merged_at": "2026-11-09T11:24:00Z",
+    "first_commit_at": "2026-11-09T08:10:11Z",
+    "changed_lines": 423
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42626222900,
+   "workflow": "CI",
+   "sha": "27a5e32",
+   "created_at": "2026-11-09T13:31:29Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-09T13:31:29Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T13:31:31Z",
+       "completed_at": "2026-11-09T13:33:02Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-09T13:33:04Z",
+       "completed_at": "2026-11-09T13:39:27Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T13:39:27Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42626222900",
+   "event": "push",
+   "pull": {
+    "number": 316,
+    "created_at": "2026-11-09T11:38:00Z",
+    "merged_at": "2026-11-09T13:31:26Z",
+    "first_commit_at": "2026-11-09T11:27:15Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42675218666,
+   "workflow": "CI",
+   "sha": "c3223f5",
+   "created_at": "2026-11-09T18:34:36Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-09T18:34:36Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-09T18:35:56Z",
+       "completed_at": "2026-11-09T18:41:44Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-09T18:34:38Z",
+       "completed_at": "2026-11-09T18:35:53Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-09T18:41:45Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42675218666",
+   "event": "push",
+   "pull": {
+    "number": 317,
+    "created_at": "2026-11-09T18:15:14Z",
+    "merged_at": "2026-11-09T18:34:33Z",
+    "first_commit_at": "2026-11-09T18:03:59Z",
+    "changed_lines": 1
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42832291272,
+   "workflow": "CI",
+   "sha": "efaff97",
+   "created_at": "2026-11-10T14:15:45Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-10T14:15:45Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "reliability",
+       "started_at": "2026-11-10T14:15:48Z",
+       "completed_at": "2026-11-10T14:17:40Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "build",
+       "started_at": "2026-11-10T14:17:43Z",
+       "completed_at": "2026-11-10T14:35:07Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-10T14:35:08Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42832291272",
+   "event": "push",
+   "pull": {
+    "number": 328,
+    "created_at": "2026-11-10T12:59:27Z",
+    "merged_at": "2026-11-10T14:15:42Z",
+    "first_commit_at": "2026-11-10T12:59:20Z",
+    "changed_lines": 91
+   },
+   "commit_at": null
+  },
+  {
+   "id": 42848935860,
+   "workflow": "CI",
+   "sha": "b0d623f",
+   "created_at": "2026-11-10T15:52:36Z",
+   "attempts": [
+    {
+     "number": 1,
+     "started_at": "2026-11-10T15:52:36Z",
+     "conclusion": "success",
+     "jobs": [
+      {
+       "name": "build",
+       "started_at": "2026-11-10T15:52:40Z",
+       "completed_at": "2026-11-10T15:59:26Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      },
+      {
+       "name": "reliability",
+       "started_at": "2026-11-10T15:59:28Z",
+       "completed_at": "2026-11-10T16:00:57Z",
+       "conclusion": "success",
+       "runner": "SSDM12-Windows",
+       "steps": []
+      }
+     ],
+     "updated_at": "2026-11-10T16:00:58Z"
+    }
+   ],
+   "url": "https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42848935860",
+   "event": "push",
+   "pull": {
+    "number": 329,
+    "created_at": "2026-11-10T14:46:14Z",
+    "merged_at": "2026-11-10T15:52:33Z",
+    "first_commit_at": "2026-11-10T14:45:34Z",
+    "changed_lines": 1900
+   },
+   "commit_at": null
+  }
+ ]
+}
