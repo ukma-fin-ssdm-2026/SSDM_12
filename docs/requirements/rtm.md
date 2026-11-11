@@ -209,7 +209,6 @@ ID не змінено: це ті самі QA-xx і THR-xx, що й у джер�
 | MAINT-001 | крок CI «Run API tests with branch coverage»: поріг 90% для `api` і `unislot`; доменний модуль бронювання — 100% (`docs/testing/lab06/coverage.json`) | метрика покриття, а не поведінка: її вимірює coverage.py, а не окремий тест | діє з Лаб 6 |
 | MAINT-002 | SonarCloud Automatic Analysis (`.sonarcloud.properties`), [звіт «до й після»](../refactoring/sonarcloud-report.md#34-maint-002-і-tc-071) і [вимір `v0.1.1`](../refactoring/evidence/after-sonarcloud.json): Security Rating E | рейтинг зовнішнього сервісу, а не поведінка коду | TC-071: потрібен рейтинг A, його не досягнуто |
 | PORT-001 | не перевіряється | потрібен окремий замір повного старту з чистого клону; фізичний ПК іншого учасника не є вимогою викладача | Лаб 10 (TC-073) |
-| QA-23 | повторні спроби запусків видно в історії Actions (поле `attempt` у `gh run list`) | скрипт, його тести й workflow додає PR бонусу 4 Лаб 10 | PR бонусу 4 (@DziubakPavlo), до 12.11 |
 
 ## 8. Локальний етап реалізації після #240
 

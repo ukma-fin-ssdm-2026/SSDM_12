@@ -1,0 +1,72 @@
+name: Flaky test hunt
+
+# Lab 10, bonus 4: run the FULL test suite N times (5 or more) in ONE job on ONE commit
+# and list the tests whose outcome differed between repetitions (scripts/flaky_hunt.py).
+# Manual only (Actions -> Flaky test hunt -> Run workflow): the course runners are shared,
+# so no schedule, and no matrix - a matrix would occupy several runners at once.
+on:
+  workflow_dispatch:
+    inputs:
+      repetitions:
+        description: "How many times to run the full suite"
+        required: true
+        default: "5"
+        type: choice
+        options: ["5", "6", "7", "8", "9", "10"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flaky-hunt
+  cancel-in-progress: false
+
+jobs:
+  hunt:
+    name: hunt
+    # The same machine as CI: flakiness that matters to us shows up in this environment.
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONIOENCODING: utf-8
+      REPETITIONS: ${{ inputs.repetitions }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # tests/unit/test_web_client.py runs the browser client tests with Node.js.
+      - name: Set up Node.js for client tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install test dependencies (cached venv, Lab 10)
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          python scripts/ci_venv.py --requirements requirements-testing.txt --pip "pip>=26.2" --root "$env:RUNNER_TOOL_CACHE\ssdm12-venv" --scope $env:EVENT --github-env
+          if ($LASTEXITCODE -ne 0) { throw 'Cached virtual environment is not ready' }
+
+      # Each repetition is a separate pytest process with PYTHONHASHSEED = its number.
+      # Exit code 1 means flaky or always-failing tests were found: the run turns red on
+      # purpose, and the job summary lists them. Exit code 3 means a repetition produced no
+      # test results at all (collection or environment failure), so nothing was compared.
+      - name: Run the full suite N times and compare outcomes
+        run: |
+          & "$env:VENV_DIR\Scripts\python.exe" scripts/flaky_hunt.py --repetitions $env:REPETITIONS --out-dir reports/flaky
+          if ($LASTEXITCODE -eq 1) { throw 'Flaky or always-failing tests found: see the job summary' }
+          if ($LASTEXITCODE -eq 3) { throw 'A repetition produced no test results: see its log above' }
+          if ($LASTEXITCODE -ne 0) { throw 'The flaky hunt could not run' }
+
+      - name: Upload JUnit reports of every repetition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-hunt
+          path: reports/flaky/
+          if-no-files-found: warn
