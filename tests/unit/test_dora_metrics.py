@@ -448,6 +448,7 @@ def test_cli_refuses_to_write_outside_the_repository(tmp_path, monkeypatch):
     assert dm.main(["--from-dataset", "d.json", "--out", "../outside.md"]) == 2
     assert not (tmp_path.parent / "outside.md").exists()
 
+
 @pytest.mark.parametrize("option", ["--out", "--json"])
 def test_cli_rejects_output_path_traversal(tmp_path, monkeypatch, option):
     monkeypatch.chdir(tmp_path)
@@ -462,10 +463,17 @@ def test_cli_rejects_output_path_traversal(tmp_path, monkeypatch, option):
     dm.save_dataset(tmp_path / "d.json", [run(1, 0)], meta)
 
     target = tmp_path.parent / "outside-dora-test.json"
-    assert dm.main([
-        "--from-dataset", "d.json",
-        option, "../outside-dora-test.json",
-    ]) == 2
+    assert (
+        dm.main(
+            [
+                "--from-dataset",
+                "d.json",
+                option,
+                "../outside-dora-test.json",
+            ]
+        )
+        == 2
+    )
     assert not target.exists()
 
 
