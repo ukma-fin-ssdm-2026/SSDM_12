@@ -4,6 +4,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Lab 10, bonus 3: run both test sets on demand, e.g. on a branch that changes the
+  # database layer, before it is merged (Actions -> CI -> Run workflow -> branch).
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -74,27 +77,6 @@ jobs:
           python scripts/ci_venv.py --requirements requirements-testing.txt --pip "pip>=26.2" --root "$env:RUNNER_TOOL_CACHE\ssdm12-venv" --scope $env:EVENT --github-env
           if ($LASTEXITCODE -ne 0) { throw 'Cached virtual environment is not ready' }
 
-      - name: Verify PostgreSQL integration test prerequisites
-        env:
-          PYTHONIOENCODING: utf-8
-        run: |
-          @'
-          import subprocess
-          from scripts.postgres_dev import postgres_bin
-
-          directory = postgres_bin()
-          for name in ("initdb.exe", "pg_ctl.exe", "postgres.exe"):
-              if not (directory / name).is_file():
-                  raise SystemExit("PostgreSQL binary missing: " + name)
-          version = subprocess.check_output(
-              [str(directory / "postgres.exe"), "--version"], text=True
-          ).strip()
-          print(version)
-          if " 16." not in version:
-              raise SystemExit("PostgreSQL 16 binaries required for integration tests")
-          '@ | & "$env:VENV_DIR\Scripts\python.exe" -
-          if ($LASTEXITCODE -ne 0) { throw 'Install PostgreSQL 16 or configure UNISLOT_POSTGRES_BIN on the runner' }
-
       # Lab 5 quality gates (charter 11.2). Static checks run before tests: they take seconds
       # and stop a broken change early. Configuration lives in pyproject.toml, .importlinter
       # and .secrets.baseline; the same tools run locally in .pre-commit-config.yaml.
@@ -150,25 +132,30 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Import contract broken: see HLD section 6' }
 
       # The build job remains the required PR check on the existing Windows runner.
-      # Lab6 measured baseline supports a 90% gate over both api and unislot.
-      - name: Run API tests with branch coverage
+      # Lab 10, bonus 3: build runs the FAST set on every PR and push - unit, API, property
+      # and reliability tests, all in-process without external services. The SLOW set
+      # (tests/integration, real PostgreSQL 16) runs in job `integration` after a merge.
+      # The fast set alone covers ~79% of api+unislot, so the PR gate here is 78%; the 90%
+      # gate of charter 11.4 is checked over both sets together in `integration`.
+      # The full local equivalent is still: python scripts/run_lab06.py
+      - name: Fast test set with branch coverage (Lab 10)
         run: |
-          & "$env:VENV_DIR\Scripts\python.exe" scripts/run_lab06.py
-          if ($LASTEXITCODE -ne 0) { throw 'API tests or coverage gate failed' }
+          & "$env:VENV_DIR\Scripts\python.exe" -m pytest -q --ignore=tests/integration --junitxml=reports/junit-fast.xml --cov=api --cov=unislot --cov-branch --cov-report=term:skip-covered --cov-report=xml:coverage-fast.xml --cov-fail-under=78
+          if ($LASTEXITCODE -ne 0) { throw 'Fast tests or the fast-set coverage gate (78%) failed' }
 
-      - name: Upload API coverage report
+      # .coverage (hidden file) goes to `integration`, which appends the slow set to it.
+      - name: Upload fast-set reports and coverage data
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-coverage
+          name: tests-fast
           path: |
-            coverage.xml
-            docs/testing/lab06/htmlcov/
-            docs/testing/lab06/coverage.json
-            docs/testing/lab06/junit.xml
-            docs/testing/lab06/test-run.txt
-            docs/testing/lab06/run.json
+            .coverage
+            coverage-fast.xml
+            reports/junit-fast.xml
+          include-hidden-files: true
           if-no-files-found: warn
+          overwrite: true
 
       # Code-First: fail if the committed API docs differ from the generated files.
       - name: Check OpenAPI is generated from code (Lab 4)
@@ -269,3 +256,72 @@ jobs:
         run: |
           & "$env:VENV_DIR\Scripts\python.exe" -m pytest -q tests/reliability
           if ($LASTEXITCODE -ne 0) { throw 'Reliability tests failed' }
+
+  # Lab 10, bonus 3: the SLOW set - PostgreSQL integration tests against a real local
+  # PostgreSQL 16 cluster (scripts/postgres_dev.py) - after a merge to main or on a manual
+  # run, never on a pull request. A defect that only this set finds turns main red after
+  # the merge: that is the price of faster PR feedback (counted in the change fail rate).
+  integration:
+    name: integration
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install test dependencies (cached venv, Lab 10)
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          python scripts/ci_venv.py --requirements requirements-testing.txt --pip "pip>=26.2" --root "$env:RUNNER_TOOL_CACHE\ssdm12-venv" --scope $env:EVENT --github-env
+          if ($LASTEXITCODE -ne 0) { throw 'Cached virtual environment is not ready' }
+
+      - name: Verify PostgreSQL integration test prerequisites
+        run: |
+          @'
+          import subprocess
+          from scripts.postgres_dev import postgres_bin
+
+          directory = postgres_bin()
+          for name in ("initdb.exe", "pg_ctl.exe", "postgres.exe"):
+              if not (directory / name).is_file():
+                  raise SystemExit("PostgreSQL binary missing: " + name)
+          version = subprocess.check_output(
+              [str(directory / "postgres.exe"), "--version"], text=True
+          ).strip()
+          print(version)
+          if " 16." not in version:
+              raise SystemExit("PostgreSQL 16 binaries required for integration tests")
+          '@ | & "$env:VENV_DIR\Scripts\python.exe" -
+          if ($LASTEXITCODE -ne 0) { throw 'Install PostgreSQL 16 or configure UNISLOT_POSTGRES_BIN on the runner' }
+
+      - name: Download fast-set coverage data
+        uses: actions/download-artifact@v4
+        with:
+          name: tests-fast
+          path: .
+
+      - name: Slow test set - PostgreSQL integration, gate 90% over both sets (Lab 10)
+        run: |
+          & "$env:VENV_DIR\Scripts\python.exe" -m pytest -q tests/integration --junitxml=reports/junit-slow.xml --cov=api --cov=unislot --cov-branch --cov-append --cov-report=term:skip-covered --cov-report=xml:coverage.xml --cov-fail-under=90
+          if ($LASTEXITCODE -ne 0) { throw 'Integration tests or the 90% coverage gate over both sets failed' }
+
+      - name: Upload slow-set reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-slow
+          path: |
+            coverage.xml
+            reports/junit-slow.xml
+          if-no-files-found: warn
+          overwrite: true
