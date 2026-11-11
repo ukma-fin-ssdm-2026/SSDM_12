@@ -1001,7 +1001,12 @@ def write_report(path: Path, content: str) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     target = safe_output(target)
 
-    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    elif target.is_symlink():
+        raise ApiError(f"символічне посилання заборонено: {path}")
+
     try:
         fd = os.open(target, flags, 0o600)
     except OSError as error:
