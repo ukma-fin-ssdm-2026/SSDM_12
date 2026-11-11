@@ -489,6 +489,7 @@ def test_loading_dataset_rejects_path_traversal(tmp_path, monkeypatch):
         dm.load_dataset(tmp_path / "../outside-dora-test.json")
 
 
+@pytest.mark.skipif(dm.os.name == "nt", reason="Windows runner cannot create symlinks")
 def test_output_rejects_symlink_escape(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     outside = tmp_path.parent
@@ -498,6 +499,7 @@ def test_output_rejects_symlink_escape(tmp_path, monkeypatch):
         dm.safe_output(tmp_path / "external" / "outside-dora-test.json")
 
 
+@pytest.mark.skipif(dm.os.name == "nt", reason="Windows runner cannot create symlinks")
 def test_write_report_rejects_symlink_inserted_after_validation(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     outside = tmp_path.parent / f"{tmp_path.name}-outside-report.txt"
