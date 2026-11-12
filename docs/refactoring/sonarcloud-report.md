@@ -507,16 +507,27 @@ python scripts/regression_compare.py before.xml after.xml
 
 ### 6.3. Докази регресії між ревізіями
 
-| Доказ | Стан |
-|---|---|
-| SHA і JUnit XML на `v0.1.0` | SHA тегу: `783b757ec4cb46ded290fa407a7eded38e98c750` (§0); JUnit XML для цього стану не знайдено серед перевірених артефактів |
-| SHA і JUnit XML після R-1–R-4 | Успішний CI [PR #288, коміт `accfe449`](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830): **833 passed, 1 skipped, 1 warning**, покриття **98,30%**; JUnit XML не входить до завантаженого артефакту `api-coverage` ([артефакт 13506483216](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830/artifacts/13506483216)) |
-| Вивід `regression_compare.py` на двох ревізіях | Ще не виконано: для порівняння бракує JUnit XML з `v0.1.0` і стану після рефакторингу |
-| Результат CI з PostgreSQL | [Успішний run #42227926830](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42227926830): job `build` завершено `success`; кроки `Verify PostgreSQL integration test prerequisites` і `Run API tests with branch coverage` — `success`. Це підтверджує CI на PR #288, але не порівняння двох ревізій |
+Порівнюються **саме релізні теги** `v0.1.0` (`783b757`) та `v0.1.1` (`2939ff7`), а не довільні проміжні коміти. Підготовлено процедуру відтворюваного порівняння за QA-20. **Фактичні локальні JUnit XML та вивід порівняння ще не отримані; висновок про відсутність регресії не заявляється.**
 
-**Зібрано підтвердження успішного CI після рефакторингу**, однак **висновок про відсутність регресії між `v0.1.0` і станом після
-рефакторингу поки не заявляється:** без двох зафіксованих JUnit XML
-і результату їхнього порівняння він був би неперевіреним.
+| Доказ | `v0.1.0` — до | `v0.1.1` — після |
+|---|---|---|
+| Коміт | `783b757` (злиття #281) | `2939ff7` (злиття #292) |
+| CI з PostgreSQL | [run 42043340844](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42043340844) — success | [run 42375820485](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42375820485) — success |
+| Локальний JUnit XML | Очікує прогону на тезі | Очікує прогону на тезі |
+
+Для порівняння потрібно виконати на обох тегах **однаковий набір** тестів. За відсутності локального PostgreSQL обрати `--ignore=tests/integration` на обох тегах; інтеграційні тести тоді підтверджуються лише CI, а не локальним порівнянням.
+
+```bash
+git fetch --tags
+git worktree add ../ssdm12-v0.1.0 v0.1.0
+git worktree add ../ssdm12-v0.1.1 v0.1.1
+mkdir -p reports/regression
+(cd ../ssdm12-v0.1.0 && python -m pytest -q -p no:cacheprovider --ignore=tests/integration --junitxml="$PWD/../SSDM_12/reports/regression/before.xml")
+(cd ../ssdm12-v0.1.1 && python -m pytest -q -p no:cacheprovider --ignore=tests/integration --junitxml="$PWD/../SSDM_12/reports/regression/after.xml")
+python scripts/regression_compare.py reports/regression/before.xml reports/regression/after.xml
+```
+
+**До переведення PR з Draft у Ready:** зафіксувати дату, ОС, Python, точні команди, підсумки обох прогонів і дослівний вивід `regression_compare.py` у `docs/refactoring/evidence/regression-v0.1.0-v0.1.1.txt`; після цього узгодити рядок «Регресія» в §0, висновок тут, §6.4 і пункт §10.5. Нові тести «після» слід вказувати окремо від зниклих чи погіршених.
 
 ### 6.4. Використання ШІ
 
