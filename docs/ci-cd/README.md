@@ -22,6 +22,11 @@
 Обов'язкові перевірки PR у ruleset `main-protection`: `build`, `reliability`, `SonarCloud Code Analysis`.
 Середовище Python на постійному раннері кешується між запусками (`scripts/ci_venv.py`, бонус 2).
 
+Зв'язок із вимогами: рядки `SEC-003` і `PORT-001` у §7
+[`docs/requirements/rtm.md`](../requirements/rtm.md) позначені як перенесені з Лаб 10 на
+підготовку до захисту — там написано, чим кожен пункт перевіряється зараз (сканування секретів
+у всій історії `main`; перевірка `GET /health` в `Release image`, бонус 5) і чому саме так.
+
 ## Як відтворити
 
 ```bash
