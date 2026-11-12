@@ -1,0 +1,34 @@
+Lab08 regression verification
+Date: 2026-11-12
+
+Repository: ukma-fin-ssdm-2026/SSDM_12
+Before: v0.1.0 (783b757)
+After: v0.1.1 (2939ff7)
+Python: 3.13.0
+Environment: macOS
+
+Test command (both versions):
+python -m pytest -q --ignore=tests/integration --junitxml=<output.xml>
+
+BEFORE — v0.1.0
+705 passed, 1 warning in 11.97s
+
+AFTER — v0.1.1
+743 passed, 1 warning in 9.75s
+
+Regression comparison command:
+python scripts/regression_compare.py reports/regression/before.xml reports/regression/after.xml
+
+Comparison results:
+Before: 705 tests — passed 705, failed 0, error 0, skipped 0
+After: 743 tests — passed 743, failed 0, error 0, skipped 0
+Removed tests: 0
+Degraded tests: 0
+Failing tests after: 0
+New tests: 38
+
+Result: NO REGRESSIONS DETECTED.
+
+Note: Integration tests were excluded in both runs.
+The single warning in each run concerns pytest record_property
+compatibility with junit_family='xunit2'.
