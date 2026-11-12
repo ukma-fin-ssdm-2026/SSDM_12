@@ -165,7 +165,7 @@ jobs:
 
       # Use ASCII source and Unicode escapes for Windows PowerShell 5.1 scripts.
       # Literal placeholder markers containing only spaces or an ellipsis are allowed.
-      - name: Check author slots are filled in docs/api, docs/refactoring and CHANGELOG.md (Lab 4, Lab 8)
+      - name: Check author slots are filled in docs/api, docs/refactoring, docs/ci-cd and CHANGELOG.md (Lab 4, Lab 8, Lab 10)
         run: |
           @'
           import re
@@ -181,7 +181,7 @@ jobs:
               f"{path.as_posix()}:{number}: {line.strip()}"
               for path in sorted(
                   [*Path("docs/api").glob("*.md"), *Path("docs/refactoring").glob("*.md"),
-                   Path("CHANGELOG.md")]
+                   *Path("docs/ci-cd").rglob("*.md"), Path("CHANGELOG.md")]
               )
               for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
               if pattern.search(line)
@@ -190,7 +190,7 @@ jobs:
               print("\n".join(matches))
               print("::error::Fill author placeholders before merging.")
               sys.exit(1)
-          print("[ ok ] No unfilled author placeholders in docs/api, docs/refactoring, CHANGELOG.md.")
+          print("[ ok ] No unfilled author placeholders in docs/api, docs/refactoring, docs/ci-cd, CHANGELOG.md.")
           '@ | & "$env:VENV_DIR\Scripts\python.exe" -
           if ($LASTEXITCODE -ne 0) { throw 'Unfilled author placeholders in docs' }
 
