@@ -507,7 +507,9 @@ python scripts/regression_compare.py before.xml after.xml
 
 ### 6.3. Докази регресії між ревізіями
 
-12.11.2026 виконано локальне регресійне порівняння релізних тегів `v0.1.0` (`783b757`) та `v0.1.1` (`2939ff7`) на macOS із Python 3.13.0.
+У PR #340 зафіксовано локальне порівняння від 12.11.2026 на macOS із Python 3.13.0; для публікації первинних доказів 13.11.2026 обидва релізні теги `v0.1.0` (`783b757`) та `v0.1.1` (`2939ff7`) повторно перевірено на Linux із Python 3.12.14 — нижче наведено результати саме повторного запуску.
+
+На [відео Аксенії для Лаб 8](../../Labs/Lab08/video_akseniia_kozulina.txt) порівнювалися лише `tests/api/test_availability_templates.py` і `tests/unit/test_weekly_patterns.py` на тих самих тегах (48 → 48 passed, регресій немає), тому кількість відрізняється від наведених нижче 705 → 743: тут охоплено весь набір, крім `tests/integration`.
 
 В обох версіях застосовано однакову команду `python -m pytest -q --ignore=tests/integration` із записом окремих JUnit XML. Інтеграційні тести виключено з обох прогонів.
 
@@ -518,15 +520,19 @@ python scripts/regression_compare.py before.xml after.xml
 | Errors | 0 | 0 |
 | Skipped | 0 | 0 |
 | Warnings | 1 | 1 |
-| Тривалість | 11.97 с | 9.75 с |
+| Тривалість | 11.36 с | 11.56 с |
 
-Порівняння виконано командою `python scripts/regression_compare.py reports/regression/before.xml reports/regression/after.xml`.
+Прямий stdout порівняння збережено без редагування командою з кореня репозиторію:
+
+```bash
+python scripts/regression_compare.py docs/refactoring/evidence/before.xml docs/refactoring/evidence/after.xml > docs/refactoring/evidence/regression-v0.1.0-v0.1.1.txt
+```
 
 Результат: зниклих тестів — 0; погіршених — 0; падаючих після — 0; нових — 38.
 
 **Висновок:** регресій у локально перевіреному наборі не виявлено. Це не є підтвердженням відсутності регресій в інтеграційних тестах, оскільки вони не входили до порівняння.
 
-Доказ: [`evidence/regression-v0.1.0-v0.1.1.txt`](evidence/regression-v0.1.0-v0.1.1.txt). JUnit XML збережено локально.
+Докази: [stdout порівняння](evidence/regression-v0.1.0-v0.1.1.txt), [before.xml](evidence/before.xml), [after.xml](evidence/after.xml), [вивід pytest до](evidence/regression-before-pytest.txt) і [після](evidence/regression-after-pytest.txt). Точні ревізії, середовище та команди відтворення — [regression-reproduction.md](evidence/regression-reproduction.md).
 
 ### 6.4. Використання ШІ
 
@@ -534,7 +540,7 @@ python scripts/regression_compare.py before.xml after.xml
 (Anthropic); ChatGPT (OpenAI) переніс реалізацію, тести та вимогу QA-20
 через GitHub у PR #288, виправив зауваження SonarQube щодо шляхів
 і сумісність тестів із Windows. Авторка перевірила контрольні
-сценарії, наведені в §6.2. Локальне порівняння релізних тегів виконано 12.11.2026; фактичні результати та обмеження перевірки наведено в §6.3.
+сценарії, наведені в §6.2. Локальне порівняння релізних тегів виконано 12.11.2026; фактичні результати та обмеження перевірки наведено в §6.3. Повторні прогони 13.11.2026, збереження XML і stdout та уточнення документації виконав ChatGPT (OpenAI); stdout перевірено повторним запуском на доданих XML із побайтовим порівнянням.
 
 ---
 
