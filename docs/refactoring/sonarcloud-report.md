@@ -838,7 +838,7 @@ PATCH визначили **два незалежні рахувальники** 
     [run 42043340845](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42043340845).
   У кожному прогоні job, що не стосується події, пропускається (`prepare`/`publish` —
   `skipped`), тобто два кроки справді незалежні.
-- **Пояснено у відео:** @DziubakPavlo, Лаб 8.
+- **Пояснено у відео:** @DziubakPavlo, Лаб8 — [посилання на відео](../../Labs/Lab08/video_pavlo_dziubak.txt).
 
 ---
 
