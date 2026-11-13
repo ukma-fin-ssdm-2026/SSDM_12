@@ -23,7 +23,7 @@ jobs:
       PLANTUML_SHA256: "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -243,7 +243,7 @@ jobs:
       UNISLOT_DATABASE_URL: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       # Lab 10, bonus 2: the same cached environment as in build (same key, same scope).
@@ -275,7 +275,7 @@ jobs:
       PYTHONIOENCODING: utf-8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
