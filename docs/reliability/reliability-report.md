@@ -205,6 +205,7 @@ python -m scripts.check_readiness --env-file .env.local
 який запускає `python -m pytest -q tests/reliability` на Windows self-hosted runner.
 - **Успішний job `reliability`.** [53 passed](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/42520132826/job/128851606874).
 - **Обов’язкова перевірка для `main`.** https://github.com/ukma-fin-ssdm-2026/SSDM_12/settings/rules/23189404.
+- **Пояснено у відео:** @NykytaBabakov, Лаб 9 (подано 09.11 після тегу).
 
 У [вимогах Лаб 9](https://ssdm-2026.cs-courses.org/labs/lab09/lab09.html)
 кожен заявлений бонус також потребує пояснення щонайменше в одному відео учасника.
