@@ -1,34 +1,47 @@
-Lab08 regression verification
-Date: 2026-11-12
+До: тестів 705 — passed 705 · failed 0 · error 0 · skipped 0
+Після: тестів 743 — passed 743 · failed 0 · error 0 · skipped 0
 
-Repository: ukma-fin-ssdm-2026/SSDM_12
-Before: v0.1.0 (783b757)
-After: v0.1.1 (2939ff7)
-Python: 3.13.0
-Environment: macOS
+Зникли тести (були до, немає після): 0
+Погіршилися (passed до → інакше після): 0
+Падають після: 0
+Нові тести (для інформації): 38
+  tests.unit.test_check_architecture::test_adr_needs_sections_status_and_two_alternatives
+  tests.unit.test_check_architecture::test_ai_section_inside_a_code_fence_does_not_count
+  tests.unit.test_check_architecture::test_author_slots_warn_by_default_and_fail_in_strict_mode
+  tests.unit.test_check_architecture::test_broken_diagram_and_missing_er_diagram
+  tests.unit.test_check_architecture::test_consistent_artifacts_pass_with_the_exact_report
+  tests.unit.test_check_architecture::test_data_model_needs_keys_personal_data_and_descriptions
+  tests.unit.test_check_architecture::test_forward_matrix_rows_are_checked_one_by_one
+  tests.unit.test_check_architecture::test_missing_core_document_stops_before_the_other_checks
+  tests.unit.test_check_architecture::test_missing_decisions_readme_crashes_the_ai_section_check
+  tests.unit.test_check_architecture::test_plantuml_argument_must_be_an_existing_jar_file[-version]
+  tests.unit.test_check_architecture::test_plantuml_argument_must_be_an_existing_jar_file[README.md]
+  tests.unit.test_check_architecture::test_plantuml_argument_must_be_an_existing_jar_file[missing.jar]
+  tests.unit.test_check_architecture::test_plantuml_syntax_check_runs_java_and_filters_its_noise
+  tests.unit.test_check_architecture::test_quality_scenarios_need_all_parts
+  tests.unit.test_check_architecture::test_references_to_undefined_ids_name_the_file_and_line
+  tests.unit.test_check_architecture::test_reverse_matrix_must_match_the_forward_one
+  tests.unit.test_check_architecture::test_strict_mode_changes_nothing_when_every_slot_is_filled
+  tests.unit.test_check_architecture::test_threat_model_rows_need_stride_rating_and_countermeasure
+  tests.unit.test_check_architecture::test_too_few_diagrams_and_adrs_are_reported_but_checks_continue
+  tests.unit.test_custom_openapi::test_every_secured_operation_gets_503_and_only_unsafe_ones_get_csrf
+  tests.unit.test_custom_openapi::test_public_operation_is_left_untouched
+  tests.unit.test_custom_openapi::test_schema_is_built_once_and_cached
+  tests.unit.test_custom_openapi::test_unsafe_operation_documents_the_optional_csrf_header_once
+  tests.unit.test_custom_openapi::test_unsafe_operation_without_403_gets_the_csrf_403_from_the_catalog
+  tests.unit.test_openapi_export::test_cli_refuses_an_output_directory_outside_the_repository[../elsewhere]
+  tests.unit.test_openapi_export::test_cli_refuses_an_output_directory_outside_the_repository[..]
+  tests.unit.test_openapi_export::test_cli_refuses_an_output_directory_outside_the_repository[/]
+  tests.unit.test_regression_compare::test_added_characterization_tests_are_listed_but_allowed
+  tests.unit.test_regression_compare::test_cli_rejects_path_outside_working_directory
+  tests.unit.test_regression_compare::test_cli_rejects_symlink_to_external_xml
+  tests.unit.test_regression_compare::test_cli_reports_and_sets_the_exit_code
+  tests.unit.test_regression_compare::test_lost_degraded_or_failing_tests_are_regressions[after0-removed]
+  tests.unit.test_regression_compare::test_lost_degraded_or_failing_tests_are_regressions[after1-degraded]
+  tests.unit.test_regression_compare::test_lost_degraded_or_failing_tests_are_regressions[after2-degraded]
+  tests.unit.test_regression_compare::test_lost_degraded_or_failing_tests_are_regressions[after3-failing]
+  tests.unit.test_regression_compare::test_outcomes_are_read_per_test_id
+  tests.unit.test_regression_compare::test_same_tests_with_same_results_is_a_clean_regression_run
+  tests.unit.test_regression_compare::test_test_that_was_already_skipped_is_not_a_regression
 
-Test command (both versions):
-python -m pytest -q --ignore=tests/integration --junitxml=<output.xml>
-
-BEFORE — v0.1.0
-705 passed, 1 warning in 11.97s
-
-AFTER — v0.1.1
-743 passed, 1 warning in 9.75s
-
-Regression comparison command:
-python scripts/regression_compare.py reports/regression/before.xml reports/regression/after.xml
-
-Comparison results:
-Before: 705 tests — passed 705, failed 0, error 0, skipped 0
-After: 743 tests — passed 743, failed 0, error 0, skipped 0
-Removed tests: 0
-Degraded tests: 0
-Failing tests after: 0
-New tests: 38
-
-Result: NO REGRESSIONS DETECTED.
-
-Note: Integration tests were excluded in both runs.
-The single warning in each run concerns pytest record_property
-compatibility with junit_family='xunit2'.
+Регресій немає.
