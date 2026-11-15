@@ -72,7 +72,7 @@ jobs:
 
       # Рання зрозуміла помилка, якщо Pages не ввімкнено з джерелом «GitHub Actions».
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # upload-pages-artifact uses Bash + GNU tar on Windows. Prefer Git for Windows' GNU Bash.
       - name: Prepare GNU Bash for Pages artifact
