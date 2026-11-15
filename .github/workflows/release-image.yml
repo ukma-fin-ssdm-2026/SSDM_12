@@ -31,7 +31,7 @@ jobs:
       CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
     steps:
       - name: Checkout the commit that CI tested
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
