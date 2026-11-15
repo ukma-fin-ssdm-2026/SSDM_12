@@ -29,7 +29,7 @@
 |---|---|---|
 | PERF-001, PERF-002 (TC-060, TC-061) | на дату цього плану навантажувальні виміри на PostgreSQL ще не були частиною Lab 7; результати з'явилися в пізнішому локальному етапі | актуальні результати — `docs/implementation/performance-completion.md` |
 | Доставка сповіщень і REL-002: FR-050, FR-052, FR-053 (TC-006, TC-020–TC-024, TC-063) | адаптера сповіщень і черги повторних спроб немає; планування нагадувань тестуємо (TP-12, TP-13) | Лаб 9 |
-| Конкурентність у справжній СУБД — TP-11 | наявний TP-03 працює проти сховища в пам'яті (ризик R1) | PostgreSQL 16 вже в CI з 01.11 (`tests/integration`, job `integration`); сам тест TP-11 ще не написано |
+| Конкурентність у справжній СУБД — TP-11 | наявний TP-03 працює проти сховища в пам'яті (ризик R1) | PostgreSQL 16 вже в CI з 01.11 (`tests/integration`, job `integration`); сам автоматизований тест TP-11 ще не написано. Ризик R1 підтверджено вручну (не автотестом): 5 реальних прогонів 100 паралельних POST на один слот проти PostgreSQL, завжди 1 × 201 + 99 × 409, одна confirmed у БД — [`load-worker-calendar-audit.md`](../implementation/load-worker-calendar-audit.md), [`sql-concurrency-hardening.md`](../implementation/sql-concurrency-hardening.md), [`performance-completion.md`](../implementation/performance-completion.md) (3 прогони) |
 | Модуль Auth: FR-001–FR-006, SEC-001 (TC-037–TC-042, TC-064) | автентифікація — демо-токени (DD-18): реєстрації й паролів немає; TC-042 ще й заблокований OQ-001 | разом із модулем Auth |
 | Ролі й політики через API, незмінність аудиту: FR-062–FR-064, FR-067 (TC-048–TC-055, TC-069) | цих операцій у коді немає; аудит дій із ресурсами тестуємо (TP-08) | разом з API і PostgreSQL |
 | Шаблони й блокування провайдером: FR-012, FR-013 (TC-029–TC-036) | операцій немає; те, що заблокований час недоступний для запису, тестуємо (TP-04) | разом з API доступності |
@@ -48,8 +48,11 @@
 
 1. **CI зелений.** Обов'язкова перевірка `build` на PR у `main`: зелені всі тести рядків зі
    станом «є» в §5. TP-11 — поза воротами CI цієї ітерації: PostgreSQL 16 в CI вже є
-   (`tests/integration`, job `integration`, з 01.11), але сам тест TP-11 (100 паралельних
-   запитів → рівно 1 `201`) ще не написано.
+   (`tests/integration`, job `integration`, з 01.11), але сам автоматизований тест TP-11
+   (100 паралельних запитів → рівно 1 `201`) ще не написано й у CI не йде. Ризик R1, який
+   TP-11 має покрити, вручну підтверджено 5 прогонами проти реального PostgreSQL з
+   однаковим результатом (1 × 201, 99 × 409) — подробиці в примітці TP-11 у §5; ручна
+   перевірка не замінює автоматизований регресійний тест.
 2. **Покриття.** Ворота 90% сукупно для `api` і `unislot` (`scripts/run_lab06.py`); доменний
    модуль бронювання ≥ 70% (MAINT-001). Поріг 90% запропонував цей план у р. 2 (поріг тоді був 50%), запроваджено в #207.
 3. **Негативні сценарії.** Кожен із чотирьох модулів має щонайменше один зелений негативний
@@ -140,7 +143,7 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 | TP-08 | `tests/api/test_resources.py`: `test_patch_changes_only_sent_fields`, `test_patch_rejects_null_empty_and_type_change` | є | — |
 | TP-09 | `tests/api/test_rbac_decision_table.py` — 56 правил DT-01…DT-56 і перевірка повноти таблиці | є — #234 | правило «анонім → 401» закриває й V-01 (демо-автентифікація за замовчуванням, #177) |
 | TP-10 | `tests/api/test_privacy_sweep.py`; `tests/api/test_bookings.py::test_owner_sees_booking_others_get_403_without_data` | є — #236 | у р. 2 рядок мав стан «є», але тест перевіряв лише `GET /bookings/{id}` |
-| TP-11 | — | новий, поза CI — PostgreSQL 16 в CI вже є, тесту TP-11 ще немає | — |
+| TP-11 | — | новий, поза CI — PostgreSQL 16 в CI вже є, автоматизованого тесту TP-11 ще немає | ризик R1 вручну підтверджено 5 прогонами 100 паралельних POST проти реального PostgreSQL, завжди 1 × 201 + 99 × 409 — [`load-worker-calendar-audit.md`](../implementation/load-worker-calendar-audit.md), [`sql-concurrency-hardening.md`](../implementation/sql-concurrency-hardening.md), [`performance-completion.md`](../implementation/performance-completion.md) (3 прогони, 01.11); `fr-readiness-audit.md` це резюмує, нового прогону не додає. Ручна перевірка ≠ автотест: стан «новий» зміниться на «є», коли TP-11 стане pytest-тестом у CI |
 | TP-12 | `tests/unit/test_reminders.py` — 13 випадків | є (PR #232, CI `883ef7a` зелений) | межі 24 год, часові пояси, DST, наївний час і недодатний `lead` |
 | TP-13 | `tests/api/test_booking_reminders.py` — 9 сценаріїв | є (PR #232, CI `883ef7a` зелений) | **Nit Павла** — межу в §4 узгоджено з тестами: ≥ 24 год / < 24 год; див. «Бонус 3» |
 
