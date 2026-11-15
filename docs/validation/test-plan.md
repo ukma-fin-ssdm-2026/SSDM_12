@@ -274,7 +274,7 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 **Запуск:** `python scripts/check_traceability.py` (мапа «вимога → тести» —
 `python scripts/check_traceability.py --json traceability.json`).
 
-**Пояснення у відео:** @DziubakPavlo.
+**Пояснення у відео:** @DziubakPavlo — [посилання на відео](../../Labs/Lab07/video_pavlo_dziubak.txt).
 
 ### Бонус 2. Тести з техніки тест-дизайну (таблиця рішень SEC-002) — @asyakozulina
 
