@@ -1,1 +1,3 @@
 https://www.loom.com/share/77d58bf28a4a4fd5b518998bb0fb2d76
+
+Апдейт (виправлені цифри бонусу 5 за закритим вікном, PR #355): https://www.loom.com/share/9448f0ed157244e1a8400b4d984d8361
