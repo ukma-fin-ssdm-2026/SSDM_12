@@ -141,7 +141,7 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 | TP-06 | `tests/api/test_slots.py::test_overlap_rejected_adjacent_allowed` | є | — |
 | TP-07 | `tests/unit/test_resource_rules.py` (усі), `tests/unit/test_resource_service.py::test_service_boundary_rejects_invalid_capacity_without_http` | є (з Лаб 6, #190) | вцілілий мутант `is` → `==` на StrEnum — `lab06/mutation-report.md` |
 | TP-08 | `tests/api/test_resources.py`: `test_patch_changes_only_sent_fields`, `test_patch_rejects_null_empty_and_type_change` | є | — |
-| TP-09 | `tests/api/test_rbac_decision_table.py` — 56 правил DT-01…DT-56 і перевірка повноти таблиці | є — #234 | правило «анонім → 401» закриває й V-01 (демо-автентифікація за замовчуванням, #177) |
+| TP-09 | `tests/api/test_rbac_decision_table.py` — 56 правил бонусу 2 (DT-01…DT-56) і перевірка повноти таблиці; файл згодом виріс до 128 правил (DT-57…DT-128 — розширення @dysett під інші ендпоінти, поза TP-09/бонусом 2, див. «Бонус 2») | є — #234 | правило «анонім → 401» закриває й V-01 (демо-автентифікація за замовчуванням, #177) |
 | TP-10 | `tests/api/test_privacy_sweep.py`; `tests/api/test_bookings.py::test_owner_sees_booking_others_get_403_without_data` | є — #236 | у р. 2 рядок мав стан «є», але тест перевіряв лише `GET /bookings/{id}` |
 | TP-11 | — | новий, поза CI — PostgreSQL 16 в CI вже є, автоматизованого тесту TP-11 ще немає | ризик R1 вручну підтверджено 5 прогонами 100 паралельних POST проти реального PostgreSQL, завжди 1 × 201 + 99 × 409 — [`load-worker-calendar-audit.md`](../implementation/load-worker-calendar-audit.md), [`sql-concurrency-hardening.md`](../implementation/sql-concurrency-hardening.md), [`performance-completion.md`](../implementation/performance-completion.md) (3 прогони, 01.11); `fr-readiness-audit.md` це резюмує, нового прогону не додає. Ручна перевірка ≠ автотест: стан «новий» зміниться на «є», коли TP-11 стане pytest-тестом у CI |
 | TP-12 | `tests/unit/test_reminders.py` — 13 випадків | є (PR #232, CI `883ef7a` зелений) | межі 24 год, часові пояси, DST, наївний час і недодатний `lead` |
@@ -157,7 +157,7 @@ US-001 у `rtm.md` §1 — сам TC-002 цієї NFR не згадує, але 
 |---|---|---|
 | Аналіз граничних значень | TP-01, TP-04, TP-07, TP-12 | граничний час скасування «рівно в» і «+1 мкс»; горизонт рівно 14 днів і +1 мкс; місткість 1 і 1000 проти 0 і 1001; бронювання рівно за 24 год і за 24 год − 1 мкс |
 | Еквівалентне розбиття | TP-02, TP-07 | бронювань нижче ліміту, на ліміті, понад ліміт; місткість — від'ємна, нуль, допустима, не ціле число |
-| Таблиця рішень | TP-09 | «роль × операція × власник»: 56 правил, кожне — окремий випадок тесту (бонус 2) |
+| Таблиця рішень | TP-09 | «роль × операція × власник»: 56 правил бонусу 2, кожне — окремий випадок тесту; файл зараз має 128 правил разом із пізнішим розширенням поза бонусом (див. «Бонус 2») |
 | Переходи між станами | TP-13 | бронювання з нагадуванням: створено → скасовано (нагадування зникає), створено → перенесено (старе зникає, нове планується або ні) |
 | Тести на основі властивостей | D-01, `tests/property/test_cursor_shapes.py` | Hypothesis: 100 неправильних значень `i` курсора дають 422, а не 500 |
 
@@ -330,6 +330,51 @@ DT-16, DT-21); провайдер і чужий ресурс (DT-55); адмін
 DT-13, DT-18, DT-23, DT-27, DT-47) — адміністратор не «може все».
 
 **Пояснення у відео:** @asyakozulina — [відео](https://www.loom.com/share/92aaca22775549388649c8f86e9d8ef0).
+
+**Розширення файлу поза бонусом (@dysett, коміт `b604865`, 01.11).** Той самий
+`test_rbac_decision_table.py` згодом отримав ще 72 правила (DT-57…DT-128) для операцій,
+яких на момент бонусу 2 не було: керування ролями користувачів, політики доступу,
+блокування провайдером, шаблони, `/me/notifications`, `/auth/logout`, `/admin/users`,
+`/admin/audit`. Це розширення самого механізму таблиці під нові ендпоінти Лаб 7–8, а не
+частина бонусу 2 — Аксенії тут нічого захищати, авторство лишається за Денисом.
+
+| Операція | Анонім | Студент | Провайдер | Провайдер, чужий ресурс | Адміністратор |
+|---|---|---|---|---|---|
+| `PUT /admin/users/{user_id}/roles/{role}` | DT-57 → 401 `AUTH_REQUIRED` | DT-58 → 403 `FORBIDDEN_ROLE` | DT-59 → 403 `FORBIDDEN_ROLE` | — | DT-60 → 200 |
+| `DELETE /admin/users/{user_id}/roles/{role}` | DT-61 → 401 `AUTH_REQUIRED` | DT-62 → 403 `FORBIDDEN_ROLE` | DT-63 → 403 `FORBIDDEN_ROLE` | — | DT-64 → 200 |
+| `GET /admin/policies/current` | DT-65 → 401 `AUTH_REQUIRED` | DT-66 → 403 `FORBIDDEN_ROLE` | DT-67 → 403 `FORBIDDEN_ROLE` | — | DT-68 → 200 |
+| `PUT /admin/policies/current` | DT-69 → 401 `AUTH_REQUIRED` | DT-70 → 403 `FORBIDDEN_ROLE` | DT-71 → 403 `FORBIDDEN_ROLE` | — | DT-72 → 200 |
+| `POST /resources/{resource_id}/blocks` | DT-73 → 401 `AUTH_REQUIRED` | DT-74 → 403 `FORBIDDEN_ROLE` | DT-75 → 201 | DT-76 → 403 `NOT_OWNER` | DT-77 → 403 `FORBIDDEN_ROLE` |
+| `DELETE /resources/{resource_id}/blocks/{block_id}` | DT-78 → 401 `AUTH_REQUIRED` | DT-79 → 403 `FORBIDDEN_ROLE` | DT-80 → 204 | DT-81 → 403 `NOT_OWNER` | DT-82 → 403 `FORBIDDEN_ROLE` |
+| `PUT /resources/{resource_id}/templates/{template_id}` | DT-83 → 401 `AUTH_REQUIRED` | DT-84 → 403 `FORBIDDEN_ROLE` | DT-85 → 201 | DT-86 → 403 `NOT_OWNER` | DT-87 → 403 `FORBIDDEN_ROLE` |
+| `GET /resources/{resource_id}/templates/{template_id}` | DT-88 → 401 `AUTH_REQUIRED` | DT-89 → 403 `FORBIDDEN_ROLE` | DT-90 → 404¹ | DT-91 → 403 `NOT_OWNER` | DT-92 → 403 `FORBIDDEN_ROLE` |
+| `GET /me/notifications` | DT-93 → 401 `AUTH_REQUIRED` | DT-94 → 200 | DT-95 → 200 | — | DT-96 → 200 |
+| `POST /auth/logout` | DT-97 → 401 `AUTH_REQUIRED` | DT-98 → 204 | DT-99 → 204 | — | DT-100 → 204 |
+| `GET /admin/users` | DT-101 → 401 `AUTH_REQUIRED` | DT-102 → 403 `FORBIDDEN_ROLE` | DT-103 → 403 `FORBIDDEN_ROLE` | — | DT-104 → 200 |
+| `GET /resources/{resource_id}/slots` | DT-105 → 401 `AUTH_REQUIRED` | DT-106 → 403 `FORBIDDEN_ROLE` | DT-107 → 200 | DT-108 → 403 `NOT_OWNER` | DT-109 → 403 `FORBIDDEN_ROLE` |
+| `GET /resources/{resource_id}/templates` | DT-110 → 401 `AUTH_REQUIRED` | DT-111 → 403 `FORBIDDEN_ROLE` | DT-112 → 200 | DT-113 → 403 `NOT_OWNER` | DT-114 → 403 `FORBIDDEN_ROLE` |
+| `GET /resources/{resource_id}/blocks` | DT-115 → 401 `AUTH_REQUIRED` | DT-116 → 403 `FORBIDDEN_ROLE` | DT-117 → 200 | DT-118 → 403 `NOT_OWNER` | DT-119 → 403 `FORBIDDEN_ROLE` |
+| `GET /resources/{resource_id}/calendar` | DT-120 → 401 `AUTH_REQUIRED` | DT-121 → 403 `FORBIDDEN_ROLE` | DT-122 → 200 | DT-123 → 403 `NOT_OWNER` | DT-124 → 403 `FORBIDDEN_ROLE` |
+| `GET /admin/audit` | DT-125 → 401 `AUTH_REQUIRED` | DT-126 → 403 `FORBIDDEN_ROLE` | DT-127 → 403 `FORBIDDEN_ROLE` | — | DT-128 → 200 |
+
+¹ **DT-90** — єдине правило всієї таблиці поза поділом «дозволене / заборонене»: провайдер
+отримує 404, не 200 чи 403. Тест лише звіряє код відповіді, тож він зелений, але метрика
+SEC-002 (яка враховує тільки 401/403) цей рядок не рахує ні дозволеним, ні забороненим.
+Чи це свідомий «template_id не належить цьому ресурсу» кейс, чи недогляд фікстури — код
+не документує; варто уточнити в @dysett, а не вгадувати.
+
+**Підсумок розширення.** 72 правила — 19 дозволених, 52 заборонених (16 × 401
+`AUTH_REQUIRED`, 28 × 403 `FORBIDDEN_ROLE`, 8 × 403 `NOT_OWNER`), і DT-90 поза поділом.
+Перевірено прямим відтворенням логіки `RULES` з коду на коміті `b604865` — не оцінкою й не
+з пам'яті.
+
+**Разом по файлу (бонус 2 + розширення).** 128 правил — 40 дозволених, 87 заборонених
+(29 × 401, 46 × 403 `FORBIDDEN_ROLE`, 12 × 403 `NOT_OWNER`), 1 поза поділом (DT-90). Саме
+**87**, а не 35, зараз пише `junit.xml` (`sec002_forbidden_rules`) — це сума обох частин,
+а не регресія бонусу 2: усі 35 правил Аксенії (DT-01…DT-56) усе ще зелені й заборонені так
+само, як описано вище.
+[Зелений прогін](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/43700584622/job/132770614489)
+на коміті `11bd3d6` (15.11).
 
 ### Бонус 3. Тести як специфікація для агента — @dysett
 
