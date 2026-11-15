@@ -41,7 +41,7 @@ jobs:
 
       # tests/unit/test_web_client.py runs the browser client tests with Node.js.
       - name: Set up Node.js for client tests
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
