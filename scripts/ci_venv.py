@@ -50,7 +50,7 @@ SCHEMA = "ssdm12-venv-v1"
 MARKER = ".ready"
 NAME = re.compile(r"^venv-[0-9a-f]{16}$")
 SCOPE = re.compile(r"^[a-z_]{1,32}$")
-INCLUDE = re.compile(r"^\s*(?:-r|--requirement)\s*=?\s*(\S+)")
+INCLUDE = re.compile(r"^\s*(?:-r|--requirement)\s*+=?\s*+(\S+)")
 
 
 class VenvError(RuntimeError):
