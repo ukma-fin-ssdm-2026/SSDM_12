@@ -592,6 +592,11 @@ PR #336 дала 839 passed і 3 skipped у швидкому наборі, 96 pa
 перед публікацією. У закритому вікні 11.11–14.11 опубліковано **19 образів** — усі зі злитих PR
 Лаб 10 (#332…#350).
 
+**Сторінка пакета:** [ghcr.io/ukma-fin-ssdm-2026/ssdm_12](https://github.com/ukma-fin-ssdm-2026/SSDM_12/pkgs/container/ssdm_12)
+(package: container, видно лише учасникам репозиторію — пакет приватний; URL обчислюється самим
+workflow в `$GITHUB_STEP_SUMMARY` кожного запуску: `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pkgs/container/${IMAGE##*/}`,
+звірено з логом запуску [#43868179004](https://github.com/ukma-fin-ssdm-2026/SSDM_12/actions/runs/43868179004), `IMAGE=ghcr.io/ukma-fin-ssdm-2026/ssdm_12`).
+
 **Метрики за двома визначеннями розгортання, те саме вікно:**
 
 | Метрика | Визначення 1: зелений `CI` на `main` | Визначення 2: опублікований образ у ghcr.io |
